@@ -532,7 +532,7 @@ class InventoryItem {
   );
 }
 
-enum UserRole { admin, cashier }
+enum UserRole { admin, seller }
 
 class User {
   final String id;

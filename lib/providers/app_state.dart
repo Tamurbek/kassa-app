@@ -337,8 +337,22 @@ class AppState extends ChangeNotifier {
         pin: '1234',
         role: UserRole.admin,
       );
+      final seller1 = User(
+        id: 'seller1',
+        name: 'Sotuvchi 1',
+        pin: '1111',
+        role: UserRole.seller,
+      );
+      final seller2 = User(
+        id: 'seller2',
+        name: 'Sotuvchi 2',
+        pin: '2222',
+        role: UserRole.seller,
+      );
       await DatabaseService.saveUser(admin);
-      users.add(admin);
+      await DatabaseService.saveUser(seller1);
+      await DatabaseService.saveUser(seller2);
+      users.addAll([admin, seller1, seller2]);
     }
   }
 
@@ -424,6 +438,27 @@ class AppState extends ChangeNotifier {
         barcode: '666666',
         stocks: {'w1': 200, 'w2': 100},
         unit: 'kg',
+      ),
+    );
+    // Additional products for professionalism
+    await DatabaseService.saveProduct(
+      Product(
+        id: 'p7',
+        name: 'Mineral suv 0.5L',
+        price: 3000,
+        categoryId: 'c1',
+        barcode: '777777',
+        stocks: {'w1': 150, 'w2': 50},
+      ),
+    );
+    await DatabaseService.saveProduct(
+      Product(
+        id: 'p8',
+        name: 'Non (Yopgan)',
+        price: 5000,
+        categoryId: 'c3',
+        barcode: '888888',
+        stocks: {'w1': 100, 'w2': 0},
       ),
     );
   }

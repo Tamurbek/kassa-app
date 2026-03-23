@@ -254,7 +254,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       crossAxisCount: crossAxisCount,
       crossAxisSpacing: 24,
       mainAxisSpacing: 24,
-      childAspectRatio: width < 1400 ? 1.6 : 2.0,
+      childAspectRatio: width < 1400 ? 1.3 : 1.6,
       children: [
         _buildStatCard(
           context,
@@ -369,9 +369,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
           ),
           SizedBox(height: 2),
-          Text(
-            value,
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              value,
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
+            ),
           ),
         ],
       ),

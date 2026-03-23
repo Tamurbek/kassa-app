@@ -159,7 +159,7 @@ class EmployeeScreen extends StatelessWidget {
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                 ),
                 Text(
-                  isAdmin ? 'Administrator' : 'Kassir',
+                  isAdmin ? 'Administrator' : 'Sotuvchi',
                   style: TextStyle(color: Colors.grey.shade500, fontSize: 13),
                 ),
               ],
@@ -193,7 +193,7 @@ class EmployeeScreen extends StatelessWidget {
   void _showAddUserDialog(BuildContext context, AppState state) {
     final nameCtrl = TextEditingController();
     final pinCtrl = TextEditingController();
-    UserRole selectedRole = UserRole.cashier;
+    UserRole selectedRole = UserRole.seller;
 
     showDialog(
       context: context,
@@ -220,8 +220,8 @@ class EmployeeScreen extends StatelessWidget {
                 items: const [
                   DropdownMenuItem(value: UserRole.admin, child: Text('Admin')),
                   DropdownMenuItem(
-                    value: UserRole.cashier,
-                    child: Text('Kassir'),
+                    value: UserRole.seller,
+                    child: Text('Sotuvchi'),
                   ),
                 ],
                 onChanged: (val) => setDialogState(() => selectedRole = val!),
