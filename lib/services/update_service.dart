@@ -7,7 +7,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:open_app_file/open_app_file.dart';
 
 class UpdateService {
-  static const String _activationServerUrl = "https://web-production-afb90.up.railway.app";
+  static const String _activationServerUrl = "https://web-production-d2ed7.up.railway.app";
 
   static Future<Map<String, dynamic>?> checkUpdate() async {
     try {

@@ -43,7 +43,7 @@ class _AppUpdateDialogState extends State<AppUpdateDialog> {
   String? errorMessage;
 
   String _getDownloadUrl() {
-    const activationServerUrl = "https://web-production-afb90.up.railway.app";
+    const activationServerUrl = "https://web-production-d2ed7.up.railway.app";
     return widget.url.startsWith('http') ? widget.url : "$activationServerUrl${widget.url}";
   }
 

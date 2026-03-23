@@ -1904,7 +1904,7 @@ class AppState extends ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
 
     if (online) {
-      const backendUrl = "https://web-production-afb90.up.railway.app/verify";
+      const backendUrl = "https://web-production-d2ed7.up.railway.app/verify";
       try {
         final response = await http
             .post(
@@ -1968,7 +1968,7 @@ class AppState extends ChangeNotifier {
     if (!isActivated || activationCode == null) return;
 
     try {
-      const backendUrl = "https://web-production-afb90.up.railway.app/verify";
+      const backendUrl = "https://web-production-d2ed7.up.railway.app/verify";
       final response = await http
           .post(
             Uri.parse(backendUrl),
@@ -2042,7 +2042,7 @@ class AppState extends ChangeNotifier {
     final file = File(dbPath);
     if (!await file.exists()) throw Exception('Baza fayli topilmadi');
 
-    const uploadUrl = "https://web-production-afb90.up.railway.app/backup";
+    const uploadUrl = "https://web-production-d2ed7.up.railway.app/backup";
 
     try {
       var request = http.MultipartRequest(
@@ -2066,7 +2066,7 @@ class AppState extends ChangeNotifier {
     }
 
     final downloadUrl =
-        "https://web-production-afb90.up.railway.app/backup/$activationCode";
+        "https://web-production-d2ed7.up.railway.app/backup/$activationCode";
 
     try {
       final response = await http
@@ -2095,7 +2095,7 @@ class AppState extends ChangeNotifier {
       throw Exception('Dastur faollashtirilmagan');
     }
 
-    const url = "https://web-production-afb90.up.railway.app/update_org_info";
+    const url = "https://web-production-d2ed7.up.railway.app/update_org_info";
     
     Map<String, String> queryParams = {"activation_code": activationCode!};
     if (name != null) queryParams["name"] = name;
