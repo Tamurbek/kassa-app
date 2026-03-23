@@ -1931,8 +1931,12 @@ class AppState extends ChangeNotifier {
           await prefs.setString('organizationAddress', organizationAddress!);
           await prefs.setString('instagramUsername', instagramUsername!);
 
-          // Attempt cloud restore after activation
-          await restoreDatabaseFromCloud();
+          // Attempt cloud restore after activation (professional: don't fail if no backup exists yet)
+          try {
+            await restoreDatabaseFromCloud();
+          } catch (e) {
+            debugPrint("Initial cloud restore (no backup yet): $e");
+          }
 
           notifyListeners();
         } else if (response.statusCode == 403) {
@@ -2081,9 +2085,10 @@ class AppState extends ChangeNotifier {
         await loadSettings();
         notifyListeners();
       } else if (response.statusCode == 404) {
-        throw Exception('Ushbu account uchun zaxira topilmadi');
+        // Professional: If not found, it's just a fresh account, not an error
+        debugPrint('Cloud backup not found for this account (ignore if brand new)');
       } else {
-        throw Exception('Zaxira yuklab bo\'lmadi');
+        throw Exception('Bulutdan zaxirani yuklab bo\'lmadi (Server xatosi: ${response.statusCode})');
       }
     } catch (e) {
       rethrow;
