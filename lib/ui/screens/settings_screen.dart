@@ -8,6 +8,7 @@ import 'warehouse_management_screen.dart';
 import '../../services/update_service.dart';
 import 'package:file_picker/file_picker.dart';
 import 'receipt_designer_screen.dart';
+import '../dialogs/app_update_dialog.dart';
 
 class SettingsScreen extends StatelessWidget {
   final VoidCallback? onMenuPressed;
@@ -952,26 +953,7 @@ class SettingsScreen extends StatelessWidget {
   }
 
   void _showUpdateDialog(BuildContext context, String version, String url) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Yangi versiya mavjud'),
-        content: Text('Simple Sale v$version mavjud. Yuklab olishni xohlaysizmi?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Keyinroq'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              UpdateService.openDownloadPage(url);
-            },
-            child: const Text('Yuklab olish'),
-          ),
-        ],
-      ),
-    );
+    AppUpdateDialog.show(context, version, url);
   }
 
   void _showReceiptWidthPicker(BuildContext context, AppState state) {
