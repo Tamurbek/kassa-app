@@ -309,12 +309,6 @@ class AppState extends ChangeNotifier {
     await loadSettings();
   }
 
-  Future<void> resetTerminalMode() async {
-    await clearAllData();
-    initializationError = null;
-    isInitialized = true;
-    notifyListeners();
-  }
 
   Future<void> _loadFromDb() async {
     // Load settings from DB (overrides SharedPreferences if exists)
@@ -1039,19 +1033,10 @@ class AppState extends ChangeNotifier {
   }
 
   Future<void> resetTerminalMode() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('isMaster');
-    await prefs.remove('masterAddress');
-    await prefs.remove('masterPassword');
-
+    await clearAllData();
     SyncService.stopServer();
-    isMaster = null;
-    masterAddress = null;
-    masterPassword = null;
-    currentUser = null;
     initializationError = null;
     isInitialized = true;
-
     notifyListeners();
   }
 

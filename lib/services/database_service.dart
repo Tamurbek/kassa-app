@@ -23,8 +23,9 @@ class DatabaseService {
   static Future<void> closeDatabase() async {
     if (_db != null && _db!.isOpen) {
       await _db!.close();
-      _db = null;
     }
+    _db = null;
+    _initFuture = null;
   }
 
   static Future<void> replaceDatabase(File newFile) async {
