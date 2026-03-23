@@ -303,10 +303,17 @@ class AppState extends ChangeNotifier {
   }
 
   Future<void> retryInitialization() async {
-    isInitialized = false;
     initializationError = null;
+    isInitialized = false;
     notifyListeners();
     await loadSettings();
+  }
+
+  Future<void> resetTerminalMode() async {
+    await clearAllData();
+    initializationError = null;
+    isInitialized = true;
+    notifyListeners();
   }
 
   Future<void> _loadFromDb() async {
@@ -749,6 +756,8 @@ class AppState extends ChangeNotifier {
         masterPassword = password;
       }
       isMaster = true;
+      isActivated = false; // Always require activation on Master setup
+      activationCode = null;
       _startServer();
     }
 
@@ -2225,28 +2234,47 @@ class AppState extends ChangeNotifier {
       throw Exception('Dastur faollashtirilmagan');
     }
 
-    final downloadUrl =
-        "https://web-production-d2ed7.up.railway.app/backup/$activationCode";
+    final downloadUrl = "https://web-production-d2ed7.up.railway.app/backup/$activationCode";
+    debugPrint("Restoring from cloud: $downloadUrl");
 
     try {
       final response = await http
           .get(Uri.parse(downloadUrl))
-          .timeout(const Duration(seconds: 30));
+          .timeout(const Duration(seconds: 45));
 
       if (response.statusCode == 200) {
-        final tempDir = await getTemporaryDirectory();
-        final tempFile = File(join(tempDir.path, 'restore.db'));
+        if (response.bodyBytes.isEmpty) {
+           throw Exception('Serverdan bo\'sh fayl keldi');
+        }
+        
+        final supportDir = await getApplicationSupportDirectory();
+        final tempFile = File(join(supportDir.path, 'cloud_restore_temp.db'));
+        
+        // Ensure directory exists
+        if (!await supportDir.exists()) {
+          await supportDir.create(recursive: true);
+        }
+        
         await tempFile.writeAsBytes(response.bodyBytes);
+        debugPrint("Cloud backup downloaded, size: ${response.bodyBytes.length} bytes");
+        
         await DatabaseService.replaceDatabase(tempFile);
+        
+        // Cleanup temp file
+        if (await tempFile.exists()) {
+          await tempFile.delete();
+        }
+        
         await loadSettings();
         notifyListeners();
+        debugPrint("Cloud restore successful");
       } else if (response.statusCode == 404) {
-        // Professional: If not found, it's just a fresh account, not an error
         debugPrint('Cloud backup not found for this account (ignore if brand new)');
       } else {
         throw Exception('Bulutdan zaxirani yuklab bo\'lmadi (Server xatosi: ${response.statusCode})');
       }
     } catch (e) {
+      debugPrint("Restore error detail: $e");
       rethrow;
     }
   }

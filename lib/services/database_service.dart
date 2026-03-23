@@ -28,8 +28,15 @@ class DatabaseService {
   }
 
   static Future<void> replaceDatabase(File newFile) async {
+    if (!await newFile.exists()) {
+      throw Exception("Tiklash uchun fayl topilmadi: ${newFile.path}");
+    }
     await closeDatabase();
     final path = await getDatabasePath();
+    final dbFile = File(path);
+    if (!await dbFile.parent.exists()) {
+      await dbFile.parent.create(recursive: true);
+    }
     await newFile.copy(path);
   }
 
