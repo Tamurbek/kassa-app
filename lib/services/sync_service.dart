@@ -175,7 +175,7 @@ class SyncService {
       return Response.notFound('Rasm topilmadi');
     });
 
-    _server = await io.serve(router.call, InternetAddress.anyIPv4, 8080);
+    _server = await io.serve(router.call, InternetAddress.anyIPv4, 8080, shared: true);
     print('Server ishga tushdi: ${_server!.address.address}:${_server!.port}');
   }
 

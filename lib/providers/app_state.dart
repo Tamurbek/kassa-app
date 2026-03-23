@@ -199,10 +199,11 @@ class AppState extends ChangeNotifier {
       deviceId = prefs.getString('deviceId') ?? Uuid().v4();
       await prefs.setString('deviceId', deviceId!);
       isActivated = prefs.getBool('isActivated') ?? false;
+      isBlocked = prefs.getBool('isBlocked') ?? false;
       activationCode = prefs.getString('activationCode');
-      organizationName = prefs.getString('organizationName') ?? 'Simple Sale';
-      organizationAddress = prefs.getString('organizationAddress') ?? '';
-      instagramUsername = prefs.getString('instagramUsername') ?? '';
+      organizationName = prefs.getString('organizationName') ?? 'test';
+      organizationAddress = prefs.getString('organizationAddress') ?? 'O\'zbekiston, Toshkent';
+      instagramUsername = prefs.getString('instagramUsername') ?? '@simplesale';
       organizationLogoPath = prefs.getString('organizationLogoPath');
 
       try {
