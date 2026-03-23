@@ -357,108 +357,228 @@ class AppState extends ChangeNotifier {
   }
 
   Future<void> _initializeDummyData() async {
-    final c1 = Category(id: 'c1', name: 'Ichimliklar');
-    final c2 = Category(id: 'c2', name: 'Taomlar');
-    final c3 = Category(id: 'c3', name: 'Non mahsulotlari');
+    // 1. Categories
+    final c1 = Category(id: 'c1', name: 'Energetiklar');
+    final c2 = Category(id: 'c2', name: 'Salqin Ichimliklar');
+    final c3 = Category(id: 'c3', name: 'Snacks (Yeguliklar)');
+    final c4 = Category(id: 'c4', name: 'Tezkor Taomlar');
+    final c5 = Category(id: 'c5', name: 'Shirinliklar');
 
     await DatabaseService.saveCategory(c1);
     await DatabaseService.saveCategory(c2);
     await DatabaseService.saveCategory(c3);
+    await DatabaseService.saveCategory(c4);
+    await DatabaseService.saveCategory(c5);
 
-    final w1 = Warehouse(id: 'w1', name: 'Asosiy Ombor');
+    // 2. Warehouses
+    final w1 = Warehouse(id: 'w1', name: 'Asosiy Ombor (Klub)');
     final w2 = Warehouse(id: 'w2', name: 'Zaxira Ombor');
 
     await DatabaseService.saveWarehouse(w1);
     await DatabaseService.saveWarehouse(w2);
 
+    // 3. Registers
     await DatabaseService.saveRegister(
-      Register(id: 'r1', name: 'Kassa 1', warehouseId: 'w1'),
+      Register(id: 'r1', name: 'Kassa 1 (Bar)', warehouseId: 'w1'),
     );
     await DatabaseService.saveRegister(
-      Register(id: 'r2', name: 'Kassa 2', warehouseId: 'w2'),
+      Register(id: 'r2', name: 'Kassa 2 (Vip)', warehouseId: 'w2'),
     );
 
+    // 4. Products - Energy Drinks
     await DatabaseService.saveProduct(
       Product(
         id: 'p1',
-        name: 'Coca-Cola 0.5L',
-        price: 6000,
+        name: 'Adrenaline Rush 0.5',
+        price: 25000,
+        costPrice: 18000,
         categoryId: 'c1',
-        barcode: '111111',
-        stocks: {'w1': 100, 'w2': 50},
+        barcode: '111100',
+        stocks: {'w1': 50, 'w2': 100},
       ),
     );
     await DatabaseService.saveProduct(
       Product(
         id: 'p2',
-        name: 'Osh (1 portsiya)',
-        price: 25000,
-        categoryId: 'c2',
-        barcode: '222222',
-        stocks: {'w1': 20, 'w2': 10},
+        name: 'Flash Up 0.5',
+        price: 13000,
+        costPrice: 9000,
+        categoryId: 'c1',
+        barcode: '111101',
+        stocks: {'w1': 100, 'w2': 200},
       ),
     );
     await DatabaseService.saveProduct(
       Product(
         id: 'p3',
-        name: 'Non',
-        price: 4000,
-        categoryId: 'c3',
-        barcode: '333333',
-        stocks: {'w1': 50, 'w2': 0},
+        name: 'Gorilla 0.5',
+        price: 15000,
+        costPrice: 11000,
+        categoryId: 'c1',
+        barcode: '111102',
+        stocks: {'w1': 80, 'w2': 150},
       ),
     );
+
+    // 5. Products - Beverages
     await DatabaseService.saveProduct(
       Product(
         id: 'p4',
-        name: 'Fanta 0.5L',
-        price: 6000,
-        categoryId: 'c1',
-        barcode: '444444',
-        stocks: {'w1': 80, 'w2': 40},
+        name: 'Coca-Cola 0.5L',
+        price: 8000,
+        costPrice: 5000,
+        categoryId: 'c2',
+        barcode: '222200',
+        stocks: {'w1': 120, 'w2': 300},
       ),
     );
     await DatabaseService.saveProduct(
       Product(
         id: 'p5',
-        name: 'Go\'sht (Mol)',
-        price: 95000,
+        name: 'Fanta 0.5L',
+        price: 8000,
+        costPrice: 5000,
         categoryId: 'c2',
-        barcode: '555555',
-        stocks: {'w1': 10, 'w2': 5},
-        unit: 'kg',
+        barcode: '222201',
+        stocks: {'w1': 100, 'w2': 200},
       ),
     );
     await DatabaseService.saveProduct(
       Product(
         id: 'p6',
-        name: 'Un',
-        price: 7000,
-        categoryId: 'c3',
-        barcode: '666666',
-        stocks: {'w1': 200, 'w2': 100},
-        unit: 'kg',
+        name: 'Pepsi 0.5L',
+        price: 8000,
+        costPrice: 5000,
+        categoryId: 'c2',
+        barcode: '222202',
+        stocks: {'w1': 100, 'w2': 200},
       ),
     );
-    // Additional products for professionalism
     await DatabaseService.saveProduct(
       Product(
         id: 'p7',
-        name: 'Mineral suv 0.5L',
-        price: 3000,
-        categoryId: 'c1',
-        barcode: '777777',
-        stocks: {'w1': 150, 'w2': 50},
+        name: 'Mineral suv (Chortoq)',
+        price: 4000,
+        costPrice: 2000,
+        categoryId: 'c2',
+        barcode: '222203',
+        stocks: {'w1': 200, 'w2': 500},
+      ),
+    );
+
+    // 6. Products - Snacks
+    await DatabaseService.saveProduct(
+      Product(
+        id: 'p8',
+        name: 'Lays 120g (Classic)',
+        price: 18000,
+        costPrice: 13000,
+        categoryId: 'c3',
+        barcode: '333300',
+        stocks: {'w1': 30, 'w2': 60},
       ),
     );
     await DatabaseService.saveProduct(
       Product(
-        id: 'p8',
-        name: 'Non (Yopgan)',
-        price: 5000,
+        id: 'p9',
+        name: 'Pringles 165g',
+        price: 35000,
+        costPrice: 28000,
         categoryId: 'c3',
-        barcode: '888888',
-        stocks: {'w1': 100, 'w2': 0},
+        barcode: '333301',
+        stocks: {'w1': 20, 'w2': 40},
+      ),
+    );
+    await DatabaseService.saveProduct(
+      Product(
+        id: 'p10',
+        name: 'Semochka (Oltin)',
+        price: 7000,
+        costPrice: 4000,
+        categoryId: 'c3',
+        barcode: '333302',
+        stocks: {'w1': 100, 'w2': 200},
+      ),
+    );
+    await DatabaseService.saveProduct(
+      Product(
+        id: 'p11',
+        name: 'Kurut (Dona)',
+        price: 1500,
+        costPrice: 800,
+        categoryId: 'c3',
+        barcode: '333303',
+        stocks: {'w1': 500, 'w2': 1000},
+      ),
+    );
+
+    // 7. Products - Fast Food
+    await DatabaseService.saveProduct(
+      Product(
+        id: 'p12',
+        name: 'Burger (Maxi)',
+        price: 28000,
+        costPrice: 18000,
+        categoryId: 'c4',
+        barcode: '444400',
+        stocks: {'w1': 20, 'w2': 0},
+      ),
+    );
+    await DatabaseService.saveProduct(
+      Product(
+        id: 'p13',
+        name: 'Hot-Dog (Sosiskali)',
+        price: 12000,
+        costPrice: 6000,
+        categoryId: 'c4',
+        barcode: '444401',
+        stocks: {'w1': 30, 'w2': 0},
+      ),
+    );
+    await DatabaseService.saveProduct(
+      Product(
+        id: 'p14',
+        name: 'Sendvich (Go\'shtli)',
+        price: 18000,
+        costPrice: 11000,
+        categoryId: 'c4',
+        barcode: '444402',
+        stocks: {'w1': 25, 'w2': 0},
+      ),
+    );
+
+    // 8. Products - Sweets
+    await DatabaseService.saveProduct(
+      Product(
+        id: 'p15',
+        name: 'Snickers 50g',
+        price: 8000,
+        costPrice: 5500,
+        categoryId: 'c5',
+        barcode: '555500',
+        stocks: {'w1': 100, 'w2': 200},
+      ),
+    );
+    await DatabaseService.saveProduct(
+      Product(
+        id: 'p16',
+        name: 'Twix 50g',
+        price: 8000,
+        costPrice: 5500,
+        categoryId: 'c5',
+        barcode: '555501',
+        stocks: {'w1': 100, 'w2': 200},
+      ),
+    );
+    await DatabaseService.saveProduct(
+      Product(
+        id: 'p17',
+        name: 'Orbit Sugarloss',
+        price: 5000,
+        costPrice: 3500,
+        categoryId: 'c5',
+        barcode: '555502',
+        stocks: {'w1': 200, 'w2': 400},
       ),
     );
   }
