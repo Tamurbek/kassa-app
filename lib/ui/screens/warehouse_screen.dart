@@ -162,24 +162,59 @@ class _WarehouseScreenState extends State<WarehouseScreen> {
     );
   }
 
+  Widget _buildWarehouseSelector(AppState state) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).scaffoldBackgroundColor.withOpacity(0.5),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Theme.of(context).dividerColor.withOpacity(0.5)),
+      ),
+      child: DropdownButton<String>(
+        value: selectedWarehouseId,
+        underline: const SizedBox(),
+        hint: const Text('Omborni tanlang'),
+        icon: Icon(Icons.keyboard_arrow_down_rounded, color: Theme.of(context).colorScheme.primary),
+        items: state.warehouses.map((w) => DropdownMenuItem(value: w.id, child: Text(w.name))).toList(),
+        onChanged: (val) => setState(() => selectedWarehouseId = val),
+      ),
+    );
+  }
+
   Widget _buildHeader(AppState state, bool isNarrow) {
     return Container(
-      padding: const EdgeInsets.all(24),
-      color: Theme.of(context).cardColor,
+      padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        border: Border(
+          bottom: BorderSide(color: Theme.of(context).dividerColor),
+        ),
+      ),
       child: Column(
         children: [
           Row(
             children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: Image.asset(
-                  'assets/icon.png',
-                  width: 40,
-                  height: 40,
-                  fit: BoxFit.cover,
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Theme.of(context).colorScheme.primary,
+                      Theme.of(context).colorScheme.secondary,
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
                 ),
+                child: const Icon(Icons.inventory_2_rounded, color: Colors.white, size: 28),
               ),
-              SizedBox(width: 16),
+              const SizedBox(width: 20),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -187,106 +222,174 @@ class _WarehouseScreenState extends State<WarehouseScreen> {
                     Text(
                       'Ombor Boshqaruvi',
                       style: TextStyle(
-                        fontSize: 24,
+                        fontSize: 28,
                         fontWeight: FontWeight.w900,
+                        letterSpacing: -0.5,
                         color: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
-                    Text(
-                      'Mahsulot qoldiqlarini nazorat qilish',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Theme.of(context).textTheme.bodySmall?.color,
-                      ),
+                    Row(
+                      children: [
+                        Container(
+                          width: 8,
+                          height: 8,
+                          decoration: const BoxDecoration(
+                            color: Colors.green,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Tizim faol: ${DateFormat('HH:mm').format(DateTime.now())}',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                            color: Theme.of(context).textTheme.bodySmall?.color?.withOpacity(0.7),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
               ),
               if (!isNarrow) ...[
-                SizedBox(
-                  width: 300,
-                  child: TextField(
-                    controller: _searchController,
-                    onChanged: (_) => setState(() {}),
-                    decoration: InputDecoration(
-                      hintText: 'Qidirish...',
-                      prefixIcon: Icon(
-                        Icons.search,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                      filled: true,
-                      fillColor: Theme.of(context).cardColor,
-                      contentPadding: const EdgeInsets.symmetric(vertical: 16),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(14),
-                        borderSide: BorderSide.none,
-                      ),
-                    ),
-                  ),
+                _buildModernAction(
+                  icon: Icons.add_rounded,
+                  label: 'Kirim',
+                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (c) => const StockEntryScreen())),
+                  color: Theme.of(context).colorScheme.primary,
                 ),
-                SizedBox(width: 16),
-                SizedBox(width: 16),
-                _buildActionButtons(state),
-              ],
-              if (widget.onMenuPressed != null) ...[
-                SizedBox(width: 16),
-                IconButton(
-                  icon: Icon(
-                    Icons.refresh_rounded,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                  onPressed: () => state.reloadData(),
-                  tooltip: 'Ma\'lumotlarni yangilash',
-                  style: IconButton.styleFrom(
-                    backgroundColor: Theme.of(
-                      context,
-                    ).colorScheme.primary.withOpacity(0.05),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
+                const SizedBox(width: 8),
+                _buildModernAction(
+                  icon: Icons.undo_rounded,
+                  label: 'Vazvrat',
+                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (c) => const ReturnScreen())),
+                  color: Colors.orange,
                 ),
-                SizedBox(width: 16),
-                IconButton(
-                  icon: Icon(
-                    Icons.menu_rounded,
-                    color: Theme.of(context).colorScheme.primary,
-                    size: 28,
-                  ),
-                  onPressed: widget.onMenuPressed,
-                  style: IconButton.styleFrom(
-                    backgroundColor: Theme.of(
-                      context,
-                    ).colorScheme.primary.withOpacity(0.05),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
+                const SizedBox(width: 8),
+                _buildModernAction(
+                  icon: Icons.remove_circle_rounded,
+                  label: 'Chiqit',
+                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (c) => const WriteOffScreen())),
+                  color: Colors.red,
                 ),
+                const SizedBox(width: 8),
+                _buildModernAction(
+                  icon: Icons.fact_check_rounded,
+                  label: 'Inventar',
+                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (c) => const InventoryScreen())),
+                  color: Colors.teal,
+                ),
+                const SizedBox(width: 8),
+                _buildModernAction(
+                  icon: Icons.swap_horiz_rounded,
+                  label: 'O\'tkazma',
+                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (c) => const StockTransferScreen())),
+                  color: Colors.indigo,
+                ),
+                const SizedBox(width: 8),
+                _buildModernAction(
+                  icon: Icons.qr_code_2_rounded,
+                  label: 'Shtrix-kod',
+                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (c) => const BarcodePrintScreen())),
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                const SizedBox(width: 12),
+                _buildModernAction(
+                  icon: Icons.refresh_rounded,
+                  onTap: () => state.reloadData(),
+                  color: Theme.of(context).dividerColor.withOpacity(0.05),
+                  iconColor: Theme.of(context).colorScheme.primary,
+                ),
+                if (widget.onMenuPressed != null) ...[
+                  const SizedBox(width: 8),
+                  _buildModernAction(
+                    icon: Icons.menu_rounded,
+                    onTap: widget.onMenuPressed!,
+                    color: Theme.of(context).dividerColor.withOpacity(0.05),
+                    iconColor: Theme.of(context).colorScheme.primary,
+                  ),
+                ],
               ],
             ],
           ),
           if (isNarrow) ...[
-            SizedBox(height: 16),
-            TextField(
-              controller: _searchController,
-              onChanged: (_) => setState(() {}),
-              decoration: InputDecoration(
-                hintText: 'Qidirish...',
-                prefixIcon: Icon(
-                  Icons.search,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-                filled: true,
-                fillColor: Theme.of(context).cardColor,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
+            const SizedBox(height: 24),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  _buildModernAction(
+                    icon: Icons.add_rounded,
+                    label: 'Kirim',
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (c) => const StockEntryScreen())),
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  const SizedBox(width: 12),
+                  _buildModernAction(
+                    icon: Icons.undo_rounded,
+                    label: 'Vazvrat',
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (c) => const ReturnScreen())),
+                    color: Colors.orange,
+                  ),
+                  const SizedBox(width: 12),
+                  _buildModernAction(
+                    icon: Icons.remove_circle_rounded,
+                    label: 'Chiqarish',
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (c) => const WriteOffScreen())),
+                    color: Colors.red,
+                  ),
+                ],
               ),
             ),
           ],
         ],
+      ),
+    );
+  }
+
+  Widget _buildModernAction({
+    required IconData icon,
+    String? label,
+    required VoidCallback onTap,
+    required Color color,
+    Color? iconColor,
+  }) {
+    final bool isDark = color.computeLuminance() < 0.5;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(14),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: EdgeInsets.symmetric(horizontal: label != null ? 18 : 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(14),
+          boxShadow: isDark ? [
+            BoxShadow(
+              color: color.withOpacity(0.3),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ] : null,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: iconColor ?? (isDark ? Colors.white : Theme.of(context).colorScheme.onSurface), size: 22),
+            if (label != null) ...[
+              const SizedBox(width: 10),
+              Text(
+                label,
+                style: TextStyle(
+                  color: isDark ? Colors.white : Theme.of(context).colorScheme.onSurface,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 14,
+                ),
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }
@@ -298,11 +401,7 @@ class _WarehouseScreenState extends State<WarehouseScreen> {
       return stock <= 5;
     }).length;
 
-    int crossAxisCount = width < 600
-        ? 1
-        : width < 1000
-        ? 2
-        : 3;
+    int crossAxisCount = width < 600 ? 1 : width < 1000 ? 2 : 3;
 
     return GridView.count(
       shrinkWrap: true,
@@ -315,237 +414,135 @@ class _WarehouseScreenState extends State<WarehouseScreen> {
         _buildStatCard(
           'Jami Mahsulotlar',
           totalProducts.toString(),
-          Icons.inventory_2,
-          Theme.of(context).colorScheme.primary,
+          Icons.inventory_2_rounded,
+          const [Color(0xFF6366F1), Color(0xFF4338CA)],
         ),
         _buildStatCard(
           'Kam qolganlar',
           lowStockCount.toString(),
           Icons.warning_amber_rounded,
-          Colors.orange,
+          const [Color(0xFFF59E0B), Color(0xFFD97706)],
         ),
         _buildStatCard(
           'Omborlar',
           state.warehouses.length.toString(),
-          Icons.warehouse,
-          Colors.teal,
+          Icons.warehouse_rounded,
+          const [Color(0xFF10B981), Color(0xFF059669)],
         ),
       ],
     );
   }
 
-  Widget _buildStatCard(
-    String title,
-    String value,
-    IconData icon,
-    Color color,
-  ) {
+  Widget _buildStatCard(String title, String value, IconData icon, List<Color> gradient) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
+        gradient: LinearGradient(colors: gradient, begin: Alignment.topLeft, end: Alignment.bottomRight),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Theme.of(context).dividerColor),
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: gradient[0].withOpacity(0.3),
+            blurRadius: 15,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Icon(icon, color: color, size: 24),
+          Icon(icon, color: Colors.white, size: 28),
+          const SizedBox(height: 16),
+          Text(
+            title,
+            style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 13, fontWeight: FontWeight.w600),
           ),
-          SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    color: Theme.of(context).textTheme.bodySmall?.color,
-                    fontWeight: FontWeight.w500,
-                    fontSize: 12,
-                  ),
-                ),
-                Text(
-                  value,
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w900,
-                    color: Theme.of(context).colorScheme.onSurface,
-                  ),
-                ),
-              ],
-            ),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w900, letterSpacing: -0.5),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildWarehouseSelector(AppState state) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Theme.of(context).dividerColor),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          value: selectedWarehouseId,
-          items: state.warehouses
-              .map((w) => DropdownMenuItem(value: w.id, child: Text(w.name)))
-              .toList(),
-          onChanged: (val) => setState(() => selectedWarehouseId = val),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildProductsList(
-    AppState state,
-    List<Product> products,
-    bool isNarrow,
-  ) {
+  Widget _buildProductsList(AppState state, List<Product> products, bool isNarrow) {
     return ListView.separated(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.all(20),
       itemCount: products.length,
-      separatorBuilder: (context, index) =>
-          const Divider(height: 1, indent: 24, endIndent: 24),
+      separatorBuilder: (context, index) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
         final product = products[index];
         final stock = product.stocks[selectedWarehouseId] ?? 0;
         final isLow = stock <= 5;
 
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-          child: Row(
-            children: [
-              Container(
-                width: 45,
-                height: 45,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surface,
-                  borderRadius: BorderRadius.circular(10),
-                  image: product.imagePath != null
-                      ? DecorationImage(
-                          image: FileImage(File(product.imagePath!)),
-                          fit: BoxFit.cover,
-                        )
-                      : null,
-                ),
-                child: product.imagePath == null
-                    ? Icon(
-                        Icons.inventory_2_outlined,
-                        color: Theme.of(context).textTheme.bodySmall?.color,
-                        size: 20,
-                      )
-                    : null,
-              ),
-              SizedBox(width: 16),
-              Expanded(
-                flex: 4,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      product.name,
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                      ),
-                    ),
-                    Text(
-                      state.categories
-                          .firstWhere(
-                            (c) => c.id == product.categoryId,
-                            orElse: () => Category(id: '', name: ''),
-                          )
-                          .name,
-                      style: TextStyle(
-                        color: Colors.grey.shade500,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              if (!isNarrow)
-                Expanded(
-                  flex: 3,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Barcode',
-                        style: TextStyle(color: Colors.grey, fontSize: 11),
-                      ),
-                      Text(
-                        product.barcode,
-                        style: TextStyle(
-                          fontWeight: FontWeight.w500,
-                          fontSize: 13,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: isLow
-                          ? Colors.red.withOpacity(0.1)
-                          : Colors.green.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      'Qoldiq: ${stock.toStringAsFixed(0)}',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                        color: isLow ? Colors.redAccent : Colors.green,
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 4),
-                  Text(
-                    '${NumberFormat.currency(locale: 'uz_UZ', symbol: '', decimalDigits: 0).format(product.price)} s',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
-                      color: Colors.grey,
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(width: 12),
-              IconButton(
-                icon: Icon(Icons.print_outlined, size: 20, color: Colors.teal),
-                onPressed: () => PrintService.printBarcodeLabel(
-                  product: product,
-                  printerName: state.barcodePrinterName,
-                ),
-                tooltip: 'Shtrix-kodni chop etish',
+        return Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).cardColor,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Theme.of(context).dividerColor.withOpacity(0.5)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.02),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
               ),
             ],
+          ),
+          child: ListTile(
+            contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+            leading: Container(
+              width: 50,
+              height: 50,
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primary.withOpacity(0.05),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: product.imagePath != null
+                  ? ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Image.file(File(product.imagePath!), fit: BoxFit.cover),
+                    )
+                  : Icon(Icons.shopping_bag_outlined, color: Theme.of(context).colorScheme.primary),
+            ),
+            title: Text(
+              product.name,
+              style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
+            ),
+            subtitle: Text(
+              product.barcode,
+              style: TextStyle(color: Theme.of(context).textTheme.bodySmall?.color, fontSize: 12),
+            ),
+            trailing: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: isLow ? Colors.red.withOpacity(0.1) : Colors.green.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    '${stock.toStringAsFixed(0)} ${product.unit}',
+                    style: TextStyle(
+                      color: isLow ? Colors.red : Colors.green[700],
+                      fontWeight: FontWeight.w900,
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '${NumberFormat.currency(locale: 'uz_UZ', symbol: '', decimalDigits: 0).format(product.price)} so\'m',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 12,
+                    color: Theme.of(context).textTheme.bodySmall?.color,
+                  ),
+                ),
+              ],
+            ),
           ),
         );
       },
@@ -792,15 +789,18 @@ class _WarehouseScreenState extends State<WarehouseScreen> {
               '$count ta tur',
               style: TextStyle(fontWeight: FontWeight.bold, color: color),
             ),
+            const SizedBox(width: 8),
             if (onEdit != null)
               IconButton(
-                icon: Icon(Icons.edit_outlined, color: Colors.blue, size: 20),
+                icon: Icon(Icons.edit_note_rounded, color: Colors.blue.shade700, size: 22),
                 onPressed: onEdit,
+                tooltip: 'Tahrirlash',
               ),
             if (onDelete != null)
               IconButton(
-                icon: Icon(Icons.cancel_outlined, color: Colors.grey, size: 20),
+                icon: Icon(Icons.delete_sweep_rounded, color: Colors.red.shade400, size: 22),
                 onPressed: onDelete,
+                tooltip: 'O\'chirish',
               ),
           ],
         ),

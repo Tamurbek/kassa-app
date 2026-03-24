@@ -366,6 +366,9 @@ class AppState extends ChangeNotifier {
   }
 
   Future<void> reloadData() async {
+    // Force recalculate stocks from documents to ensure 100% accuracy
+    await DatabaseService.recalculateStocks();
+
     categories = await DatabaseService.getCategories();
     products = await DatabaseService.getProducts();
     warehouses = await DatabaseService.getWarehouses();
@@ -1533,36 +1536,19 @@ class AppState extends ChangeNotifier {
 
   // --- Stock Entries ---
   Future<void> addStockEntry(StockEntry entry) async {
+    // 1. Save to DB (this now handles atomic STOCK updates internally)
     await DatabaseService.saveStockEntry(entry);
+    
+    // 2. Broadcast update to other terminals
     await _sendUpdate('stock_entry', entry.toJson());
 
-    // Update local stocks
-    for (var item in entry.items) {
-      final productIndex = products.indexWhere((p) => p.id == item.productId);
-      if (productIndex >= 0) {
-        final product = products[productIndex];
-        final currentStock = product.stocks[entry.warehouseId] ?? 0;
-        final newStock = currentStock + item.quantity;
-        // Update local stocks map
-        // Ensure Map is mutable and updated
-        final updatedStocks = Map<String, double>.from(product.stocks);
-        updatedStocks[entry.warehouseId] = newStock;
-        
-        // Replace product object to ensure Provider detects CHANGE
-        products[productIndex] = product.copyWith(stocks: updatedStocks);
-        
-        await DatabaseService.updateStock(
-          product.id,
-          entry.warehouseId,
-          newStock,
-        );
-      }
-    }
-
+    // 3. Add to local history list
     if (!stockEntries.any((se) => se.id == entry.id)) {
        stockEntries.insert(0, entry);
     }
-    notifyListeners();
+    
+    // 4. Force full reload of products and stocks from DB
+    await reloadData();
   }
 
   Future<void> addStockTransfer(StockTransfer transfer) async {
@@ -1944,43 +1930,22 @@ class AppState extends ChangeNotifier {
   }
 
   Future<void> updateStockEntry(StockEntry newEntry) async {
+    // 1. Delete and Revert stock in DB atomically
+    await DatabaseService.deleteStockEntry(newEntry.id);
+    
+    // 2. Save new entry and Apply stock in DB atomically
+    await DatabaseService.saveStockEntry(newEntry);
+    
+    // 3. Broadcast
+    await _sendUpdate('stock_entry', newEntry.toJson());
+
+    // 4. Update local list and REFRESH from DB
     final index = stockEntries.indexWhere((e) => e.id == newEntry.id);
     if (index >= 0) {
-      final oldEntry = stockEntries[index];
-      // 1. Revert Old
-      for (var item in oldEntry.items) {
-        final pIdx = products.indexWhere((p) => p.id == item.productId);
-        if (pIdx >= 0 && products[pIdx].trackStock) {
-          final p = products[pIdx];
-          p.stocks[oldEntry.warehouseId] =
-              (p.stocks[oldEntry.warehouseId] ?? 0) - item.quantity;
-          await DatabaseService.updateStock(
-            p.id,
-            oldEntry.warehouseId,
-            p.stocks[oldEntry.warehouseId]!,
-          );
-        }
-      }
-      // 2. Apply New
-      for (var item in newEntry.items) {
-        final pIdx = products.indexWhere((p) => p.id == item.productId);
-        if (pIdx >= 0 && products[pIdx].trackStock) {
-          final p = products[pIdx];
-          p.stocks[newEntry.warehouseId] =
-              (p.stocks[newEntry.warehouseId] ?? 0) + item.quantity;
-          await DatabaseService.updateStock(
-            p.id,
-            newEntry.warehouseId,
-            p.stocks[newEntry.warehouseId]!,
-          );
-        }
-      }
-      await DatabaseService.deleteStockEntry(newEntry.id);
-      await DatabaseService.saveStockEntry(newEntry);
-      await _sendUpdate('stock_entry', newEntry.toJson());
       stockEntries[index] = newEntry;
-      notifyListeners();
     }
+    
+    await reloadData();
   }
 
   Future<void> updateReturn(SaleReturn newReturn) async {

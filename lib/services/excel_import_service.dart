@@ -220,60 +220,85 @@ class ExcelImportService {
     var v = data.value;
     if (v is TextCellValue) return v.value.toString().trim();
     if (v is IntCellValue) return v.value.toString();
-    if (v is DoubleCellValue) return v.value.toString();
+    if (v is DoubleCellValue) {
+      String s = v.value.toString();
+      if (s.endsWith('.0')) return s.substring(0, s.length - 2);
+      return s;
+    }
     if (v is BoolCellValue) return v.value.toString();
     return v.toString().trim();
   }
 
-  static Future<void> importStockEntry(BuildContext context, String warehouseId) async {
+  static double _parseRobustDouble(String val) {
+    if (val.isEmpty) return 0.0;
+    // Remove everything except numbers, decimal points, commas, and minus signs
+    String clean = val.replaceAll(RegExp(r'[^0-9.,-]'), '').trim();
+    if (clean.isEmpty) return 0.0;
+    
+    // Handle European format (1.234,56 -> 1234.56)
+    if (clean.contains(',') && clean.contains('.')) {
+      if (clean.indexOf('.') < clean.indexOf(',')) {
+        // Point is thousand separator
+        clean = clean.replaceAll('.', '').replaceAll(',', '.');
+      } else {
+        // Comma is thousand separator
+        clean = clean.replaceAll(',', '');
+      }
+    } else {
+      // Just one separator
+      clean = clean.replaceAll(',', '.');
+    }
+    
+    return double.tryParse(clean) ?? 0.0;
+  }
+
+  static Future<List<StockEntryItem>?> parseStockEntryFile(BuildContext context) async {
     final state = Provider.of<AppState>(context, listen: false);
-
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['xlsx'],
-    );
-
-    if (result == null || result.files.single.path == null) return;
-
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => const Center(child: CircularProgressIndicator()),
-    );
-
+    
     try {
-      File file = File(result.files.single.path!);
-      var bytes = file.readAsBytesSync();
+      final file = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['xlsx'],
+      );
+
+      if (file == null || file.files.isEmpty) return null;
+
+      if (file == null || file.files.isEmpty) return null;
+
+      var bytes = File(file.files.first.path!).readAsBytesSync();
       var excel = Excel.decodeBytes(bytes);
 
-      Navigator.pop(context);
-
       if (excel.tables.isEmpty) {
-        _showError(context, 'Excel fayli bo\'sh');
-        return;
+        _showError(context, 'Excel bo\'sh');
+        return null;
       }
 
-      Sheet? sheet = excel.tables.values.first;
-      if (sheet == null || sheet.maxRows < 2) {
-        _showError(context, 'Ma\'lumotlar topilmadi');
-        return;
+      var sheet = excel.tables.values.first;
+      if (sheet.maxRows <= 1) {
+        _showError(context, 'Excelda ma\'lumotlar topilmadi');
+        return null;
       }
 
-      int barcodeIdx = -1, nameIdx = -1, qtyIdx = -1, costIdx = -1;
+      // 1. Identify headers
+      int barcodeIdx = -1;
+      int nameIdx = -1;
+      int qtyIdx = -1;
+      int costIdx = -1;
+
       var headerRow = sheet.rows[0];
       List<String> foundHeaders = [];
       for (int i = 0; i < headerRow.length; i++) {
-        String val = _getCellValue(headerRow[i]).toLowerCase();
-        foundHeaders.add(val);
-        if (val.contains('barcode') || val.contains('shtrix')) barcodeIdx = i;
-        else if (val.contains('nom') || val.contains('name')) nameIdx = i;
-        else if (val.contains('soni') || val.contains('qty') || val.contains('miqdor') || val.contains('son')) qtyIdx = i;
-        else if (val.contains('tan') || val.contains('cost')) costIdx = i;
+        String h = _getCellValue(headerRow[i]).toLowerCase().trim();
+        foundHeaders.add(h);
+        if (h.contains('shtrix') || h.contains('barcode') || h.contains('barkod')) barcodeIdx = i;
+        if (h.contains('nomi') || h.contains('mahsulot') || h.contains('name')) nameIdx = i;
+        if (h.contains('soni') || h.contains('miqdor') || h.contains('qty') || h.contains('son')) qtyIdx = i;
+        if (h.contains('tannarx') || h.contains('cost') || h.contains('narxi')) costIdx = i;
       }
 
       if (qtyIdx == -1 || (barcodeIdx == -1 && nameIdx == -1)) {
         _showError(context, 'Kerakli ustunlar topilmadi (Shtrix kod yoki Nom, va Soni)');
-        return;
+        return null;
       }
 
       List<StockEntryItem> items = [];
@@ -281,23 +306,25 @@ class ExcelImportService {
 
       for (int i = 1; i < sheet.maxRows; i++) {
         var row = sheet.rows[i];
+        if (row.isEmpty) continue;
+
         String barcode = barcodeIdx != -1 && row.length > barcodeIdx ? _getCellValue(row[barcodeIdx]) : '';
         String name = nameIdx != -1 && row.length > nameIdx ? _getCellValue(row[nameIdx]) : '';
         String qtyStr = qtyIdx != -1 && row.length > qtyIdx ? _getCellValue(row[qtyIdx]) : '0';
         String costStr = costIdx != -1 && row.length > costIdx ? _getCellValue(row[costIdx]) : '0';
         
-        // Remove spaces and handle commas for numeric parsing
-        double qty = double.tryParse(qtyStr.replaceAll(' ', '').replaceAll(',', '.')) ?? 0.0;
-        double cost = double.tryParse(costStr.replaceAll(' ', '').replaceAll(',', '.')) ?? 0.0;
+        double qty = _parseRobustDouble(qtyStr);
+        double cost = _parseRobustDouble(costStr);
 
+        if (barcode.isEmpty && name.isEmpty) continue;
         if (qty <= 0) continue;
 
         Product? product;
         if (barcode.isNotEmpty) {
-           product = state.products.where((p) => p.barcode == barcode || p.additionalBarcodes.contains(barcode)).firstOrNull;
+           product = state.activeProducts.where((p) => p.barcode == barcode || p.additionalBarcodes.contains(barcode)).firstOrNull;
         }
         if (product == null && name.isNotEmpty) {
-           product = state.products.where((p) => p.name.toLowerCase() == name.toLowerCase()).firstOrNull;
+           product = state.activeProducts.where((p) => p.name.toLowerCase() == name.toLowerCase()).firstOrNull;
         }
 
         if (product != null) {
@@ -307,11 +334,7 @@ class ExcelImportService {
             quantity: qty,
           ));
           if (cost > 0) {
-            final idx = state.products.indexOf(product);
-            if (idx >= 0) {
-               state.products[idx] = product.copyWith(costPrice: cost);
-               await DatabaseService.updateProductCostPrice(product.id, cost);
-            }
+             await DatabaseService.updateProductCostPrice(product.id, cost);
           }
         } else {
           skipCount++;
@@ -319,16 +342,32 @@ class ExcelImportService {
       }
 
       if (items.isEmpty) {
-        String msg = 'Exceldan ma\'lumot o\'qib bo\'lmadi.\n'
+        String msg = 'Exceldan mos mahsulotlar topilmadi.\n'
                     'Tizim aniqlagan ustunlar: $foundHeaders\n'
-                    'Soni ustuni: ${qtyIdx != -1 ? 'D' : 'TOPILMADI'}\n'
                     'Tekshiring:\n'
-                    '- Soni ustunida raqam yozilganmi?\n'
                     '- Mahsulotlar bazada bormi? ($skipCount ta topilmadi)';
         _showError(context, msg);
-        return;
+        return null;
       }
 
+      if (skipCount > 0) {
+        _showSuccess(context, '${items.length} ta mahsulot yuklandi. $skipCount ta mahsulot bazadan topilmadi.');
+      }
+
+      return items;
+    } catch (e) {
+      _showError(context, 'Excel o\'qishda xato: $e');
+      return null;
+    }
+  }
+
+  static Future<void> importStockEntry(BuildContext context, String warehouseId) async {
+    final state = Provider.of<AppState>(context, listen: false);
+
+    List<StockEntryItem>? items = await parseStockEntryFile(context);
+    if (items == null || items.isEmpty) return;
+
+    try {
       final entry = StockEntry(
         id: const Uuid().v4(),
         warehouseId: warehouseId,
@@ -339,11 +378,11 @@ class ExcelImportService {
 
       await state.addStockEntry(entry);
       await state.reloadData();
-      _showSuccess(context, '${items.length} ta mahsulot kirim qilindi. ($skipCount ta topilmadi)');
-
+      if (Navigator.canPop(context)) Navigator.pop(context); // Close loading indicator
+      _showSuccess(context, '${items.length} ta mahsulot muvaffaqiyatli kirim qilindi.');
     } catch (e) {
       if (Navigator.canPop(context)) Navigator.pop(context);
-      _showError(context, 'Xatolik: $e');
+      _showError(context, 'Kirim qilishda xatolik: $e');
     }
   }
 
@@ -354,7 +393,7 @@ class ExcelImportService {
     List<String>? selectedCategoryIds = await showDialog<List<String>>(
       context: context,
       builder: (context) {
-        List<String> selected = [];
+        List<String> selected = allCategories.map((c) => c.id).toList();
         return StatefulBuilder(
           builder: (context, setDialogState) => AlertDialog(
             title: const Text('Kategoriyalarni tanlang'),
@@ -364,10 +403,21 @@ class ExcelImportService {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   const Text('Shablonda qaysi turdagi mahsulotlar bo\'lishini xohlaysiz?'),
-                  const SizedBox(height: 10),
-                  TextButton(
-                    onPressed: () => setDialogState(() => selected = allCategories.map((c) => c.id).toList()),
-                    child: const Text('Hammasini tanlash'),
+                  const SizedBox(height: 12),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      TextButton.icon(
+                        onPressed: () => setDialogState(() => selected = allCategories.map((c) => c.id).toList()),
+                        icon: const Icon(Icons.select_all_rounded, size: 18),
+                        label: const Text('Hammasini tanlash', style: TextStyle(fontSize: 12)),
+                      ),
+                      TextButton.icon(
+                        onPressed: () => setDialogState(() => selected = []),
+                        icon: const Icon(Icons.deselect_rounded, size: 18),
+                        label: const Text('Hammasini o\'chirish', style: TextStyle(fontSize: 12)),
+                      ),
+                    ],
                   ),
                   const Divider(),
                   Flexible(
@@ -403,7 +453,11 @@ class ExcelImportService {
 
     if (selectedCategoryIds == null) return;
 
-    final filteredProducts = products.where((p) => selectedCategoryIds.contains(p.categoryId)).toList();
+    // Use activeProducts and deduplicate by id to avoid any duplicates
+    final seen = <String>{};
+    final filteredProducts = state.activeProducts
+        .where((p) => selectedCategoryIds.contains(p.categoryId) && seen.add(p.id))
+        .toList();
     if (filteredProducts.isEmpty) {
       _showError(context, 'Tanlangan kategoriyalar bo\'yicha mahsulotlar topilmadi');
       return;
@@ -500,5 +554,21 @@ class ExcelImportService {
 
   static void _showSuccess(BuildContext context, String msg) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg), backgroundColor: Colors.green));
+  }
+
+  static void _showLoading(BuildContext context, String msg) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        content: Row(
+          children: [
+            const CircularProgressIndicator(),
+            const SizedBox(width: 20),
+            Text(msg),
+          ],
+        ),
+      ),
+    );
   }
 }
