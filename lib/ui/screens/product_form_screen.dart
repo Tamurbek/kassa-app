@@ -186,18 +186,18 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                 children: [
                   Expanded(
                     child: _buildTextField(
-                      'Narxi (so\'m)',
-                      _priceController,
-                      Icons.payments_outlined,
+                      'Tannarxi (so\'m)',
+                      _costPriceController,
+                      Icons.shopping_bag_outlined,
                       isNumber: true,
                     ),
                   ),
                   SizedBox(width: 16),
                   Expanded(
                     child: _buildTextField(
-                      'Tannarxi (so\'m)',
-                      _costPriceController,
-                      Icons.shopping_bag_outlined,
+                      'Narxi (so\'m)',
+                      _priceController,
+                      Icons.payments_outlined,
                       isNumber: true,
                     ),
                   ),
