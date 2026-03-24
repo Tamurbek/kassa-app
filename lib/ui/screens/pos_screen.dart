@@ -31,11 +31,13 @@ class _POSScreenState extends State<POSScreen> {
     });
 
     _searchFocusNode.addListener(() {
+      if (!mounted) return;
       final isScanMode = context.read<AppState>().isBarcodeScanMode;
       if (isScanMode && !_searchFocusNode.hasFocus) {
-        // Short delay to avoid focus fighting and ensure it returns
-        Future.delayed(const Duration(milliseconds: 100), () {
-          if (context.read<AppState>().isBarcodeScanMode && mounted) {
+        // Use a longer delay to win against other widgets stealing focus
+        Future.delayed(const Duration(milliseconds: 200), () {
+          if (!mounted) return;
+          if (context.read<AppState>().isBarcodeScanMode) {
             _searchFocusNode.requestFocus();
           }
         });
@@ -128,6 +130,17 @@ class _POSScreenState extends State<POSScreen> {
         ],
       ),
     );
+  }
+
+
+  /// Normalize text for case-insensitive, Uzbek-aware search
+  String _normalize(String text) {
+    return text
+        .toLowerCase()
+        .replaceAll('\u02bb', "'")
+        .replaceAll('\u02bc', "'")
+        .replaceAll('\u2018', "'")
+        .replaceAll('\u2019', "'");
   }
 
   bool _isCaps = true;
@@ -243,7 +256,7 @@ class _POSScreenState extends State<POSScreen> {
     final activeCategories = state.activeCategories;
     final categories = ['Barchasi', ...activeCategories.map((c) => c.name)];
 
-    final searchQuery = _searchController.text.toLowerCase();
+    final searchQuery = _normalize(_searchController.text);
     final filteredProducts = state.activeProducts.where((p) {
       final category = activeCategories.any((c) => c.id == p.categoryId)
           ? activeCategories.firstWhere((c) => c.id == p.categoryId)
@@ -251,9 +264,9 @@ class _POSScreenState extends State<POSScreen> {
       final matchesCategory =
           selectedCategory == 'Barchasi' ||
           (category?.name == selectedCategory);
-      final matchesSearch =
-          (p.name ?? '').toLowerCase().contains(searchQuery) ||
-          (p.barcode ?? '').contains(searchQuery);
+      final matchesSearch = searchQuery.isEmpty ||
+          _normalize(p.name ?? '').contains(searchQuery) ||
+          _normalize(p.barcode ?? '').contains(searchQuery);
       return matchesCategory && matchesSearch;
     }).toList();
 
@@ -403,11 +416,17 @@ class _POSScreenState extends State<POSScreen> {
                         ),
                         onPressed: () {
                           state.toggleBarcodeScanMode();
-                          if (state.isBarcodeScanMode) {
-                            _searchFocusNode.requestFocus();
-                            setState(() {
-                              _showKeyboard = false;
+                          // Read the UPDATED state value after toggle
+                          final nowScanMode = context.read<AppState>().isBarcodeScanMode;
+                          if (nowScanMode) {
+                            setState(() => _showKeyboard = false);
+                            // Small delay to ensure state propagates before requesting focus
+                            Future.delayed(const Duration(milliseconds: 100), () {
+                              if (mounted) _searchFocusNode.requestFocus();
                             });
+                          } else {
+                            // Leaving scan mode — give focus back to keyboard listener
+                            _focusNode.requestFocus();
                           }
                         },
                       ),

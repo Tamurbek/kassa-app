@@ -388,15 +388,22 @@ class PrintService {
       // Product Name (Upper Case for clarity)
       bytes.addAll(utf8.encode(_clean('${item.productName.toUpperCase()}\n')));
       
-      // Quantity x Price and Total on the same line
-      String qtyPrice = ' ${item.quantity % 1 == 0 ? item.quantity.toInt() : item.quantity} x ${item.price.toStringAsFixed(0)}';
-      String totalItem = (item.quantity * item.price).toStringAsFixed(0);
+      // Quantity x Price
+      String qtyPrice = '${item.quantity % 1 == 0 ? item.quantity.toInt() : item.quantity} x ${NumberFormat.currency(locale: 'uz_UZ', symbol: '', decimalDigits: 0).format(item.price)}';
+      // Item total (right side)
+      String totalItem = NumberFormat.currency(locale: 'uz_UZ', symbol: '', decimalDigits: 0).format(item.quantity * item.price);
       
-      // Simple padding
-      int spaces = maxChars - qtyPrice.length - totalItem.length;
-      if (spaces < 1) spaces = 1;
+      // Calculate padding — ensure at least 1 space between qty/price and total
+      int combinedLength = qtyPrice.length + totalItem.length;
       
-      bytes.addAll(utf8.encode(_clean(qtyPrice + (' ' * spaces) + totalItem + '\n')));
+      if (combinedLength + 1 > maxChars) { // If qtyPrice + space + totalItem is too long
+        bytes.addAll(utf8.encode(_clean(qtyPrice + '\n'))); // Print qtyPrice on its own line
+        int spacesForTotal = maxChars - totalItem.length;
+        bytes.addAll(utf8.encode(_clean((' ' * spacesForTotal) + totalItem + '\n'))); // Print totalItem right-aligned on the next line
+      } else {
+        int spaces = maxChars - combinedLength;
+        bytes.addAll(utf8.encode(_clean(qtyPrice + (' ' * spaces) + totalItem + '\n'))); // Print on one line
+      }
     }
 
     bytes.addAll(utf8.encode('$divider\n'));
