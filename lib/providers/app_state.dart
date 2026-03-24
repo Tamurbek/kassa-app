@@ -65,7 +65,7 @@ class AppState extends ChangeNotifier {
   bool get isBarcodeScanMode => _isBarcodeScanMode;
   bool _showProductImages = true;
   bool get showProductImages => _showProductImages;
-  String appVersion = '1.9.9';
+  String appVersion = '1.10.0';
 
   double get todaySalesTotal {
     final now = DateTime.now();
@@ -251,8 +251,8 @@ class AppState extends ChangeNotifier {
       registers = registers.whereType<Register>().toList();
       users = users.whereType<User>().toList();
 
-      // If master and empty, add dummy data for demonstration
-      if (isMaster == true && products.isEmpty && categories.isEmpty) {
+      // If master and empty and NOT activated, add dummy data for trial demonstration
+      if (isMaster == true && products.isEmpty && categories.isEmpty && !isActivated) {
         await _initializeDummyData();
         await _loadFromDb();
       }
