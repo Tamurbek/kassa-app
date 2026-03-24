@@ -67,9 +67,28 @@ class WarehouseManagementScreen extends StatelessWidget {
                 ),
                 child: Icon(Icons.warehouse_rounded, color: Colors.orange),
               ),
-              title: Text(
-                warehouse.name,
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+              title: Row(
+                children: [
+                  Text(
+                    warehouse.name,
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                  ),
+                  if (warehouse.isMain) ...[
+                    SizedBox(width: 8),
+                    Container(
+                      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Colors.green.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(color: Colors.green.withOpacity(0.3)),
+                      ),
+                      child: Text(
+                        'Asosiy',
+                        style: TextStyle(color: Colors.green, fontSize: 10, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ],
+                ],
               ),
               subtitle: Text(
                 'ID: ${warehouse.id.substring(0, warehouse.id.length < 8 ? warehouse.id.length : 8)}${warehouse.id.length > 8 ? "..." : ""}',
@@ -77,6 +96,17 @@ class WarehouseManagementScreen extends StatelessWidget {
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  if (!warehouse.isMain)
+                    IconButton(
+                      icon: Icon(Icons.star_outline_rounded, color: Colors.orange),
+                      tooltip: 'Asosiy ombor qilib belgilash',
+                      onPressed: () => state.setWarehouseAsMain(warehouse.id),
+                    )
+                  else
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: Icon(Icons.star_rounded, color: Colors.orange),
+                    ),
                   IconButton(
                     icon: Icon(Icons.edit_outlined, color: Colors.blue),
                     onPressed: () => _showWarehouseDialog(

@@ -65,7 +65,7 @@ class DatabaseService {
 
     return await openDatabase(
       newPath,
-      version: 11,
+      version: 12,
       onCreate: (db, version) async {
         await db.execute('''
           CREATE TABLE categories (
@@ -77,7 +77,8 @@ class DatabaseService {
         await db.execute('''
           CREATE TABLE warehouses (
             id TEXT PRIMARY KEY,
-            name TEXT NOT NULL
+            name TEXT NOT NULL,
+            isMain INTEGER NOT NULL DEFAULT 0
           )
         ''');
         await db.execute('''
@@ -218,19 +219,28 @@ class DatabaseService {
             value TEXT
           )
         ''');
+        await db.execute('''
+          CREATE TABLE stock_transfers (
+            id TEXT PRIMARY KEY,
+            fromWarehouseId TEXT NOT NULL,
+            toWarehouseId TEXT NOT NULL,
+            date TEXT NOT NULL,
+            description TEXT
+          )
+        ''');
+        await db.execute('''
+          CREATE TABLE stock_transfer_items (
+            transferId TEXT NOT NULL,
+            productId TEXT NOT NULL,
+            productName TEXT NOT NULL,
+            quantity REAL NOT NULL
+          )
+        ''');
       },
       onUpgrade: (db, oldVersion, newVersion) async {
-        if (oldVersion < 10) {
-          await db.execute('''
-            CREATE TABLE IF NOT EXISTS settings (
-              key TEXT PRIMARY KEY,
-              value TEXT
-            )
-          ''');
-        }
         if (oldVersion < 2) {
           await db.execute('''
-            CREATE TABLE stock_entries (
+            CREATE TABLE IF NOT EXISTS stock_entries (
               id TEXT PRIMARY KEY,
               warehouseId TEXT NOT NULL,
               date TEXT NOT NULL,
@@ -238,7 +248,7 @@ class DatabaseService {
             )
           ''');
           await db.execute('''
-            CREATE TABLE stock_entry_items (
+            CREATE TABLE IF NOT EXISTS stock_entry_items (
               entryId TEXT NOT NULL,
               productId TEXT NOT NULL,
               quantity REAL NOT NULL,
@@ -248,7 +258,7 @@ class DatabaseService {
         }
         if (oldVersion < 3) {
           await db.execute('''
-            CREATE TABLE users (
+            CREATE TABLE IF NOT EXISTS users (
               id TEXT PRIMARY KEY,
               name TEXT NOT NULL,
               pin TEXT NOT NULL,
@@ -258,7 +268,7 @@ class DatabaseService {
         }
         if (oldVersion < 4) {
           await db.execute('''
-            CREATE TABLE sale_items (
+            CREATE TABLE IF NOT EXISTS sale_items (
               saleId TEXT NOT NULL,
               productId TEXT NOT NULL,
               productName TEXT NOT NULL,
@@ -268,42 +278,30 @@ class DatabaseService {
           ''');
         }
         if (oldVersion < 5) {
-          await db.execute('ALTER TABLE products ADD COLUMN imagePath TEXT');
+          try { await db.execute('ALTER TABLE products ADD COLUMN imagePath TEXT'); } catch(_) {}
         }
         if (oldVersion < 6) {
-          await db.execute(
-            'ALTER TABLE categories ADD COLUMN isDeleted INTEGER NOT NULL DEFAULT 0',
-          );
-          await db.execute(
-            'ALTER TABLE products ADD COLUMN isDeleted INTEGER NOT NULL DEFAULT 0',
-          );
-          await db.execute(
-            'ALTER TABLE users ADD COLUMN isDeleted INTEGER NOT NULL DEFAULT 0',
-          );
+          try { await db.execute('ALTER TABLE categories ADD COLUMN isDeleted INTEGER NOT NULL DEFAULT 0'); } catch(_) {}
+          try { await db.execute('ALTER TABLE products ADD COLUMN isDeleted INTEGER NOT NULL DEFAULT 0'); } catch(_) {}
+          try { await db.execute('ALTER TABLE users ADD COLUMN isDeleted INTEGER NOT NULL DEFAULT 0'); } catch(_) {}
         }
         if (oldVersion < 7) {
-          await db.execute(
-            "ALTER TABLE products ADD COLUMN unit TEXT NOT NULL DEFAULT 'dona'",
-          );
+          try { await db.execute("ALTER TABLE products ADD COLUMN unit TEXT NOT NULL DEFAULT 'dona'"); } catch(_) {}
         }
         if (oldVersion < 8) {
-          await db.execute(
-            'ALTER TABLE registers ADD COLUMN activeDeviceId TEXT',
-          );
+          try { await db.execute('ALTER TABLE registers ADD COLUMN activeDeviceId TEXT'); } catch(_) {}
         }
         if (oldVersion < 9) {
-          await db.execute(
-            'ALTER TABLE products ADD COLUMN trackStock INTEGER NOT NULL DEFAULT 1',
-          );
+          try { await db.execute('ALTER TABLE products ADD COLUMN trackStock INTEGER NOT NULL DEFAULT 1'); } catch(_) {}
           await db.execute('''
-            CREATE TABLE product_additional_barcodes (
+            CREATE TABLE IF NOT EXISTS product_additional_barcodes (
               productId TEXT NOT NULL,
               barcode TEXT NOT NULL,
               PRIMARY KEY (productId, barcode)
             )
           ''');
           await db.execute('''
-            CREATE TABLE returns (
+            CREATE TABLE IF NOT EXISTS returns (
               id TEXT PRIMARY KEY,
               saleId TEXT NOT NULL,
               date TEXT NOT NULL,
@@ -312,7 +310,7 @@ class DatabaseService {
             )
           ''');
           await db.execute('''
-            CREATE TABLE return_items (
+            CREATE TABLE IF NOT EXISTS return_items (
               returnId TEXT NOT NULL,
               productId TEXT NOT NULL,
               productName TEXT NOT NULL,
@@ -321,7 +319,7 @@ class DatabaseService {
             )
           ''');
           await db.execute('''
-            CREATE TABLE write_offs (
+            CREATE TABLE IF NOT EXISTS write_offs (
               id TEXT PRIMARY KEY,
               date TEXT NOT NULL,
               warehouseId TEXT NOT NULL,
@@ -329,7 +327,7 @@ class DatabaseService {
             )
           ''');
           await db.execute('''
-            CREATE TABLE write_off_items (
+            CREATE TABLE IF NOT EXISTS write_off_items (
               writeOffId TEXT NOT NULL,
               productId TEXT NOT NULL,
               productName TEXT NOT NULL,
@@ -337,7 +335,7 @@ class DatabaseService {
             )
           ''');
           await db.execute('''
-            CREATE TABLE inventories (
+            CREATE TABLE IF NOT EXISTS inventories (
               id TEXT PRIMARY KEY,
               date TEXT NOT NULL,
               warehouseId TEXT NOT NULL,
@@ -345,7 +343,7 @@ class DatabaseService {
             )
           ''');
           await db.execute('''
-            CREATE TABLE inventory_items (
+            CREATE TABLE IF NOT EXISTS inventory_items (
               inventoryId TEXT NOT NULL,
               productId TEXT NOT NULL,
               productName TEXT NOT NULL,
@@ -354,9 +352,37 @@ class DatabaseService {
             )
           ''');
         }
+        if (oldVersion < 10) {
+          await db.execute('''
+            CREATE TABLE IF NOT EXISTS settings (
+              key TEXT PRIMARY KEY,
+              value TEXT
+            )
+          ''');
+        }
         if (oldVersion < 11) {
-          await db.execute('ALTER TABLE products ADD COLUMN costPrice REAL NOT NULL DEFAULT 0');
-          await db.execute('ALTER TABLE sale_items ADD COLUMN costPrice REAL NOT NULL DEFAULT 0');
+          try { await db.execute('ALTER TABLE products ADD COLUMN costPrice REAL NOT NULL DEFAULT 0'); } catch(_) {}
+          try { await db.execute('ALTER TABLE sale_items ADD COLUMN costPrice REAL NOT NULL DEFAULT 0'); } catch(_) {}
+        }
+        if (oldVersion < 12) {
+          try { await db.execute('ALTER TABLE warehouses ADD COLUMN isMain INTEGER NOT NULL DEFAULT 0'); } catch(_) {}
+          await db.execute('''
+            CREATE TABLE IF NOT EXISTS stock_transfers (
+              id TEXT PRIMARY KEY,
+              fromWarehouseId TEXT NOT NULL,
+              toWarehouseId TEXT NOT NULL,
+              date TEXT NOT NULL,
+              description TEXT
+            )
+          ''');
+          await db.execute('''
+            CREATE TABLE IF NOT EXISTS stock_transfer_items (
+              transferId TEXT NOT NULL,
+              productId TEXT NOT NULL,
+              productName TEXT NOT NULL,
+              quantity REAL NOT NULL
+            )
+          ''');
         }
       },
     );
@@ -396,9 +422,11 @@ class DatabaseService {
   // --- Warehouses ---
   static Future<void> saveWarehouse(Warehouse warehouse) async {
     final db = await database;
+    final json = warehouse.toJson();
+    json['isMain'] = warehouse.isMain ? 1 : 0;
     await db.insert(
       'warehouses',
-      warehouse.toJson(),
+      json,
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
   }
@@ -411,6 +439,7 @@ class DatabaseService {
           (w) => Warehouse.fromJson({
             'id': w['id']?.toString() ?? '',
             'name': w['name']?.toString() ?? 'Noma\'lum',
+            'isMain': w['isMain'] == 1,
           }),
         )
         .toList();
@@ -553,6 +582,11 @@ class DatabaseService {
     }, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
+  static Future<void> updateProductCostPrice(String id, double costPrice) async {
+    final db = await database;
+    await db.update('products', {'costPrice': costPrice}, where: 'id = ?', whereArgs: [id]);
+  }
+
   static Future<void> updateProductImagePath(String id, String path) async {
     final db = await database;
     await db.update('products', {'imagePath': path}, where: 'id = ?', whereArgs: [id]);
@@ -581,7 +615,9 @@ class DatabaseService {
         await txn.insert('categories', json);
       }
       for (var w in warehouses) {
-        await txn.insert('warehouses', w.toJson());
+        final json = w.toJson();
+        json['isMain'] = w.isMain ? 1 : 0;
+        await txn.insert('warehouses', json);
       }
       for (var r in registers) {
         await txn.insert('registers', r.toJson());
@@ -1031,8 +1067,64 @@ class DatabaseService {
       await txn.delete('inventory_items');
       await txn.delete('stock_entries');
       await txn.delete('stock_entry_items');
+      await txn.delete('stock_transfers');
+      await txn.delete('stock_transfer_items');
       await txn.delete('users');
       await txn.delete('settings');
     });
+  }
+
+  // --- Stock Transfers ---
+  static Future<void> saveStockTransfer(StockTransfer transfer) async {
+    final db = await database;
+    await db.transaction((txn) async {
+      await txn.insert('stock_transfers', {
+        'id': transfer.id,
+        'fromWarehouseId': transfer.fromWarehouseId,
+        'toWarehouseId': transfer.toWarehouseId,
+        'date': transfer.date.toIso8601String(),
+        'description': transfer.description,
+      });
+
+      for (var item in transfer.items) {
+        await txn.insert('stock_transfer_items', {
+          'transferId': transfer.id,
+          'productId': item.productId,
+          'productName': item.productName,
+          'quantity': item.quantity,
+        });
+      }
+    });
+  }
+
+  static Future<List<StockTransfer>> getStockTransfers() async {
+    final db = await database;
+    final res = await db.query('stock_transfers', orderBy: 'date DESC');
+    final List<StockTransfer> transfers = [];
+
+    for (var m in res) {
+      final itemsRes = await db.query(
+        'stock_transfer_items',
+        where: 'transferId = ?',
+        whereArgs: [m['id']],
+      );
+      final items = itemsRes
+          .map((i) => StockTransferItem.fromJson({
+                'productId': i['productId'],
+                'productName': i['productName'],
+                'quantity': i['quantity'],
+              }))
+          .toList();
+
+      transfers.add(StockTransfer(
+        id: m['id']?.toString() ?? '',
+        fromWarehouseId: m['fromWarehouseId']?.toString() ?? '',
+        toWarehouseId: m['toWarehouseId']?.toString() ?? '',
+        date: m['date'] != null ? DateTime.parse(m['date'].toString()) : DateTime.now(),
+        description: m['description']?.toString() ?? '',
+        items: items,
+      ));
+    }
+    return transfers;
   }
 }

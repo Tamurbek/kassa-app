@@ -10,6 +10,7 @@ import 'return_screen.dart';
 import 'write_off_screen.dart';
 import 'inventory_screen.dart';
 import 'barcode_print_screen.dart';
+import 'stock_transfer_screen.dart';
 import '../../services/print_service.dart';
 
 class WarehouseScreen extends StatefulWidget {
@@ -29,7 +30,7 @@ class _WarehouseScreenState extends State<WarehouseScreen> {
     super.initState();
     final state = context.read<AppState>();
     if (state.warehouses.isNotEmpty) {
-      selectedWarehouseId = state.warehouses.first.id;
+      selectedWarehouseId = state.mainWarehouse?.id;
     }
   }
 
@@ -43,6 +44,11 @@ class _WarehouseScreenState extends State<WarehouseScreen> {
   Widget build(BuildContext context) {
     final state = context.watch<AppState>();
     final searchQuery = _searchController.text.toLowerCase();
+    
+    // Auto-select if currently null
+    if (selectedWarehouseId == null && state.warehouses.isNotEmpty) {
+      selectedWarehouseId = state.mainWarehouse?.id;
+    }
 
     final filteredProducts = state.activeProducts.where((p) {
       final matchesSearch =
@@ -223,6 +229,23 @@ class _WarehouseScreenState extends State<WarehouseScreen> {
                 _buildActionButtons(state),
               ],
               if (widget.onMenuPressed != null) ...[
+                SizedBox(width: 16),
+                IconButton(
+                  icon: Icon(
+                    Icons.refresh_rounded,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  onPressed: () => state.reloadData(),
+                  tooltip: 'Ma\'lumotlarni yangilash',
+                  style: IconButton.styleFrom(
+                    backgroundColor: Theme.of(
+                      context,
+                    ).colorScheme.primary.withOpacity(0.05),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
                 SizedBox(width: 16),
                 IconButton(
                   icon: Icon(
@@ -856,6 +879,15 @@ class _WarehouseScreenState extends State<WarehouseScreen> {
           () => Navigator.push(
             context,
             MaterialPageRoute(builder: (_) => const InventoryScreen()),
+          ),
+        ),
+        _buildActionButton(
+          'O\'tkazma',
+          Icons.swap_horiz_rounded,
+          Colors.indigo,
+          () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const StockTransferScreen()),
           ),
         ),
         _buildActionButton(

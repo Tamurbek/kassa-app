@@ -7,6 +7,7 @@ import 'product_form_screen.dart';
 import 'barcode_print_screen.dart';
 import '../../services/print_service.dart';
 import 'dart:io';
+import '../../services/excel_import_service.dart';
 
 class CatalogScreen extends StatefulWidget {
   final VoidCallback? onMenuPressed;
@@ -142,6 +143,30 @@ class _CatalogScreenState extends State<CatalogScreen>
             style: IconButton.styleFrom(
               backgroundColor: Colors.teal.withOpacity(0.1),
               foregroundColor: Colors.teal,
+              padding: const EdgeInsets.all(16),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+          ),
+          SizedBox(width: 12),
+          IconButton(
+            onPressed: () => ExcelImportService.downloadTemplate(context),
+            icon: const Icon(Icons.file_download_outlined),
+            tooltip: 'Excel shablonini yuklab olish',
+            style: IconButton.styleFrom(
+              backgroundColor: Colors.amber.withOpacity(0.1),
+              foregroundColor: Colors.amber.shade800,
+              padding: const EdgeInsets.all(16),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+          ),
+          SizedBox(width: 12),
+          IconButton(
+            onPressed: () => ExcelImportService.importProducts(context),
+            icon: const Icon(Icons.file_upload_outlined),
+            tooltip: 'Exceldan import qilish',
+            style: IconButton.styleFrom(
+              backgroundColor: Colors.indigo.withOpacity(0.1),
+              foregroundColor: Colors.indigo,
               padding: const EdgeInsets.all(16),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),

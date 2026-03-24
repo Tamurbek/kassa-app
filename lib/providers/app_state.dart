@@ -26,6 +26,7 @@ class AppState extends ChangeNotifier {
   List<SaleReturn> returns = [];
   List<WriteOff> writeOffs = [];
   List<InventoryEntry> inventories = [];
+  List<StockTransfer> stockTransfers = [];
   User? currentUser;
   String? masterPassword;
 
@@ -136,6 +137,10 @@ class AppState extends ChangeNotifier {
   List<Product> get activeProducts =>
       products.where((p) => !p.isDeleted).toList();
   List<User> get activeUsers => users.where((u) => !u.isDeleted).toList();
+
+  Warehouse? get mainWarehouse =>
+      warehouses.where((w) => w.isMain).firstOrNull ??
+      (warehouses.isNotEmpty ? warehouses.first : null);
 
   // Deleted items (Trash)
   List<Category> get deletedCategories =>
@@ -331,6 +336,7 @@ class AppState extends ChangeNotifier {
     returns = await DatabaseService.getReturns();
     writeOffs = await DatabaseService.getWriteOffs();
     inventories = await DatabaseService.getInventories();
+    stockTransfers = await DatabaseService.getStockTransfers();
 
     if (users.isEmpty && isMaster == true) {
       final admin = User(
@@ -356,6 +362,22 @@ class AppState extends ChangeNotifier {
       await DatabaseService.saveUser(seller2);
       users.addAll([admin, seller1, seller2]);
     }
+    notifyListeners();
+  }
+
+  Future<void> reloadData() async {
+    categories = await DatabaseService.getCategories();
+    products = await DatabaseService.getProducts();
+    warehouses = await DatabaseService.getWarehouses();
+    stockEntries = await DatabaseService.getStockEntries();
+    registers = await DatabaseService.getRegisters();
+    users = await DatabaseService.getUsers();
+    sales = await DatabaseService.getSales();
+    returns = await DatabaseService.getReturns();
+    writeOffs = await DatabaseService.getWriteOffs();
+    inventories = await DatabaseService.getInventories();
+    stockTransfers = await DatabaseService.getStockTransfers();
+    notifyListeners();
   }
 
   Future<void> _initializeDummyData() async {
@@ -1204,12 +1226,13 @@ class AppState extends ChangeNotifier {
   }
 
   // --- Category CRUD ---
-  Future<void> addCategory(String name) async {
+  Future<Category> addCategory(String name) async {
     final category = Category.create(name);
     await DatabaseService.saveCategory(category);
     await _sendUpdate('category', category.toJson());
     categories.add(category);
     notifyListeners();
+    return category;
   }
 
   Future<void> updateCategory(String id, String newName) async {
@@ -1520,7 +1543,14 @@ class AppState extends ChangeNotifier {
         final product = products[productIndex];
         final currentStock = product.stocks[entry.warehouseId] ?? 0;
         final newStock = currentStock + item.quantity;
-        product.stocks[entry.warehouseId] = newStock;
+        // Update local stocks map
+        // Ensure Map is mutable and updated
+        final updatedStocks = Map<String, double>.from(product.stocks);
+        updatedStocks[entry.warehouseId] = newStock;
+        
+        // Replace product object to ensure Provider detects CHANGE
+        products[productIndex] = product.copyWith(stocks: updatedStocks);
+        
         await DatabaseService.updateStock(
           product.id,
           entry.warehouseId,
@@ -1529,7 +1559,35 @@ class AppState extends ChangeNotifier {
       }
     }
 
-    stockEntries.insert(0, entry);
+    if (!stockEntries.any((se) => se.id == entry.id)) {
+       stockEntries.insert(0, entry);
+    }
+    notifyListeners();
+  }
+
+  Future<void> addStockTransfer(StockTransfer transfer) async {
+    await DatabaseService.saveStockTransfer(transfer);
+    await _sendUpdate('stock_transfer', transfer.toJson());
+
+    // Update local stocks
+    for (var item in transfer.items) {
+      final productIndex = products.indexWhere((p) => p.id == item.productId);
+      if (productIndex >= 0) {
+        final product = products[productIndex];
+        
+        // Remove from source
+        final fromStock = product.stocks[transfer.fromWarehouseId] ?? 0;
+        product.stocks[transfer.fromWarehouseId] = fromStock - item.quantity;
+        await DatabaseService.updateStock(product.id, transfer.fromWarehouseId, product.stocks[transfer.fromWarehouseId]!);
+
+        // Add to destination
+        final toStock = product.stocks[transfer.toWarehouseId] ?? 0;
+        product.stocks[transfer.toWarehouseId] = toStock + item.quantity;
+        await DatabaseService.updateStock(product.id, transfer.toWarehouseId, product.stocks[transfer.toWarehouseId]!);
+      }
+    }
+
+    stockTransfers.insert(0, transfer);
     notifyListeners();
   }
 
@@ -1629,10 +1687,21 @@ class AppState extends ChangeNotifier {
 
   // --- Warehouse Management ---
   Future<void> addWarehouse(String name) async {
-    final warehouse = Warehouse.create(name);
+    final warehouse = Warehouse.create(name, isMain: warehouses.isEmpty);
     await DatabaseService.saveWarehouse(warehouse);
     await _sendUpdate('warehouse', warehouse.toJson());
     warehouses.add(warehouse);
+    notifyListeners();
+  }
+
+  Future<void> setWarehouseAsMain(String id) async {
+    for (int i = 0; i < warehouses.length; i++) {
+        final w = warehouses[i];
+        final updated = Warehouse(id: w.id, name: w.name, isMain: w.id == id);
+        warehouses[i] = updated;
+        await DatabaseService.saveWarehouse(updated);
+        await _sendUpdate('warehouse', updated.toJson());
+    }
     notifyListeners();
   }
 

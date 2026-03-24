@@ -6,6 +6,7 @@ import '../../models/models.dart';
 import '../../services/update_service.dart';
 import '../../services/print_service.dart';
 import '../dialogs/app_update_dialog.dart';
+import 'stock_transfer_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   final VoidCallback? onMenuPressed;
@@ -166,6 +167,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
               ),
               SizedBox(width: 12),
+              IconButton(
+                onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const StockTransferScreen())),
+                icon: const Icon(Icons.swap_horiz_rounded),
+                tooltip: 'Omborlararo ko\'chirish',
+                style: IconButton.styleFrom(
+                  backgroundColor: Colors.indigo.withOpacity(0.1),
+                  foregroundColor: Colors.indigo,
+                  padding: const EdgeInsets.all(12),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+              const SizedBox(width: 12),
               IconButton(
                 onPressed: () => _showReportsMenu(context, state, filteredSales),
                 icon: const Icon(Icons.print_outlined),

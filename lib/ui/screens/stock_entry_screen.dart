@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 import '../../models/models.dart';
 import '../../providers/app_state.dart';
+import '../../services/excel_import_service.dart';
 
 class StockEntryScreen extends StatefulWidget {
   final StockEntry? entry;
@@ -38,9 +39,7 @@ class _StockEntryScreenState extends State<StockEntryScreen> {
         });
       }
     } else {
-      if (state.warehouses.isNotEmpty) {
-        entryWarehouseId = state.warehouses.first.id;
-      }
+      entryWarehouseId = state.mainWarehouse?.id;
     }
   }
 
@@ -88,6 +87,22 @@ class _StockEntryScreenState extends State<StockEntryScreen> {
           widget.entry == null ? 'Yangi Kirim Hujjati' : 'Kirimni Tahrirlash',
         ),
         actions: [
+          IconButton(
+            icon: Icon(Icons.file_download_outlined, color: Colors.amber),
+            tooltip: 'Kirim shablonini yuklab olish',
+            onPressed: () => ExcelImportService.downloadStockEntryTemplate(context, context.read<AppState>().activeProducts),
+          ),
+          IconButton(
+            icon: Icon(Icons.file_upload_outlined, color: Colors.indigo),
+            tooltip: 'Exceldan kirim qilish',
+            onPressed: () {
+              if (entryWarehouseId != null) {
+                ExcelImportService.importStockEntry(context, entryWarehouseId!);
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Avval omborni tanlang')));
+              }
+            },
+          ),
           IconButton(icon: Icon(Icons.save), onPressed: _save),
           SizedBox(width: 8),
         ],
@@ -118,7 +133,7 @@ class _StockEntryScreenState extends State<StockEntryScreen> {
                           .map(
                             (w) => DropdownMenuItem(
                               value: w.id,
-                              child: Text(w.name),
+                              child: Text('${w.name}${w.isMain ? ' (Asosiy)' : ''}'),
                             ),
                           )
                           .toList(),
@@ -201,17 +216,18 @@ class _StockEntryScreenState extends State<StockEntryScreen> {
                             ),
                           ),
                           hint: Text('Tanlang'),
-                          items: state.activeProducts
+                          items: state.products
+                              .where((p) => !p.isDeleted || p.id == item['productId'])
                               .map(
                                 (p) => DropdownMenuItem(
                                   value: p.id,
-                                  child: Text(p.name),
+                                  child: Text(p.isDeleted ? '${p.name} (O\'chirilgan)' : p.name),
                                 ),
                               )
                               .toList(),
                           onChanged: (val) {
                             if (val == null) return;
-                            final p = state.activeProducts.firstWhere(
+                            final p = state.products.firstWhere(
                               (p) => p.id == val,
                             );
                             setState(() {
