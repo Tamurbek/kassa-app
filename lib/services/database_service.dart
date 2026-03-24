@@ -1011,4 +1011,28 @@ class DatabaseService {
       );
     });
   }
+
+  static Future<void> clearAllData() async {
+    final db = await database;
+    await db.transaction((txn) async {
+      await txn.delete('categories');
+      await txn.delete('warehouses');
+      await txn.delete('registers');
+      await txn.delete('products');
+      await txn.delete('product_additional_barcodes');
+      await txn.delete('stocks');
+      await txn.delete('sales');
+      await txn.delete('sale_items');
+      await txn.delete('returns');
+      await txn.delete('return_items');
+      await txn.delete('write_offs');
+      await txn.delete('write_off_items');
+      await txn.delete('inventories');
+      await txn.delete('inventory_items');
+      await txn.delete('stock_entries');
+      await txn.delete('stock_entry_items');
+      await txn.delete('users');
+      await txn.delete('settings');
+    });
+  }
 }

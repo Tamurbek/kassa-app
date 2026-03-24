@@ -65,7 +65,7 @@ class AppState extends ChangeNotifier {
   bool get isBarcodeScanMode => _isBarcodeScanMode;
   bool _showProductImages = true;
   bool get showProductImages => _showProductImages;
-  String appVersion = '1.9.6';
+  String appVersion = '1.9.9';
 
   double get todaySalesTotal {
     final now = DateTime.now();
@@ -2080,6 +2080,10 @@ class AppState extends ChangeNotifier {
           await prefs.setString('organizationName', organizationName!);
           await prefs.setString('organizationAddress', organizationAddress!);
           await prefs.setString('instagramUsername', instagramUsername!);
+          
+          // Yangi tashkilotga o'tilganda eski ma'lumotlarni o'chirib tashlaymiz
+          await DatabaseService.clearAllData();
+          await _loadFromDb(); // Xotirani ham tozalaymiz
 
           // Attempt cloud restore after activation (professional: don't fail if no backup exists yet)
           try {
