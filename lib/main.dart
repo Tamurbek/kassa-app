@@ -465,9 +465,14 @@ class _MainLayoutState extends State<MainLayout> {
                             color: Color(0xFFF1F5F9),
                           ),
                         Expanded(
-                          child: IndexedStack(
-                            index: _selectedIndex,
-                            children: _screens,
+                          child: Center(
+                            child: ConstrainedBox(
+                              constraints: const BoxConstraints(maxWidth: 1400),
+                              child: IndexedStack(
+                                index: _selectedIndex,
+                                children: _screens,
+                              ),
+                            ),
                           ),
                         ),
                       ],
