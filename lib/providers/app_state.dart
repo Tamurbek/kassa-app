@@ -59,6 +59,9 @@ class AppState extends ChangeNotifier {
   bool _isConnectingWs = false;
   bool _isConnected = false;
   bool get isConnected => isMaster == true ? true : _isConnected;
+  DateTime? lastCloudSync;
+  bool isSyncingCloud = false;
+  String syncingStage = '';
   ThemeMode _themeMode = ThemeMode.system;
   ThemeMode get themeMode => _themeMode;
 
@@ -224,6 +227,9 @@ class AppState extends ChangeNotifier {
       } else {
         _themeMode = ThemeMode.system;
       }
+
+      final lastSyncStr = prefs.getString('lastCloudSync');
+      if (lastSyncStr != null) lastCloudSync = DateTime.parse(lastSyncStr);
 
       _isBarcodeScanMode = prefs.getBool('isBarcodeScanMode') ?? false;
       _showProductImages = prefs.getBool('showProductImages') ?? true;
@@ -2234,6 +2240,21 @@ class AppState extends ChangeNotifier {
     final file = File(dbPath);
     if (!await file.exists()) throw Exception('Baza fayli topilmadi');
 
+    isSyncingCloud = true;
+    syncingStage = 'Terminalardan ma\'lumotlarni jamlash...';
+    notifyListeners();
+
+    // Professional consolidation: Ensure all terminals have pushed their data
+    if (isMaster == true) {
+      debugPrint("Consolidating data from terminals before cloud sync...");
+      SyncService.broadcast('force_sync_push', {'request': 'backup'});
+      // Wait a bit for any slow terminals to finish their last HTTP POSTs
+      await Future.delayed(const Duration(seconds: 2));
+    }
+
+    syncingStage = 'Bulutli serverga saqlash...';
+    notifyListeners();
+
     const uploadUrl = "https://web-production-d2ed7.up.railway.app/backup";
 
     try {
@@ -2243,12 +2264,21 @@ class AppState extends ChangeNotifier {
       );
       request.files.add(await http.MultipartFile.fromPath('file', dbPath));
 
-      var response = await request.send().timeout(const Duration(seconds: 30));
-      if (response.statusCode != 200) {
+      var response = await request.send().timeout(const Duration(seconds: 40));
+      if (response.statusCode == 200) {
+        lastCloudSync = DateTime.now();
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('lastCloudSync', lastCloudSync!.toIso8601String());
+        notifyListeners();
+      } else {
         throw Exception('Zaxira yuklashda xatolik: ${response.statusCode}');
       }
     } catch (e) {
       throw Exception('Serverga ulanib bo\'lmadi: $e');
+    } finally {
+      isSyncingCloud = false;
+      syncingStage = '';
+      notifyListeners();
     }
   }
 

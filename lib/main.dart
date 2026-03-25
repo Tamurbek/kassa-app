@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'providers/app_state.dart';
@@ -573,6 +574,22 @@ class _MainLayoutState extends State<MainLayout> {
             ),
           ],
           const Spacer(),
+          if (state.lastCloudSync != null)
+            _buildFooterInfoItem(
+              icon: Icons.access_time_rounded,
+              label: 'Oxirgi sync: ${DateFormat('HH:mm').format(state.lastCloudSync!)}',
+              isDark: isDark,
+            ),
+          const SizedBox(width: 12),
+          _buildFooterActionButton(
+            icon: Icons.cloud_outlined,
+            label: 'Bulutli xizmat',
+            onTap: () => _showCloudSyncDialog(context, state),
+            isActive: state.isActivated,
+            isLoading: state.isSyncingCloud,
+            isDark: isDark,
+          ),
+          const SizedBox(width: 8),
           if (state.isMaster == false && state.masterAddress != null) ...[
             _buildFooterInfoItem(
               icon: Icons.lan_rounded,
@@ -608,6 +625,180 @@ class _MainLayoutState extends State<MainLayout> {
             isActive: true,
             isDark: isDark,
             isDanger: true,
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showCloudSyncDialog(BuildContext context, AppState state) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Consumer<AppState>(
+          builder: (context, state, child) {
+            return AlertDialog(
+              backgroundColor: Theme.of(context).cardColor,
+              surfaceTintColor: Colors.transparent,
+              title: const Row(
+                children: [
+                   Icon(Icons.cloud_sync_rounded, color: Colors.blue),
+                   SizedBox(width: 12),
+                   Text('Bulutli Sinxronizatsiya'),
+                ],
+              ),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.withOpacity(0.05),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(Icons.history, size: 20, color: Colors.blue),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text('Oxirgi sinxronizatsiya', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                                  Text(
+                                    state.lastCloudSync != null
+                                        ? DateFormat('dd.MM.yyyy, HH:mm').format(state.lastCloudSync!)
+                                        : 'Hali qilinmagan',
+                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  if (state.isSyncingCloud)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 20),
+                      child: Column(
+                        children: [
+                          const CircularProgressIndicator(strokeWidth: 3),
+                          const SizedBox(height: 16),
+                          Text(state.syncingStage, style: const TextStyle(color: Colors.blue, fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 4),
+                          const Text('Iltimos kuting...', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                        ],
+                      ),
+                    )
+                  else ...[
+                    ElevatedButton.icon(
+                      onPressed: () async {
+                        try {
+                          await state.uploadDatabaseToCloud();
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Zaxira bulutga muvaffaqiyatli yuklandi')),
+                            );
+                          }
+                        } catch (e) {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Xatolik: $e'), backgroundColor: Colors.red),
+                            );
+                          }
+                        }
+                      },
+                      icon: const Icon(Icons.cloud_upload),
+                      label: const Text('Zaxirani Bulutga Saqlash'),
+                      style: ElevatedButton.styleFrom(
+                        minimumSize: const Size.fromHeight(50),
+                        backgroundColor: Colors.blue,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    OutlinedButton.icon(
+                      onPressed: () => _confirmRestoreFromCloud(context, state),
+                      icon: const Icon(Icons.cloud_download, color: Colors.orange),
+                      label: const Text('Bulutdan Tiklash', style: TextStyle(color: Colors.orange)),
+                      style: OutlinedButton.styleFrom(
+                        minimumSize: const Size.fromHeight(50),
+                        side: const BorderSide(color: Colors.orange),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Yopish'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _confirmRestoreFromCloud(BuildContext context, AppState state) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Theme.of(context).cardColor,
+        surfaceTintColor: Colors.transparent,
+        title: const Text('Diqqat!'),
+        content: const Text(
+          'Bulutdan zaxirani tiklash joriy barcha ma\'lumotlaringizni o\'chirib yuboradi va bulutdagi nusxa bilan almashtiradi. Davom etasizmi?',
+          style: TextStyle(color: Colors.redAccent),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Bekor qilish'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(context); // close confirm dialog
+              try {
+                // Show loading on top of sync dialog
+                if (context.mounted) {
+                  showDialog(
+                    context: context,
+                    barrierDismissible: false,
+                    builder: (context) => const Center(child: CircularProgressIndicator()),
+                  );
+                }
+                
+                await state.restoreDatabaseFromCloud();
+                
+                if (context.mounted) {
+                  Navigator.pop(context); // close loader
+                  Navigator.pop(context); // close sync dialog
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Ma\'lumotlar bulutdan tiklandi!')),
+                  );
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  Navigator.pop(context); // close loader
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Xatolik: $e'), backgroundColor: Colors.red),
+                  );
+                }
+              }
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent, foregroundColor: Colors.white),
+            child: const Text('HA, TIKLASH'),
           ),
         ],
       ),
@@ -667,13 +858,14 @@ class _MainLayoutState extends State<MainLayout> {
     required bool isActive,
     required bool isDark,
     bool isDanger = false,
+    bool isLoading = false,
   }) {
     final Color color = isDanger 
         ? (isDark ? const Color(0xFFF87171) : const Color(0xFFB91C1C))
         : (isDark ? Colors.grey.shade400 : Colors.grey.shade700);
 
     return InkWell(
-      onTap: isActive ? onTap : null,
+      onTap: (isActive && !isLoading) ? onTap : null,
       borderRadius: BorderRadius.circular(8),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -686,11 +878,21 @@ class _MainLayoutState extends State<MainLayout> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              icon,
-              size: 16,
-              color: isActive ? color : color.withOpacity(0.3),
-            ),
+            if (isLoading)
+              SizedBox(
+                width: 14,
+                height: 14,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(color),
+                ),
+              )
+            else
+              Icon(
+                icon,
+                size: 16,
+                color: isActive ? color : color.withOpacity(0.3),
+              ),
             const SizedBox(width: 6),
             Text(
               label,
