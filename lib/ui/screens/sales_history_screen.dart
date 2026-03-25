@@ -45,101 +45,114 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen> {
 
     final totalAmount = filteredSales.fold<double>(
       0,
-      (sum, item) => sum + item.total,
+      (sum, item) {
+        final isReturned = state.returns.any((r) => r.saleId == item.id);
+        return isReturned ? sum : sum + item.total;
+      },
     );
     final totalProfit = filteredSales.fold<double>(
       0,
-      (sum, sale) => sum + sale.items.fold(0, (iSum, item) => iSum + item.profit),
+      (sum, sale) {
+        final isReturned = state.returns.any((r) => r.saleId == sale.id);
+        return isReturned
+            ? sum
+            : sum + sale.items.fold(0, (iSum, item) => iSum + item.profit);
+      },
     );
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: Column(
-        children: [
-          _buildHeader(state),
-          if (filteredSales.isNotEmpty)
-            Container(
-              margin: const EdgeInsets.fromLTRB(24, 0, 24, 0),
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    Theme.of(context).colorScheme.primary,
-                    Theme.of(context).colorScheme.primary.withOpacity(0.8),
-                  ],
-                ),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.white.withOpacity(0.1)),
-                boxShadow: [
-                  BoxShadow(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.primary.withOpacity(0.3),
-                    blurRadius: 12,
-                    offset: const Offset(0, 6),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(12),
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1400),
+          child: Column(
+            children: [
+              _buildHeader(state),
+              if (filteredSales.isNotEmpty)
+                Container(
+                  margin: const EdgeInsets.fromLTRB(24, 0, 24, 0),
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Theme.of(context).colorScheme.primary,
+                        Theme.of(context).colorScheme.primary.withOpacity(0.8),
+                      ],
                     ),
-                    child: Icon(
-                      Icons.account_balance_wallet_rounded,
-                      color: Colors.white,
-                      size: 28,
-                    ),
-                  ),
-                  SizedBox(width: 16),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Jami savdo:',
-                        style: TextStyle(
-                          color: Colors.white70,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      Text(
-                        '${NumberFormat.currency(locale: 'uz_UZ', symbol: '', decimalDigits: 0).format(totalAmount)} so\'m',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 22,
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ),
-                      Text(
-                        'Foyda: ${NumberFormat.currency(locale: 'uz_UZ', symbol: '', decimalDigits: 0).format(totalProfit)} so\'m',
-                        style: TextStyle(
-                          color: Colors.white.withOpacity(0.9),
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                        ),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.white.withOpacity(0.1)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.primary.withOpacity(0.3),
+                        blurRadius: 12,
+                        offset: const Offset(0, 6),
                       ),
                     ],
                   ),
-                ],
-              ),
-            ),
-          Expanded(
-            child: filteredSales.isEmpty
-                ? _buildEmptyState()
-                : ListView.builder(
-                    padding: const EdgeInsets.all(24),
-                    itemCount: filteredSales.length,
-                    itemBuilder: (context, index) {
-                      final sale = filteredSales[index];
-                      return _buildSaleCard(sale, state);
-                    },
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(
+                          Icons.account_balance_wallet_rounded,
+                          color: Colors.white,
+                          size: 28,
+                        ),
+                      ),
+                      SizedBox(width: 16),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Jami savdo:',
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          Text(
+                            '${NumberFormat.currency(locale: 'uz_UZ', symbol: '', decimalDigits: 0).format(totalAmount)} so\'m',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 22,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                          Text(
+                            'Foyda: ${NumberFormat.currency(locale: 'uz_UZ', symbol: '', decimalDigits: 0).format(totalProfit)} so\'m',
+                            style: TextStyle(
+                              color: Colors.white.withOpacity(0.9),
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
+                ),
+              Expanded(
+                child: filteredSales.isEmpty
+                    ? _buildEmptyState()
+                    : ListView.builder(
+                        padding: const EdgeInsets.all(24),
+                        itemCount: filteredSales.length,
+                        itemBuilder: (context, index) {
+                          final sale = filteredSales[index];
+                          return _buildSaleCard(sale, state);
+                        },
+                      ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -267,30 +280,7 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen> {
 
   Widget _buildFilterButton() {
     return InkWell(
-      onTap: () async {
-        final picked = await showDateRangePicker(
-          context: context,
-          firstDate: DateTime(2020),
-          lastDate: DateTime.now(),
-          initialDateRange: _dateRange,
-          builder: (context, child) {
-            return Theme(
-              data: Theme.of(context).copyWith(
-                colorScheme: ColorScheme.fromSeed(
-                  seedColor: Theme.of(context).colorScheme.primary,
-                  brightness: Theme.of(context).brightness,
-                ),
-              ),
-              child: child!,
-            );
-          },
-        );
-        if (picked != null) {
-          setState(() {
-            _dateRange = picked;
-          });
-        }
-      },
+      onTap: () => _showFilterSheet(context),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
@@ -314,36 +304,121 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen> {
                   : Theme.of(context).textTheme.bodySmall?.color,
             ),
             SizedBox(width: 12),
-            Text(
-              _dateRange == null
-                  ? 'Sana bo\'yicha filter'
-                  : '${DateFormat('dd.MM.yyyy').format(_dateRange!.start)} - ${DateFormat('dd.MM.yyyy').format(_dateRange!.end)}',
-              style: TextStyle(
-                color: _dateRange != null
-                    ? Theme.of(context).colorScheme.primary
-                    : Theme.of(context).colorScheme.onSurface,
-                fontWeight: FontWeight.w600,
-                fontSize: 13,
+            Expanded(
+              child: Text(
+                _dateRange == null
+                    ? 'Sana bo\'yicha filter'
+                    : '${DateFormat('dd.MM.yyyy').format(_dateRange!.start)} - ${DateFormat('dd.MM.yyyy').format(_dateRange!.end)}',
+                style: TextStyle(
+                  color: _dateRange != null
+                      ? Theme.of(context).colorScheme.primary
+                      : Theme.of(context).colorScheme.onSurface,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
+                ),
+                overflow: TextOverflow.ellipsis,
               ),
             ),
-            if (_dateRange != null) ...[
-              SizedBox(width: 8),
+            if (_dateRange != null)
               IconButton(
                 icon: Icon(Icons.close, size: 16),
                 onPressed: () => setState(() => _dateRange = null),
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(),
               ),
-            ],
           ],
         ),
       ),
     );
   }
 
+  void _showFilterSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Theme.of(context).cardColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Saralash davrini tanlang',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 24),
+            _buildPresetTile(
+              'Bugun',
+              Icons.today,
+              DateTimeRange(
+                start: DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day),
+                end: DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day, 23, 59, 59),
+              ),
+            ),
+            _buildPresetTile(
+              'Kecha',
+              Icons.history,
+              DateTimeRange(
+                start: DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day - 1),
+                end: DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day - 1, 23, 59, 59),
+              ),
+            ),
+            _buildPresetTile(
+              'Oxirgi 7 kun',
+              Icons.date_range,
+              DateTimeRange(
+                start: DateTime.now().subtract(const Duration(days: 6)),
+                end: DateTime.now(),
+              ),
+            ),
+            _buildPresetTile(
+              'Shu oy',
+              Icons.calendar_month,
+              DateTimeRange(
+                start: DateTime(DateTime.now().year, DateTime.now().month, 1),
+                end: DateTime.now(),
+              ),
+            ),
+            ListTile(
+              leading: Icon(Icons.edit_calendar),
+              title: Text('Tanlangan oraliq'),
+              trailing: Icon(Icons.chevron_right),
+              onTap: () async {
+                Navigator.pop(context);
+                final picked = await showDateRangePicker(
+                  context: context,
+                  firstDate: DateTime(2020),
+                  lastDate: DateTime.now(),
+                  initialDateRange: _dateRange,
+                );
+                if (picked != null) {
+                  setState(() => _dateRange = picked);
+                }
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPresetTile(String title, IconData icon, DateTimeRange range) {
+    return ListTile(
+      leading: Icon(icon),
+      title: Text(title),
+      onTap: () {
+        setState(() => _dateRange = range);
+        Navigator.pop(context);
+      },
+    );
+  }
+
   Widget _buildSaleCard(Sale sale, AppState state) {
-    final registerName =
-        state.registers
+    final isReturned = state.returns.any((r) => r.saleId == sale.id);
+    final registerName = state.registers
             .where((r) => r.id == sale.registerId)
             .firstOrNull
             ?.name ??
@@ -351,9 +426,17 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen> {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
+        color: isReturned
+            ? (Theme.of(context).brightness == Brightness.dark
+                ? Colors.red.withOpacity(0.05)
+                : Colors.red.withOpacity(0.02))
+            : Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Theme.of(context).dividerColor),
+        border: Border.all(
+          color: isReturned
+              ? Colors.red.withOpacity(0.3)
+              : Theme.of(context).dividerColor,
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(
@@ -370,18 +453,48 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen> {
         leading: Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: Colors.green.withOpacity(0.1),
+            color: isReturned
+                ? Colors.red.withOpacity(0.1)
+                : Colors.green.withOpacity(0.1),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Icon(
-            Icons.receipt_long_rounded,
-            color: Colors.green,
+            isReturned ? Icons.assignment_return_rounded : Icons.receipt_long_rounded,
+            color: isReturned ? Colors.red : Colors.green,
             size: 20,
           ),
         ),
-        title: Text(
-          'Sotuv #${sale.id.substring(0, 8).toUpperCase()}',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+        title: Row(
+          children: [
+            Text(
+              'Sotuv #${sale.id.substring(0, 8).toUpperCase()}',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+                decoration: isReturned ? TextDecoration.lineThrough : null,
+                color: isReturned ? Colors.grey : null,
+              ),
+            ),
+            if (isReturned) ...[
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Colors.red.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(4),
+                  border: Border.all(color: Colors.red.withOpacity(0.2)),
+                ),
+                child: const Text(
+                  'VAZVRAT',
+                  style: TextStyle(
+                    color: Colors.red,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+            ],
+          ],
         ),
         subtitle: Text(
           '${DateFormat('dd.MM.yyyy, HH:mm').format(sale.date)} • $registerName',
@@ -395,7 +508,8 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen> {
           style: TextStyle(
             fontWeight: FontWeight.w900,
             fontSize: 18,
-            color: Theme.of(context).colorScheme.onSurface,
+            color: isReturned ? Colors.grey : Theme.of(context).colorScheme.onSurface,
+            decoration: isReturned ? TextDecoration.lineThrough : null,
           ),
         ),
         children: [
@@ -506,17 +620,17 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen> {
                     Expanded(
                       child: OutlinedButton.icon(
                         style: OutlinedButton.styleFrom(
-                          foregroundColor: Colors.redAccent,
-                          side: const BorderSide(color: Colors.redAccent),
+                          foregroundColor: isReturned ? Colors.grey : Colors.redAccent,
+                          side: BorderSide(color: isReturned ? Colors.grey : Colors.redAccent),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
                           padding: const EdgeInsets.symmetric(vertical: 12),
                         ),
-                        onPressed: () => _confirmReturn(context, state, sale),
-                        icon: Icon(Icons.assignment_return_outlined, size: 18),
+                        onPressed: isReturned ? null : () => _confirmReturn(context, state, sale),
+                        icon: Icon(isReturned ? Icons.check_circle_outline : Icons.assignment_return_outlined, size: 18),
                         label: Text(
-                          'Vazvrat qilish',
+                          isReturned ? 'Vazvrat qilingan' : 'Vazvrat qilish',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 13,

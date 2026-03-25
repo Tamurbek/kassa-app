@@ -402,6 +402,7 @@ class DatabaseService {
               PRIMARY KEY (productId, warehouseId)
             )
           ''');
+        }
         if (oldVersion < 15) {
           try {
             await db.execute('ALTER TABLE stock_entry_items ADD COLUMN costPrice REAL NOT NULL DEFAULT 0');

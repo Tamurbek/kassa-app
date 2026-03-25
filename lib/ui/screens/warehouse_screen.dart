@@ -62,99 +62,103 @@ class _WarehouseScreenState extends State<WarehouseScreen> {
       child: LayoutBuilder(
         builder: (context, constraints) {
           final isNarrow = constraints.maxWidth < 800;
-
           return Scaffold(
             backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-            body: Column(
-              children: [
-                _buildHeader(state, isNarrow),
-                TabBar(
-                  labelColor: Theme.of(context).colorScheme.primary,
-                  unselectedLabelColor: Colors.grey.shade400,
-                  indicatorColor: Theme.of(context).colorScheme.primary,
-                  tabs: [
-                    Tab(text: 'Qoldiqlar'),
-                    Tab(text: 'Kirimlar'),
-                    Tab(text: 'Vazvratlar'),
-                    Tab(text: 'Hisobdan chiqarish'),
-                    Tab(text: 'Inventarizatsiya'),
+            body: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 1400),
+                child: Column(
+                  children: [
+                    _buildHeader(state, isNarrow),
+                    TabBar(
+                      labelColor: Theme.of(context).colorScheme.primary,
+                      unselectedLabelColor: Colors.grey.shade400,
+                      indicatorColor: Theme.of(context).colorScheme.primary,
+                      tabs: [
+                        Tab(text: 'Qoldiqlar'),
+                        Tab(text: 'Kirimlar'),
+                        Tab(text: 'Vazvratlar'),
+                        Tab(text: 'Hisobdan chiqarish'),
+                        Tab(text: 'Inventarizatsiya'),
+                      ],
+                    ),
+                    Expanded(
+                      child: TabBarView(
+                        children: [
+                          // TAB 1: Current Stock
+                          Padding(
+                            padding: const EdgeInsets.all(24.0),
+                            child: Column(
+                              children: [
+                                _buildStatsRow(state, constraints.maxWidth),
+                                SizedBox(height: 24),
+                                Expanded(
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: Theme.of(context).cardColor,
+                                      borderRadius: BorderRadius.circular(20),
+                                      border: Border.all(
+                                        color: Theme.of(context).dividerColor,
+                                      ),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withOpacity(0.03),
+                                          blurRadius: 15,
+                                          offset: const Offset(0, 5),
+                                        ),
+                                      ],
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Padding(
+                                          padding: const EdgeInsets.all(24),
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Text(
+                                                'Mahsulotlar Qoldig\'i',
+                                                style: TextStyle(
+                                                  fontSize: 18,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                              _buildWarehouseSelector(state),
+                                            ],
+                                          ),
+                                        ),
+                                        const Divider(height: 1),
+                                        Expanded(
+                                          child: filteredProducts.isEmpty
+                                              ? _buildEmptySearch()
+                                              : _buildProductsList(
+                                                  state,
+                                                  filteredProducts,
+                                                  isNarrow,
+                                                ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          // TAB 2: Stock History (Inputs)
+                          _buildHistoryList(state),
+                          // TAB 3: Returns History
+                          _buildReturnsList(state),
+                          // TAB 4: Write-offs History
+                          _buildWriteOffsList(state),
+                          // TAB 5: Inventory History
+                          _buildInventoriesList(state),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
-                Expanded(
-                  child: TabBarView(
-                    children: [
-                      // TAB 1: Current Stock
-                      Padding(
-                        padding: const EdgeInsets.all(24.0),
-                        child: Column(
-                          children: [
-                            _buildStatsRow(state, constraints.maxWidth),
-                            SizedBox(height: 24),
-                            Expanded(
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: Theme.of(context).cardColor,
-                                  borderRadius: BorderRadius.circular(20),
-                                  border: Border.all(
-                                    color: Theme.of(context).dividerColor,
-                                  ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.03),
-                                      blurRadius: 15,
-                                      offset: const Offset(0, 5),
-                                    ),
-                                  ],
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Padding(
-                                      padding: const EdgeInsets.all(24),
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Text(
-                                            'Mahsulotlar Qoldig\'i',
-                                            style: TextStyle(
-                                              fontSize: 18,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                          _buildWarehouseSelector(state),
-                                        ],
-                                      ),
-                                    ),
-                                    const Divider(height: 1),
-                                    Expanded(
-                                      child: filteredProducts.isEmpty
-                                          ? _buildEmptySearch()
-                                          : _buildProductsList(
-                                              state,
-                                              filteredProducts,
-                                              isNarrow,
-                                            ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      // TAB 2: Stock History (Inputs)
-                      _buildHistoryList(state),
-                      // TAB 3: Returns History
-                      _buildReturnsList(state),
-                      // TAB 4: Write-offs History
-                      _buildWriteOffsList(state),
-                      // TAB 5: Inventory History
-                      _buildInventoriesList(state),
-                    ],
-                  ),
-                ),
-              ],
+              ),
             ),
           );
         },
@@ -401,7 +405,18 @@ class _WarehouseScreenState extends State<WarehouseScreen> {
       return stock <= 5;
     }).length;
 
-    int crossAxisCount = width < 600 ? 1 : width < 1000 ? 2 : 3;
+    double totalSaleValue = 0;
+    double totalCostValue = 0;
+
+    for (var p in state.activeProducts) {
+      final stock = p.stocks[selectedWarehouseId] ?? 0;
+      if (stock > 0) {
+        totalSaleValue += (stock * p.price);
+        totalCostValue += (stock * (p.costPrice));
+      }
+    }
+
+    int crossAxisCount = width < 600 ? 1 : width < 1200 ? 2 : 4;
 
     return GridView.count(
       shrinkWrap: true,
@@ -409,7 +424,7 @@ class _WarehouseScreenState extends State<WarehouseScreen> {
       crossAxisCount: crossAxisCount,
       crossAxisSpacing: 24,
       mainAxisSpacing: 24,
-      childAspectRatio: 2.5,
+      childAspectRatio: 2.2,
       children: [
         _buildStatCard(
           'Jami Mahsulotlar',
@@ -424,16 +439,24 @@ class _WarehouseScreenState extends State<WarehouseScreen> {
           const [Color(0xFFF59E0B), Color(0xFFD97706)],
         ),
         _buildStatCard(
-          'Omborlar',
-          state.warehouses.length.toString(),
-          Icons.warehouse_rounded,
+          'Zaxira (Sotuv)',
+          '${NumberFormat.compact(locale: 'uz_UZ').format(totalSaleValue)} so\'m',
+          Icons.payments_rounded,
           const [Color(0xFF10B981), Color(0xFF059669)],
+          subtitle: 'Sotuv narxi bo\'yicha',
+        ),
+        _buildStatCard(
+          'Zaxira (Tannarx)',
+          '${NumberFormat.compact(locale: 'uz_UZ').format(totalCostValue)} so\'m',
+          Icons.account_balance_rounded,
+          const [Color(0xFF8B5CF6), Color(0xFF6D28D9)],
+          subtitle: 'Tannarx bo\'yicha',
         ),
       ],
     );
   }
 
-  Widget _buildStatCard(String title, String value, IconData icon, List<Color> gradient) {
+  Widget _buildStatCard(String title, String value, IconData icon, List<Color> gradient, {String? subtitle}) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -449,17 +472,30 @@ class _WarehouseScreenState extends State<WarehouseScreen> {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, color: Colors.white, size: 28),
-          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Icon(icon, color: Colors.white.withOpacity(0.9), size: 24),
+              if (subtitle != null)
+                Text(
+                  subtitle,
+                  style: TextStyle(color: Colors.white.withOpacity(0.6), fontSize: 10, fontWeight: FontWeight.bold),
+                ),
+            ],
+          ),
+          const SizedBox(height: 12),
           Text(
             title,
-            style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 13, fontWeight: FontWeight.w600),
+            style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 12, fontWeight: FontWeight.w600),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 2),
           Text(
             value,
-            style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w900, letterSpacing: -0.5),
+            style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w900, letterSpacing: -0.5),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),

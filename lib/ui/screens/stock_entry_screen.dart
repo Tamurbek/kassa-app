@@ -85,125 +85,147 @@ class _StockEntryScreenState extends State<StockEntryScreen> {
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: AppBar(
-        title: Text(
-          widget.entry == null ? 'Yangi Kirim' : 'Kirimni Tahrirlash',
-          style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 22, letterSpacing: -0.5),
-        ),
-        elevation: 0,
-        centerTitle: false,
-        actions: [
-          _buildAppBarAction(
-            Icons.upload_file_rounded,
-            'Excel',
-            () {
-              if (entryWarehouseId != null) {
-                _importExcel();
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Avval omborni tanlang')));
-              }
-            },
-            Colors.green,
-          ),
-          const SizedBox(width: 8),
-          _buildAppBarAction(
-            Icons.file_download_outlined,
-            'Shablon',
-            () => ExcelImportService.downloadStockEntryTemplate(context, state.activeProducts),
-            Colors.amber.shade800,
-          ),
-          const SizedBox(width: 8),
-          _buildAppBarAction(
-            Icons.save_rounded,
-            'Saqlash',
-            _save,
-            Theme.of(context).colorScheme.primary,
-          ),
-          const SizedBox(width: 16),
-        ],
-      ),
-      body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 1400),
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).cardColor,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: Theme.of(context).dividerColor.withOpacity(0.5)),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.03),
-                        blurRadius: 20,
-                        offset: const Offset(0, 10),
-                      ),
-                    ],
+      body: Column(
+        children: [
+          Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 1000),
+              child: AppBar(
+                title: Text(
+                  widget.entry == null ? 'Yangi Kirim' : 'Kirimni Tahrirlash',
+                  style: const TextStyle(
+                      fontWeight: FontWeight.w900,
+                      fontSize: 22,
+                      letterSpacing: -0.5),
+                ),
+                elevation: 0,
+                backgroundColor: Colors.transparent,
+                centerTitle: false,
+                actions: [
+                  _buildAppBarAction(
+                    Icons.upload_file_rounded,
+                    'Excel',
+                    () {
+                      if (entryWarehouseId != null) {
+                        _importExcel();
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Avval omborni tanlang')),
+                        );
+                      }
+                    },
+                    Colors.green.shade800,
                   ),
+                  const SizedBox(width: 8),
+                  _buildAppBarAction(
+                    Icons.file_download_outlined,
+                    'Shablon',
+                    () => ExcelImportService.downloadStockEntryTemplate(
+                        context, state.activeProducts),
+                    Colors.amber.shade800,
+                  ),
+                  const SizedBox(width: 8),
+                  _buildAppBarAction(
+                    Icons.save_rounded,
+                    'Saqlash',
+                    _save,
+                    Theme.of(context).colorScheme.primary,
+                  ),
+                  const SizedBox(width: 16),
+                ],
+              ),
+            ),
+          ),
+          Expanded(
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 1000),
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(24),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _buildInputCard(
-                              title: 'Ombor',
-                              child: DropdownButtonHideUnderline(
-                                child: DropdownButton<String>(
-                                  value: entryWarehouseId,
-                                  isExpanded: true,
-                                  items: state.warehouses
-                                      .map((w) => DropdownMenuItem(value: w.id, child: Text(w.name)))
-                                      .toList(),
-                                  onChanged: (val) => setState(() => entryWarehouseId = val),
-                                ),
-                              ),
+                      Container(
+                        padding: const EdgeInsets.all(24),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).cardColor,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                              color: Theme.of(context).dividerColor.withOpacity(0.5)),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.03),
+                              blurRadius: 20,
+                              offset: const Offset(0, 10),
                             ),
-                          ),
-                          const SizedBox(width: 24),
-                          Expanded(
-                            child: _buildInputCard(
-                              title: 'Sana',
-                              child: InkWell(
-                                onTap: _pickDate,
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(vertical: 12),
-                                  child: Row(
-                                    children: [
-                                      const Icon(Icons.calendar_month_rounded, size: 20, color: Colors.grey),
-                                      const SizedBox(width: 12),
-                                      Text(
-                                        DateFormat('MMM d, yyyy HH:mm').format(selectedDate),
-                                        style: const TextStyle(fontWeight: FontWeight.w600),
+                          ],
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _buildInputCard(
+                                    title: 'Ombor',
+                                    child: DropdownButtonHideUnderline(
+                                      child: DropdownButton<String>(
+                                        value: entryWarehouseId,
+                                        isExpanded: true,
+                                        items: state.warehouses
+                                            .map((w) => DropdownMenuItem(
+                                                value: w.id, child: Text(w.name)))
+                                            .toList(),
+                                        onChanged: (val) =>
+                                            setState(() => entryWarehouseId = val),
                                       ),
-                                    ],
+                                    ),
                                   ),
                                 ),
+                                const SizedBox(width: 24),
+                                Expanded(
+                                  child: _buildInputCard(
+                                    title: 'Sana',
+                                    child: InkWell(
+                                      onTap: _pickDate,
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            vertical: 12),
+                                        child: Row(
+                                          children: [
+                                            const Icon(Icons.calendar_month_rounded,
+                                                size: 20, color: Colors.grey),
+                                            const SizedBox(width: 12),
+                                            Text(
+                                              DateFormat('MMM d, yyyy HH:mm')
+                                                  .format(selectedDate),
+                                              style: const TextStyle(
+                                                  fontWeight: FontWeight.w600),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 24),
+                            _buildInputCard(
+                              title: 'Tavsif (izoh)',
+                              child: TextField(
+                                controller: descriptionCtrl,
+                                decoration: const InputDecoration(
+                                  hintText: 'Qo\'shimcha ma\'lumotlar...',
+                                  border: InputBorder.none,
+                                  icon: Icon(Icons.notes_rounded, size: 20),
+                                ),
                               ),
                             ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 24),
-                      _buildInputCard(
-                        title: 'Tavsif (izoh)',
-                        child: TextField(
-                          controller: descriptionCtrl,
-                          decoration: const InputDecoration(
-                            hintText: 'Qo\'shimcha ma\'lumotlar...',
-                            border: InputBorder.none,
-                            icon: Icon(Icons.notes_rounded, size: 20),
-                          ),
+                          ],
                         ),
                       ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 32),
+                      const SizedBox(height: 32),
                 Container(
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
@@ -348,7 +370,6 @@ class _StockEntryScreenState extends State<StockEntryScreen> {
                     ),
                     child: const Text(
                       'SAQLASH',
-                      style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1),
                     ),
                   ),
                 ),
@@ -357,8 +378,11 @@ class _StockEntryScreenState extends State<StockEntryScreen> {
           ),
         ),
       ),
-    );
-  }
+    ),
+  ],
+),
+);
+}
 
   void _handleBarcode(String barcode, AppState state) {
     if (barcode.isEmpty) return;

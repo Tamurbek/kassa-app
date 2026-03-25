@@ -11,35 +11,42 @@ class TerminalManagementScreen extends StatelessWidget {
     final state = context.watch<AppState>();
 
     return Scaffold(
-      appBar: AppBar(
-        title: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: Image.asset(
-                'assets/icon.png',
-                width: 28,
-                height: 28,
-                fit: BoxFit.cover,
+      body: Column(
+        children: [
+          Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 1000),
+              child: AppBar(
+                title: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.asset(
+                        'assets/icon.png',
+                        width: 28,
+                        height: 28,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    SizedBox(width: 12),
+                    Text(
+                      'Kassa Terminallari',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                centerTitle: true,
               ),
             ),
-            SizedBox(width: 12),
-            Text(
-              'Kassa Terminallari',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ],
-        ),
-        backgroundColor: Theme.of(context).cardColor,
-        elevation: 0,
-        centerTitle: true,
-      ),
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 1400),
-          child: ListView.builder(
+          ),
+          Expanded(
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 1000),
+                child: ListView.builder(
             padding: const EdgeInsets.all(24),
             itemCount: state.registers.length,
             itemBuilder: (context, index) {
@@ -103,8 +110,11 @@ class TerminalManagementScreen extends StatelessWidget {
                 ),
               );
             },
+                ),
+              ),
+            ),
           ),
-        ),
+        ],
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showRegisterDialog(context, state),

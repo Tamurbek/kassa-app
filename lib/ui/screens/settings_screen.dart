@@ -27,7 +27,7 @@ class SettingsScreen extends StatelessWidget {
           Expanded(
             child: Center(
               child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 1400),
+                constraints: const BoxConstraints(maxWidth: 1000),
                 child: ListView(
                   padding: const EdgeInsets.all(24),
               children: [
@@ -310,13 +310,34 @@ class SettingsScreen extends StatelessWidget {
                       subtitle: 'Yangi versiyani tekshirish',
                       onTap: () => _checkUpdate(context),
                     ),
-                    _buildSettingsTile(
+                     _buildSettingsTile(
                       context,
                       icon: Icons.logout,
                       color: Colors.redAccent,
                       title: 'Tizimdan chiqish',
                       subtitle: 'Boshqa foydalanuvchi sifatida kirish',
-                      onTap: () {},
+                      onTap: () async {
+                        final confirmed = await showDialog<bool>(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: Text('Tizimdan chiqish'),
+                            content: Text('Haqiqatan ham tizimdan chiqmoqchimisiz?'),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context, false),
+                                child: Text('Bekor qilish'),
+                              ),
+                              TextButton(
+                                onPressed: () => Navigator.pop(context, true),
+                                child: Text('Chiqish', style: TextStyle(color: Colors.red)),
+                              ),
+                            ],
+                          ),
+                        );
+                        if (confirmed == true) {
+                          state.logout();
+                        }
+                      },
                     ),
                   ],
                 ),
