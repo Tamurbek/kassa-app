@@ -28,7 +28,7 @@ class SettingsProvider extends ChangeNotifier {
   
   bool isBarcodeScanMode = false;
   bool showProductImages = true;
-  String appVersion = '1.20.2';
+  String appVersion = '1.20.3';
   String? deviceId;
 
   Future<void> loadSettings() async {

@@ -8,6 +8,7 @@ import '../providers/features/settings_provider.dart';
 import '../providers/features/sales_provider.dart';
 import '../providers/features/sync_provider.dart';
 import '../models/models.dart';
+import '../providers/app_state.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/pos_screen.dart';
 import 'screens/warehouse_screen.dart';
