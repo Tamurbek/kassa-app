@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
@@ -24,6 +25,8 @@ class AuthProvider extends ChangeNotifier {
   List<User> get activeUsers => _users.where((u) => !u.isDeleted).toList();
   List<User> get deletedUsers => _users.where((u) => u.isDeleted).toList();
 
+  Timer? _monitorTimer;
+
   Future<void> loadAuth() async {
     final prefs = await SharedPreferences.getInstance();
     _isActivated = prefs.getBool('isActivated') ?? false;
@@ -37,6 +40,28 @@ class AuthProvider extends ChangeNotifier {
       await prefs.setString('deviceId', deviceId!);
     }
     await reloadUsers();
+    
+    // Start background check for organization status and license
+    if (_isActivated) {
+      startBackgroundMonitoring();
+    }
+  }
+
+  void startBackgroundMonitoring() {
+    _monitorTimer?.cancel();
+    // Initial check after 5 seconds to not block startup
+    Future.delayed(const Duration(seconds: 5), () => checkBlockingStatus());
+    
+    // Periodically check every 20 minutes for license and organization updates
+    _monitorTimer = Timer.periodic(const Duration(minutes: 20), (timer) {
+      checkBlockingStatus();
+    });
+  }
+
+  @override
+  void dispose() {
+    _monitorTimer?.cancel();
+    super.dispose();
   }
 
   Future<void> reloadUsers() async {
@@ -140,54 +165,73 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> checkBlockingStatus() async {
-    if (!_isActivated || activationCode == null) return;
-    
-    try {
-      final response = await http.get(
-        Uri.parse("https://web-production-d2ed7.up.railway.app/check?device_id=$deviceId&code=$activationCode"),
-      ).timeout(const Duration(seconds: 10));
+  String cloudStatus = 'Sinxronizatsiya faol';
+  bool _isConnecting = false;
 
+  Future<void> checkBlockingStatus() async {
+    if (!_isActivated || activationCode == null || deviceId == null || _isConnecting) return;
+    _isConnecting = true;
+
+    try {
+      final response = await http
+          .get(Uri.parse(
+              "https://web-production-d2ed7.up.railway.app/check?device_id=$deviceId&code=$activationCode"))
+          .timeout(const Duration(seconds: 10));
+
+      _isConnecting = false;
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        
-        // 1. Update Blocking Status
-        if (data['blocked'] == true) {
-          setBlocked(true);
-        } else {
-          setBlocked(false);
+        cloudStatus = 'Bulutga ulandi';
+
+        // 1. Licensing & Blocking
+        bool isBlockedOnServer = data['blocked'] == true;
+        if (isBlockedOnServer != _isBlocked) {
+          setBlocked(isBlockedOnServer);
         }
 
-        // 2. Sync Organization Info if changed
+        // 2. Sync Professional Organization Details
         final prefs = await SharedPreferences.getInstance();
         bool changed = false;
-        
+
         if (data['organization_name'] != null && data['organization_name'] != (prefs.getString('organizationName') ?? '')) {
           await prefs.setString('organizationName', data['organization_name']);
+          await DatabaseService.saveSetting('organizationName', data['organization_name']);
           changed = true;
         }
+
         if (data['organization_address'] != null && data['organization_address'] != (prefs.getString('organizationAddress') ?? '')) {
           await prefs.setString('organizationAddress', data['organization_address']);
+          await DatabaseService.saveSetting('organizationAddress', data['organization_address']);
           changed = true;
         }
-        
+
+        if (data['instagram_username'] != null) {
+          await DatabaseService.saveSetting('instagramUsername', data['instagram_username']);
+          changed = true;
+        }
+
         if (changed) {
-          // This will notify listeners of SettingsProvider/AppState if they watch these prefs
           notifyListeners();
         }
 
-        // 3. Handle Remote Kick (Force Logout / Data Wipe)
+        // 3. Remote Data Management (Wipe if requested by master server)
         if (data['force_logout'] == true) {
-          debugPrint("Remote kick triggered. Clearing data...");
+          debugPrint("Remote data wipe requested by Railway. Clearing...");
           await DatabaseService.clearAllData();
-          // Reset local status
           _isActivated = false;
           await prefs.clear();
+          if (deviceId != null) await prefs.setString('deviceId', deviceId!);
           notifyListeners();
         }
+      } else {
+        cloudStatus = 'Serverda xato (${response.statusCode})';
+        notifyListeners();
       }
     } catch (e) {
-      // Ignore network errors for status check
+      _isConnecting = false;
+      cloudStatus = 'Internet kutilmoqda...';
+      notifyListeners();
+      debugPrint("Railway check error: $e");
     }
   }
 

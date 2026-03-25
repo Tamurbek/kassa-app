@@ -1004,7 +1004,9 @@ class AppState extends ChangeNotifier {
   Future<void> clearAllData() async {
     await DatabaseService.clearAllData();
     final prefs = await SharedPreferences.getInstance();
+    final dId = prefs.getString('deviceId');
     await prefs.clear();
+    if (dId != null) await prefs.setString('deviceId', dId); // Keep the device identity
     
     isMaster = null;
     initializationError = null;

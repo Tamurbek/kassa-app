@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import '../../providers/app_state.dart';
 import '../../providers/features/auth_provider.dart';
 import '../../providers/features/settings_provider.dart';
 import '../../providers/features/sync_provider.dart';
@@ -106,9 +107,9 @@ class _LoginScreenState extends State<LoginScreen> {
           ElevatedButton(
             onPressed: () {
               final enteredPass = passCtrl.text;
-              // 7777 is hardcoded master recovery or we use a setting if we had one.
-              // For now, let's stick to the 7777 fallback for recovery.
-              const masterPass = '7777'; 
+              final state = context.read<AppState>();
+              // Use the actual master password from settings, or 7777 as ultimate fallback
+              final masterPass = state.masterPassword ?? '7777'; 
               
               if (enteredPass == masterPass) {
                 Navigator.pop(context);
@@ -424,7 +425,14 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
             onPressed: () async {
               Navigator.pop(ctx);
-              await context.read<SettingsProvider>().clearAllData();
+              // Clear everything via AppState (which also clears Database and SharedPreferences)
+              await context.read<AppState>().resetTerminalMode();
+              
+              if (mounted) {
+                // Also reload other providers to clear their memory state
+                await context.read<AuthProvider>().loadAuth();
+                await context.read<SettingsProvider>().loadSettings();
+              }
             },
             child: const Text('Qayta sozlash'),
           ),

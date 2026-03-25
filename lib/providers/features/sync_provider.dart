@@ -24,6 +24,7 @@ class SyncProvider extends ChangeNotifier {
 
   WebSocketChannel? _wsChannel;
   bool _isConnectingWs = false;
+  Timer? _cloudBackupTimer;
 
   Future<void> loadSync() async {
     final prefs = await SharedPreferences.getInstance();
@@ -35,7 +36,32 @@ class SyncProvider extends ChangeNotifier {
     if (isMaster == false && masterAddress != null) {
       _connectRealtime();
     }
+    
+    // Professional auto-sync: Start background backup for Master terminal
+    if (isMaster == true) {
+      startAutoCloudBackup();
+    }
     notifyListeners();
+  }
+
+  void startAutoCloudBackup() {
+    _cloudBackupTimer?.cancel();
+    // Background cloud sync every 2 hours if active
+    _cloudBackupTimer = Timer.periodic(const Duration(hours: 2), (timer) async {
+       if (isMaster == true) {
+         try {
+           await uploadDatabaseToCloud();
+         } catch (e) {
+           debugPrint('Auto cloud backup error: $e');
+         }
+       }
+    });
+  }
+
+  @override
+  void dispose() {
+    _cloudBackupTimer?.cancel();
+    super.dispose();
   }
 
   void _connectRealtime() {
@@ -222,6 +248,53 @@ class SyncProvider extends ChangeNotifier {
       isSyncingCloud = false;
       syncingStage = '';
       notifyListeners();
+    }
+  }
+
+  /// Export database to a local file
+  Future<void> exportDatabaseToFile() async {
+    try {
+      final dbPath = await DatabaseService.getDatabasePath();
+      final file = File(dbPath);
+      if (!await file.exists()) throw Exception('Baza fayli topilmadi');
+
+      final fileName = "SimpleSale_Backup_${DateTime.now().toString().substring(0, 10)}.db";
+
+      if (Platform.isMacOS || Platform.isWindows || Platform.isLinux) {
+        String? outputFile = await FilePicker.platform.saveFile(
+          dialogTitle: 'Zaxira faylini saqlash joyini tanlang',
+          fileName: fileName,
+          lockParentWindow: true,
+          type: FileType.any,
+        );
+
+        if (outputFile != null) {
+          await file.copy(outputFile);
+        }
+      } else {
+        // Mobile sharing
+        await Share.shareXFiles([XFile(dbPath)], text: 'SimpleSale Ma\'lumotlar Bazasi Zaxirasi');
+      }
+    } catch (e) {
+      throw Exception('Faylga saqlashda xatolik: $e');
+    }
+  }
+
+  /// Import database from a local file
+  Future<void> importDatabaseFromFile() async {
+    try {
+      FilePickerResult? result = await FilePicker.platform.pickFiles(
+        type: FileType.any,
+        allowMultiple: false,
+      );
+
+      if (result != null && result.files.single.path != null) {
+        final pickedFile = File(result.files.single.path!);
+        await DatabaseService.replaceDatabase(pickedFile);
+        notifyListeners();
+      }
+    } catch (e) {
+      throw Exception('Fayldan tiklashda xatolik: $e');
     }
   }
 }

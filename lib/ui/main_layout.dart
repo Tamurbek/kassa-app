@@ -497,6 +497,36 @@ class _MainLayoutState extends State<MainLayout> {
               ],
             ),
           ),
+          const SizedBox(width: 16),
+          // Professional Cloud Sync Status
+          if (auth.isActivated)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.blue.withOpacity(0.08),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Colors.blue.withOpacity(0.15)),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                   Icon(
+                     auth.cloudStatus.contains('Bulut') ? Icons.cloud_done_rounded : Icons.cloud_off_rounded,
+                     size: 12, 
+                     color: auth.cloudStatus.contains('Bulut') ? Colors.blue : Colors.orange,
+                   ),
+                   const SizedBox(width: 6),
+                   Text(
+                     'Cloud: ${auth.cloudStatus}',
+                     style: TextStyle(
+                       fontSize: 10,
+                       fontWeight: FontWeight.w700,
+                       color: auth.cloudStatus.contains('Bulut') ? Colors.blue[isDark ? 300 : 700] : Colors.orange[isDark ? 300 : 700],
+                     ),
+                   ),
+                ],
+              ),
+            ),
           const SizedBox(width: 24),
           _buildFooterInfoItem(
             context,

@@ -124,19 +124,19 @@ class SettingsScreen extends StatelessWidget {
                           ),
                         ],
                       ),
-                    if (isAdmin && sync.isMaster == false) ...[
+                    if (isAdmin) ...[
                       const SizedBox(height: 24),
                       _buildSection(
                         context,
-                        'Ma\'lumotlar almashinuvi',
-                        'Asosiy server bilan bog\'lanish',
+                        'Ma\'lumotlar zaxirasi',
+                        'Bulutli va lokal zaxira nusxalari',
                         [
                           _buildSettingsTile(
                             context,
                             icon: Icons.sync_rounded,
                             color: Colors.green,
-                            title: 'Sinxronizatsiya',
-                            subtitle: 'Ma\'lumotlarni server bilan almashish',
+                            title: 'Zaxira va Tiklash',
+                            subtitle: 'Ma\'lumotlarni bulutga yoki faylga saqlash',
                             onTap: () => _showCloudDialog(context, sync),
                           ),
                         ],
@@ -593,7 +593,7 @@ class SettingsScreen extends StatelessWidget {
             children: [
               Icon(Icons.cloud_sync_rounded, color: Theme.of(context).colorScheme.primary),
               const SizedBox(width: 12),
-              const Text('Bulutli Xizmat'),
+              const Text('Ma\'lumotlar zaxirasi'),
             ],
           ),
           content: Column(
@@ -603,8 +603,8 @@ class SettingsScreen extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.only(bottom: 16),
                   child: Text(
-                    'Oxirgi sinxronizatsiya: ${sync.lastCloudSync!.toString().substring(0, 16)}',
-                    style: const TextStyle(fontSize: 13, color: Colors.grey),
+                    'Oxirgi bulutli sinxronizatsiya: ${sync.lastCloudSync!.toString().substring(0, 16)}',
+                    style: const TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.bold),
                   ),
                 ),
               if (sync.isSyncingCloud) ...[
@@ -612,58 +612,98 @@ class SettingsScreen extends StatelessWidget {
                 const SizedBox(height: 16),
                 Text(sync.syncingStage, textAlign: TextAlign.center),
               ] else ...[
-                const Text(
-                  'Barcha ma\'lumotlaringizni (mahsulotlar, sotuvlar, qoldiqlar) bulutli serverga zaxira qilishingiz yoki u yerdan qayta tiklashingiz mumkin.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 14),
-                ),
-                const SizedBox(height: 24),
+                // Section: Cloud
+                const Text('🔥 Bulutli xizmat (Cloud)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.blue)),
+                const SizedBox(height: 12),
                 Row(
                   children: [
                     Expanded(
                       child: OutlinedButton.icon(
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        ),
-                        icon: const Icon(Icons.cloud_download_rounded),
-                        label: const Text('Yuklab olish'),
+                        icon: const Icon(Icons.cloud_download_rounded, size: 18),
+                        label: const Text('Yuklab olish', style: TextStyle(fontSize: 12)),
                         onPressed: () async {
-                          final confirm = await _showConfirmDialog(context, 'Bulutdan yuklash oldingi ma\'lumotlarni butunlay O\'CHIRIB yuboradi. Davom etasizmi?');
+                          final confirm = await _showConfirmDialog(context, 'Bulutdan yuklash oldingi ma\'lumotlarni butunlay O\'CHIRIB yuborada. Davom etasizmi?');
                           if (confirm == true) {
                             try {
-                              await sync.restoreDatabaseFromCloud();
-                              if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Ma\'lumotlar muvaffaqiyatli tiklandi!'), backgroundColor: Colors.green));
-                                Navigator.pop(context);
-                                // Restart logic usually needed here
-                              }
+                               await sync.restoreDatabaseFromCloud();
+                               if (context.mounted) {
+                                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Ma\'lumotlar muvaffaqiyatli tiklandi!'), backgroundColor: Colors.green));
+                               }
                             } catch (e) {
-                              if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString()), backgroundColor: Colors.red));
+                               if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString()), backgroundColor: Colors.red));
                             }
                           }
                         },
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 10),
                     Expanded(
                       child: ElevatedButton.icon(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Theme.of(context).colorScheme.primary,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          backgroundColor: Colors.blue.shade50,
+                          foregroundColor: Colors.blue.shade900,
+                          elevation: 0,
                         ),
-                        icon: const Icon(Icons.cloud_upload_rounded),
-                        label: const Text('Zaxira qilish'),
+                        icon: const Icon(Icons.cloud_upload_rounded, size: 18),
+                        label: const Text('Bulutga saqlash', style: TextStyle(fontSize: 12)),
                         onPressed: () async {
                           try {
-                            await sync.uploadDatabaseToCloud();
-                            if (context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Ma\'lumotlar bulutga saqlandi!'), backgroundColor: Colors.green));
-                            }
+                             await sync.uploadDatabaseToCloud();
+                             if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Ma\'lumotlar bulutga saqlandi!'), backgroundColor: Colors.green));
                           } catch (e) {
-                            if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString()), backgroundColor: Colors.red));
+                             if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString()), backgroundColor: Colors.red));
+                          }
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+                
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 16.0),
+                  child: Divider(),
+                ),
+
+                // Section: Local File
+                const Text('📁 Lokal fayl (Excel emas, Baza)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.orange)),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        icon: const Icon(Icons.file_open_rounded, size: 18),
+                        label: const Text('Fayldan tiklash', style: TextStyle(fontSize: 12)),
+                        onPressed: () async {
+                          final confirm = await _showConfirmDialog(context, 'Fayldan tiklash joriy ma\'lumotlarni butunlay O\'CHIRIB yuboradi. Davom etasizmi?');
+                          if (confirm == true) {
+                            try {
+                               await sync.importDatabaseFromFile();
+                               if (context.mounted) {
+                                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Fayldan muvaffaqiyatli tiklandi!'), backgroundColor: Colors.green));
+                               }
+                            } catch (e) {
+                               if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString()), backgroundColor: Colors.red));
+                            }
+                          }
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.orange.shade50,
+                          foregroundColor: Colors.orange.shade900,
+                          elevation: 0,
+                        ),
+                        icon: const Icon(Icons.save_rounded, size: 18),
+                        label: const Text('Faylga saqlash', style: TextStyle(fontSize: 12)),
+                        onPressed: () async {
+                          try {
+                             await sync.exportDatabaseToFile();
+                             if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Fayl ko\'rsatilgan joyga saqlandi!'), backgroundColor: Colors.green));
+                          } catch (e) {
+                             if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString()), backgroundColor: Colors.red));
                           }
                         },
                       ),
