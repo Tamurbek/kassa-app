@@ -102,11 +102,27 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
       }
 
       final name = _nameController.text;
-      final price = double.tryParse(_priceController.text) ?? 0.0;
-      final costPrice = double.tryParse(_costPriceController.text) ?? 0.0;
-      final barcode = _barcodeController.text;
+      final price = double.tryParse(_priceController.text.replaceAll(' ', '')) ?? 0.0;
+      final costPrice = double.tryParse(_costPriceController.text.replaceAll(' ', '')) ?? 0.0;
+      final barcode = _barcodeController.text.trim();
+      
+      // Check barcode uniqueness
+      if (barcode.isNotEmpty) {
+        final existingProduct = inventory.activeProducts.where((p) => 
+          (p.barcode == barcode || p.additionalBarcodes.contains(barcode)) && 
+          p.id != widget.product?.id
+        ).firstOrNull;
+        
+        if (existingProduct != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Ushbu shtrix-kod allaqachon "${existingProduct.name}" mahsulotida ishlatilgan!')),
+          );
+          return;
+        }
+      }
+
       final additionalBarcodes = _additionalBarcodeControllers
-          .map((c) => c.text)
+          .map((c) => c.text.trim())
           .where((t) => t.isNotEmpty)
           .toList();
 
@@ -115,7 +131,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
           name,
           price,
           _selectedCategoryId!,
-          barcode,
+          barcode.isEmpty ? inventory.generateBarcode() : barcode,
           costPrice: costPrice,
           imagePath: _imagePath,
           trackStock: _trackStock,
@@ -127,7 +143,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
           price: price,
           costPrice: costPrice,
           categoryId: _selectedCategoryId,
-          barcode: barcode,
+          barcode: barcode.isEmpty ? inventory.generateBarcode() : barcode,
           additionalBarcodes: additionalBarcodes,
           imagePath: _imagePath,
           trackStock: _trackStock,
@@ -137,6 +153,44 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
 
       if (mounted) Navigator.pop(context);
     }
+  }
+
+  void _showAddCategoryDialog() {
+    final controller = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Yangi Kategoriya'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          decoration: const InputDecoration(
+            labelText: 'Kategoriya nomi',
+            border: OutlineInputBorder(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('BEKOR QILISH'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final name = controller.text.trim();
+              if (name.isNotEmpty) {
+                final category = Category.create(name);
+                await context.read<InventoryProvider>().saveCategory(category);
+                setState(() {
+                  _selectedCategoryId = category.id;
+                });
+                if (mounted) Navigator.pop(context);
+              }
+            },
+            child: const Text('SAQLASH'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -228,6 +282,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                           'Shtrix-kod',
                           _barcodeController,
                           Icons.qr_code_scanner_outlined,
+                          isRequired: false,
                           suffix: IconButton(
                             icon: Icon(Icons.auto_awesome, color: Theme.of(context).colorScheme.primary),
                             tooltip: 'Generatsiya qilish',
@@ -297,10 +352,10 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                 borderRadius: BorderRadius.circular(30),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(
+                    color: Colors.black.withAlpha(
                       Theme.of(context).brightness == Brightness.dark
-                          ? 0.3
-                          : 0.05,
+                          ? 77 // ~0.3
+                          : 13 // ~0.05
                     ),
                     blurRadius: 20,
                     offset: const Offset(0, 10),
@@ -340,7 +395,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                 right: 8,
                 child: CircleAvatar(
                   radius: 18,
-                  backgroundColor: Colors.black.withOpacity(0.5),
+                  backgroundColor: Colors.black.withAlpha(128), // ~0.5
                   child: IconButton(
                     icon: Icon(Icons.close, size: 18, color: Colors.white),
                     onPressed: () => setState(() => _imagePath = null),
@@ -358,6 +413,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
     TextEditingController controller,
     IconData icon, {
     bool isNumber = false,
+    bool isRequired = true,
     Widget? suffix,
   }) {
     return Column(
@@ -397,8 +453,12 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                 color: Theme.of(context).textTheme.bodySmall?.color,
               ),
             ),
-            validator: (v) =>
-                v == null || v.isEmpty ? 'Maydonni to\'ldiring' : null,
+            validator: (v) {
+              if (isRequired && (v == null || v.isEmpty)) {
+                return 'Maydonni to\'ldiring';
+              }
+              return null;
+            },
           ),
         ),
       ],
@@ -409,13 +469,32 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Kategoriya',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 13,
-            color: Theme.of(context).textTheme.bodySmall?.color,
-          ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Kategoriya',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 13,
+                color: Theme.of(context).textTheme.bodySmall?.color,
+              ),
+            ),
+            InkWell(
+              onTap: _showAddCategoryDialog,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                child: Text(
+                  '+ Yangi Kategoriya',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Theme.of(context).colorScheme.primary,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
         SizedBox(height: 8),
         Container(

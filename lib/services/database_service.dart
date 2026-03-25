@@ -506,6 +506,11 @@ class DatabaseService {
     await db.delete('registers', where: 'id = ?', whereArgs: [id]);
   }
 
+  static Future<void> updateRegisterDevice(String id, String? deviceId) async {
+    final db = await database;
+    await db.update('registers', {'activeDeviceId': deviceId}, where: 'id = ?', whereArgs: [id]);
+  }
+
   // --- Products & Stocks ---
   static Future<void> saveProduct(Product product) async {
     final db = await database;

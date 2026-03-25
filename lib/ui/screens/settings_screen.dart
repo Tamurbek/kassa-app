@@ -103,6 +103,14 @@ class SettingsScreen extends StatelessWidget {
                           ),
                           _buildSettingsTile(
                             context,
+                            icon: Icons.point_of_sale_rounded,
+                            color: Colors.blueAccent,
+                            title: 'Tanlangan Kassa Terminali',
+                            subtitle: settings.currentRegister?.name ?? 'Tanlanmagan',
+                            onTap: () => _showRegisterPicker(context, settings),
+                          ),
+                          _buildSettingsTile(
+                            context,
                             icon: Icons.warehouse_rounded,
                             color: Colors.orange,
                             title: 'Omborlar',
@@ -407,39 +415,6 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  void _showRegisterPicker(BuildContext context, SettingsProvider settings) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Kassani tanlang',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 24),
-            ...settings.registers.map((r) => ListTile(
-                  leading: const Icon(Icons.storefront),
-                  title: Text(r.name),
-                  trailing: settings.currentRegister?.id == r.id
-                      ? Icon(Icons.check_circle, color: Theme.of(context).colorScheme.primary)
-                      : null,
-                  onTap: () {
-                    settings.updateCurrentRegister(r);
-                    Navigator.pop(context);
-                  },
-                )),
-          ],
-        ),
-      ),
-    );
-  }
 
   void _showPrinterPicker(BuildContext context, SettingsProvider settings) async {
     final devices = await Printing.listPrinters();
@@ -874,6 +849,62 @@ class SettingsScreen extends StatelessWidget {
                 Navigator.pop(context);
               },
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showRegisterPicker(BuildContext context, SettingsProvider settings) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Theme.of(context).cardColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Kassa terminalini tanlang',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 24),
+            if (settings.registers.isEmpty)
+              const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(24.0),
+                  child: Text('Kassalar topilmadi. Avval kassa qo\'shing.'),
+                ),
+              )
+            else
+              Expanded(
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: settings.registers.length,
+                  itemBuilder: (context, index) {
+                    final reg = settings.registers[index];
+                    final isSelected = settings.currentRegister?.id == reg.id;
+                    return ListTile(
+                      leading: Icon(Icons.point_of_sale_rounded, 
+                        color: isSelected ? Theme.of(context).colorScheme.primary : Colors.grey),
+                      title: Text(reg.name),
+                      subtitle: Text('ID: ${reg.id}'),
+                      trailing: isSelected ? Icon(Icons.check_circle, color: Theme.of(context).colorScheme.primary) : null,
+                      onTap: () {
+                        settings.updateCurrentRegister(reg);
+                        Navigator.pop(context);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('${reg.name} tanlandi'), backgroundColor: Colors.green),
+                        );
+                      },
+                    );
+                  },
+                ),
+              ),
           ],
         ),
       ),

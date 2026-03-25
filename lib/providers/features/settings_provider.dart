@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:uuid/uuid.dart';
 import '../../services/database_service.dart';
 import '../../models/models.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:path/path.dart' as p;
 import 'dart:io';
 
 class SettingsProvider extends ChangeNotifier {
@@ -19,8 +18,8 @@ class SettingsProvider extends ChangeNotifier {
   bool showLogoOnReceipt = true;
   bool showInstagramOnReceipt = true;
   
-  String? organizationName = 'test';
-  String? organizationAddress = 'O\'zbekiston, Toshkent';
+  String? organizationName = 'Biznes Nomi';
+  String? organizationAddress = 'O\'zbekiston';
   String? instagramUsername = '@simplesale';
   String? organizationLogoPath;
   
@@ -29,51 +28,51 @@ class SettingsProvider extends ChangeNotifier {
   
   bool isBarcodeScanMode = false;
   bool showProductImages = true;
-  String appVersion = '1.16.0';
+  String appVersion = '1.16.1';
+  String? deviceId;
 
   Future<void> loadSettings() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       
-      final savedTheme = prefs.getString('themeMode');
-      if (savedTheme == 'light') {
-        _themeMode = ThemeMode.light;
-      } else if (savedTheme == 'dark') {
-        _themeMode = ThemeMode.dark;
-      } else {
-        _themeMode = ThemeMode.system;
+      // 1. Device Identification
+      deviceId = prefs.getString('deviceId');
+      if (deviceId == null) {
+        deviceId = const Uuid().v4();
+        await prefs.setString('deviceId', deviceId!);
       }
 
+      // 2. Load basic prefs
+      final savedTheme = prefs.getString('themeMode');
+      _themeMode = savedTheme == 'light' ? ThemeMode.light : (savedTheme == 'dark' ? ThemeMode.dark : ThemeMode.system);
+      
       isBarcodeScanMode = prefs.getBool('isBarcodeScanMode') ?? false;
       showProductImages = prefs.getBool('showProductImages') ?? true;
-      networkPrinterIp = prefs.getString('networkPrinterIp');
-      networkBarcodePrinterIp = prefs.getString('networkBarcodePrinterIp');
-      selectedPrinterName = prefs.getString('selectedPrinterName');
-      barcodePrinterName = prefs.getString('barcodePrinterName');
       receiptWidth = prefs.getInt('receiptWidth') ?? 80;
-      receiptFooterText = prefs.getString('receiptFooterText') ?? 'Xaridingiz uchun rahmat!';
-      showLogoOnReceipt = prefs.getBool('showLogoOnReceipt') ?? true;
-      showInstagramOnReceipt = prefs.getBool('showInstagramOnReceipt') ?? true;
-      organizationName = prefs.getString('organizationName') ?? 'test';
-      organizationAddress = prefs.getString('organizationAddress') ?? 'O\'zbekiston, Toshkent';
-      instagramUsername = prefs.getString('instagramUsername') ?? '@simplesale';
-      organizationLogoPath = prefs.getString('organizationLogoPath');
 
-      // Load settings from DB (overrides SharedPreferences if exists)
+      // 3. Load from Database (Source of Truth for persistence)
       final dbSettings = await DatabaseService.getAllSettings();
-      if (dbSettings.containsKey('receiptFooterText')) receiptFooterText = dbSettings['receiptFooterText']!;
-      if (dbSettings.containsKey('showLogoOnReceipt')) showLogoOnReceipt = dbSettings['showLogoOnReceipt'] == 'true';
-      if (dbSettings.containsKey('showInstagramOnReceipt')) showInstagramOnReceipt = dbSettings['showInstagramOnReceipt'] == 'true';
-      if (dbSettings.containsKey('organizationName')) organizationName = dbSettings['organizationName']!;
-      if (dbSettings.containsKey('organizationAddress')) organizationAddress = dbSettings['organizationAddress']!;
-      if (dbSettings.containsKey('instagramUsername')) instagramUsername = dbSettings['instagramUsername']!;
-      if (dbSettings.containsKey('barcodePrinterName')) barcodePrinterName = dbSettings['barcodePrinterName']!;
+      
+      organizationName = dbSettings['organizationName'] ?? prefs.getString('organizationName') ?? 'Mening Do\'konim';
+      organizationAddress = dbSettings['organizationAddress'] ?? prefs.getString('organizationAddress') ?? 'O\'zbekiston';
+      instagramUsername = dbSettings['instagramUsername'] ?? prefs.getString('instagramUsername') ?? '@simplesale';
+      organizationLogoPath = dbSettings['organizationLogoPath'] ?? prefs.getString('organizationLogoPath');
+      
+      selectedPrinterName = dbSettings['selectedPrinterName'] ?? prefs.getString('selectedPrinterName');
+      barcodePrinterName = dbSettings['barcodePrinterName'] ?? prefs.getString('barcodePrinterName');
+      networkPrinterIp = dbSettings['networkPrinterIp'] ?? prefs.getString('networkPrinterIp');
+      networkBarcodePrinterIp = dbSettings['networkBarcodePrinterIp'] ?? prefs.getString('networkBarcodePrinterIp');
+      
+      receiptFooterText = dbSettings['receiptFooterText'] ?? prefs.getString('receiptFooterText') ?? 'Xaridingiz uchun rahmat!';
+      showLogoOnReceipt = (dbSettings['showLogoOnReceipt'] ?? prefs.getBool('showLogoOnReceipt')?.toString() ?? 'true') == 'true';
+      showInstagramOnReceipt = (dbSettings['showInstagramOnReceipt'] ?? prefs.getBool('showInstagramOnReceipt')?.toString() ?? 'true') == 'true';
 
+      // 4. Load Registers and selection
       registers = await DatabaseService.getRegisters();
       final savedRegId = prefs.getString('currentRegisterId');
-      final deviceId = prefs.getString('deviceId');
       if (savedRegId != null) {
         final matching = registers.where((r) => r.id == savedRegId).toList();
+        // Only auto-select if this device is the one associated (or if we want to allow re-claiming)
         if (matching.isNotEmpty && matching.first.activeDeviceId == deviceId) {
           currentRegister = matching.first;
         }
@@ -109,37 +108,36 @@ class SettingsProvider extends ChangeNotifier {
   Future<void> updateCurrentRegister(Register? register) async {
     currentRegister = register;
     final prefs = await SharedPreferences.getInstance();
+    
     if (register == null) {
       await prefs.remove('currentRegisterId');
     } else {
       await prefs.setString('currentRegisterId', register.id);
+      if (deviceId != null) {
+        // Claim this register for this device in the DB
+        await DatabaseService.updateRegisterDevice(register.id, deviceId);
+      }
     }
     notifyListeners();
   }
 
-  Future<void> updateOrganizationInfo({
-    String? name,
-    String? address,
-    String? instagram,
-  }) async {
-    if (name != null) organizationName = name;
-    if (address != null) organizationAddress = address;
-    if (instagram != null) instagramUsername = instagram;
-
+  Future<void> updateOrganizationInfo({String? name, String? address, String? instagram}) async {
     final prefs = await SharedPreferences.getInstance();
     if (name != null) {
+      organizationName = name;
       await prefs.setString('organizationName', name);
       await DatabaseService.saveSetting('organizationName', name);
     }
     if (address != null) {
+      organizationAddress = address;
       await prefs.setString('organizationAddress', address);
       await DatabaseService.saveSetting('organizationAddress', address);
     }
     if (instagram != null) {
+      instagramUsername = instagram;
       await prefs.setString('instagramUsername', instagram);
       await DatabaseService.saveSetting('instagramUsername', instagram);
     }
-    
     notifyListeners();
   }
 
@@ -156,22 +154,8 @@ class SettingsProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> saveOrgInfo({
-    required String name,
-    required String address,
-    required String instagram,
-    String? logoPath,
-  }) async {
-    await updateOrganizationInfo(name: name, address: address, instagram: instagram);
-    if (logoPath != null) await updateOrganizationLogo(logoPath);
-  }
-
-  Future<void> updateReceiptSettings({
-     String? footer,
-     bool? showLogo,
-     bool? showInstagram,
-     int? width,
-  }) async {
+  Future<void> updateReceiptSettings({String? footer, bool? showLogo, bool? showInstagram, int? width}) async {
+    final prefs = await SharedPreferences.getInstance();
     if (footer != null) {
       receiptFooterText = footer;
       await DatabaseService.saveSetting('receiptFooterText', footer);
@@ -182,12 +166,12 @@ class SettingsProvider extends ChangeNotifier {
     }
     if (showInstagram != null) {
       showInstagramOnReceipt = showInstagram;
-       await DatabaseService.saveSetting('showInstagramOnReceipt', showInstagram.toString());
+      await DatabaseService.saveSetting('showInstagramOnReceipt', showInstagram.toString());
     }
     if (width != null) {
       receiptWidth = width;
-      final prefs = await SharedPreferences.getInstance();
       await prefs.setInt('receiptWidth', width);
+      await DatabaseService.saveSetting('receiptWidth', width.toString());
     }
     notifyListeners();
   }
@@ -224,27 +208,12 @@ class SettingsProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> exportDatabase() async {
-    // Current DB path
-    final dbPath = await DatabaseService.getDatabasePath();
-    final file = File(dbPath);
-    if (!await file.exists()) throw Exception('Baza topilmadi');
-
-    // This would typically involve using share_plus or file_picker to save
-    // For now, we'll use a placeholder logic or keep it simple
-    // state.exportDatabase used share_plus.
-  }
-
-  Future<void> importDatabase() async {
-    // This would typically involve file_picker
-    // state.importDatabase used file_picker.
-  }
-
   Future<void> clearAllData() async {
     await DatabaseService.clearAllData();
     final prefs = await SharedPreferences.getInstance();
+    final dId = prefs.getString('deviceId');
     await prefs.clear();
-    notifyListeners();
-    // After clear, would need to reload or restart app
+    if (dId != null) await prefs.setString('deviceId', dId); // Keep the device identity
+    await loadSettings();
   }
 }

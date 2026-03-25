@@ -269,13 +269,13 @@ class _POSScreenState extends State<POSScreen> {
     final categories = ['Barchasi', ...activeCategories.map((c) => c.name)];
 
     final searchQuery = _normalize(_searchController.text);
+    final categoryMap = {for (var c in activeCategories) c.id: c.name};
+    
     final filteredProducts = inventory.activeProducts.where((p) {
-      final category = activeCategories.any((c) => c.id == p.categoryId)
-          ? activeCategories.firstWhere((c) => c.id == p.categoryId)
-          : null;
+      final categoryName = categoryMap[p.categoryId];
       final matchesCategory =
           selectedCategory == 'Barchasi' ||
-          (category?.name == selectedCategory);
+          (categoryName == selectedCategory);
       final matchesSearch = searchQuery.isEmpty ||
           _normalize(p.name ?? '').contains(searchQuery) ||
           _normalize(p.barcode ?? '').contains(searchQuery);
@@ -386,7 +386,7 @@ class _POSScreenState extends State<POSScreen> {
         color: Theme.of(context).cardColor,
         border: Border(
           bottom: BorderSide(
-            color: Theme.of(context).dividerColor.withOpacity(0.5),
+            color: Theme.of(context).dividerColor.withAlpha(128), // ~0.5
             width: 1,
           ),
         ),
@@ -396,7 +396,7 @@ class _POSScreenState extends State<POSScreen> {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primary.withOpacity(0.08),
+              color: Theme.of(context).colorScheme.primary.withAlpha(20), // ~0.08
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(
@@ -411,11 +411,11 @@ class _POSScreenState extends State<POSScreen> {
               height: 50,
               decoration: BoxDecoration(
                 color: Theme.of(context).brightness == Brightness.dark
-                    ? Colors.white.withOpacity(0.05)
-                    : Colors.grey.withOpacity(0.05),
+                    ? Colors.white.withAlpha(13) // ~0.05
+                    : Colors.grey.withAlpha(13), // ~0.05
                 borderRadius: BorderRadius.circular(15),
                 border: Border.all(
-                  color: Theme.of(context).dividerColor.withOpacity(0.3),
+                  color: Theme.of(context).dividerColor.withAlpha(77), // ~0.3
                 ),
               ),
               child: TextField(
