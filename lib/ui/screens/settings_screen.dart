@@ -5,6 +5,8 @@ import 'package:printing/printing.dart';
 import '../../providers/features/settings_provider.dart';
 import '../../providers/features/sync_provider.dart';
 import '../../providers/features/auth_provider.dart';
+import '../../providers/features/inventory_provider.dart';
+import '../../providers/features/sales_provider.dart';
 import '../../providers/app_state.dart';
 import '../../models/models.dart';
 import '../../services/update_service.dart';
@@ -286,7 +288,11 @@ class SettingsScreen extends StatelessWidget {
                                 ),
                               );
                               if (confirm == true) {
-                                await settings.clearAllData();
+                                await context.read<AppState>().resetTerminalMode();
+                                if (context.mounted) {
+                                  await context.read<AuthProvider>().loadAuth();
+                                  await context.read<SettingsProvider>().loadSettings();
+                                }
                               }
                             },
                           ),
@@ -584,14 +590,16 @@ class SettingsScreen extends StatelessWidget {
   }
 
   void _showCloudDialog(BuildContext context, SyncProvider sync) {
+    // Capture parent context BEFORE dialog opens
+    final parentContext = context;
     showDialog(
       context: context,
-      builder: (context) => Consumer<SyncProvider>(
-        builder: (context, sync, child) => AlertDialog(
+      builder: (dialogCtx) => Consumer<SyncProvider>(
+        builder: (dialogCtx2, sync, child) => AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
           title: Row(
             children: [
-              Icon(Icons.cloud_sync_rounded, color: Theme.of(context).colorScheme.primary),
+              Icon(Icons.cloud_sync_rounded, color: Theme.of(dialogCtx2).colorScheme.primary),
               const SizedBox(width: 12),
               const Text('Ma\'lumotlar zaxirasi'),
             ],
@@ -622,20 +630,31 @@ class SettingsScreen extends StatelessWidget {
                         icon: const Icon(Icons.cloud_download_rounded, size: 18),
                         label: const Text('Yuklab olish', style: TextStyle(fontSize: 12)),
                         onPressed: () async {
-                          final confirm = await _showConfirmDialog(context, 'Bulutdan yuklash oldingi ma\'lumotlarni butunlay O\'CHIRIB yuborada. Davom etasizmi?');
+                          final confirm = await _showConfirmDialog(parentContext, 'Bulutdan yuklash oldingi ma\'lumotlarni butunlay O\'CHIRIB yuborada. Davom etasizmi?');
                           if (confirm == true) {
                             try {
                                await sync.restoreDatabaseFromCloud();
-                               if (context.mounted) {
-                                  // Refresh all data providers
-                                  await context.read<AppState>().loadSettings();
-                                  await context.read<AuthProvider>().loadAuth();
-                                  await context.read<SettingsProvider>().loadSettings();
-                                  
-                                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Ma\'lumotlar muvaffaqiyatli tiklandi!'), backgroundColor: Colors.green));
+                               if (parentContext.mounted) {
+                                  ScaffoldMessenger.of(parentContext).showSnackBar(
+                                    const SnackBar(
+                                      content: Row(children: [
+                                        SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)),
+                                        SizedBox(width: 12),
+                                        Text('Ma\'lumotlar yangilanmoqda...'),
+                                      ]),
+                                      duration: Duration(seconds: 3),
+                                    ),
+                                  );
+                                  await parentContext.read<AppState>().loadSettings();
+                                  await parentContext.read<AuthProvider>().loadAuth();
+                                  await parentContext.read<SettingsProvider>().loadSettings();
+                                  await parentContext.read<InventoryProvider>().reloadData();
+                                  await parentContext.read<SalesProvider>().reloadSalesData();
+                                  ScaffoldMessenger.of(parentContext).hideCurrentSnackBar();
+                                  ScaffoldMessenger.of(parentContext).showSnackBar(const SnackBar(content: Text('✅ Ma\'lumotlar bulutdan tiklandi!'), backgroundColor: Colors.green));
                                }
                             } catch (e) {
-                               if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString()), backgroundColor: Colors.red));
+                               if (parentContext.mounted) ScaffoldMessenger.of(parentContext).showSnackBar(SnackBar(content: Text(e.toString()), backgroundColor: Colors.red));
                             }
                           }
                         },
@@ -654,9 +673,9 @@ class SettingsScreen extends StatelessWidget {
                         onPressed: () async {
                           try {
                              await sync.uploadDatabaseToCloud();
-                             if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Ma\'lumotlar bulutga saqlandi!'), backgroundColor: Colors.green));
+                             if (parentContext.mounted) ScaffoldMessenger.of(parentContext).showSnackBar(const SnackBar(content: Text('✅ Ma\'lumotlar bulutga saqlandi!'), backgroundColor: Colors.green));
                           } catch (e) {
-                             if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString()), backgroundColor: Colors.red));
+                             if (parentContext.mounted) ScaffoldMessenger.of(parentContext).showSnackBar(SnackBar(content: Text(e.toString()), backgroundColor: Colors.red));
                           }
                         },
                       ),
@@ -679,15 +698,20 @@ class SettingsScreen extends StatelessWidget {
                         icon: const Icon(Icons.file_open_rounded, size: 18),
                         label: const Text('Fayldan tiklash', style: TextStyle(fontSize: 12)),
                         onPressed: () async {
-                          final confirm = await _showConfirmDialog(context, 'Fayldan tiklash joriy ma\'lumotlarni butunlay O\'CHIRIB yuboradi. Davom etasizmi?');
+                          final confirm = await _showConfirmDialog(parentContext, 'Fayldan tiklash joriy ma\'lumotlarni butunlay O\'CHIRIB yuboradi. Davom etasizmi?');
                           if (confirm == true) {
                             try {
                                await sync.importDatabaseFromFile();
-                               if (context.mounted) {
-                                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Fayldan muvaffaqiyatli tiklandi!'), backgroundColor: Colors.green));
+                               if (parentContext.mounted) {
+                                 await parentContext.read<AppState>().loadSettings();
+                                 await parentContext.read<AuthProvider>().loadAuth();
+                                 await parentContext.read<SettingsProvider>().loadSettings();
+                                 await parentContext.read<InventoryProvider>().reloadData();
+                                 await parentContext.read<SalesProvider>().reloadSalesData();
+                                 ScaffoldMessenger.of(parentContext).showSnackBar(const SnackBar(content: Text('✅ Fayldan muvaffaqiyatli tiklandi!'), backgroundColor: Colors.green));
                                }
                             } catch (e) {
-                               if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString()), backgroundColor: Colors.red));
+                               if (parentContext.mounted) ScaffoldMessenger.of(parentContext).showSnackBar(SnackBar(content: Text(e.toString()), backgroundColor: Colors.red));
                             }
                           }
                         },
@@ -706,9 +730,9 @@ class SettingsScreen extends StatelessWidget {
                         onPressed: () async {
                           try {
                              await sync.exportDatabaseToFile();
-                             if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Fayl ko\'rsatilgan joyga saqlandi!'), backgroundColor: Colors.green));
+                             if (parentContext.mounted) ScaffoldMessenger.of(parentContext).showSnackBar(const SnackBar(content: Text('✅ Fayl saqlandi!'), backgroundColor: Colors.green));
                           } catch (e) {
-                             if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString()), backgroundColor: Colors.red));
+                             if (parentContext.mounted) ScaffoldMessenger.of(parentContext).showSnackBar(SnackBar(content: Text(e.toString()), backgroundColor: Colors.red));
                           }
                         },
                       ),
@@ -721,7 +745,7 @@ class SettingsScreen extends StatelessWidget {
           actions: [
             if (!sync.isSyncingCloud)
               TextButton(
-                onPressed: () => Navigator.pop(context),
+                onPressed: () => Navigator.pop(dialogCtx2),
                 child: const Text('Yopish'),
               ),
           ],
@@ -729,6 +753,7 @@ class SettingsScreen extends StatelessWidget {
       ),
     );
   }
+
 
   Future<bool?> _showConfirmDialog(BuildContext context, String message) {
     return showDialog<bool>(

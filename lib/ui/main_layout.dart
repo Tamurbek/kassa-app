@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../core/theme/app_colors.dart';
 import '../providers/features/auth_provider.dart';
 import '../providers/features/settings_provider.dart';
+import '../providers/features/inventory_provider.dart';
 import '../providers/features/sales_provider.dart';
 import '../providers/features/sync_provider.dart';
 import '../models/models.dart';
@@ -500,7 +501,7 @@ class _MainLayoutState extends State<MainLayout> {
           ),
           const SizedBox(width: 16),
           // Professional Cloud Sync Status
-          if (auth.isActivated)
+          if (auth.isActivated && auth.currentUser?.role == UserRole.admin)
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
@@ -550,16 +551,18 @@ class _MainLayoutState extends State<MainLayout> {
               label: 'Oxirgi sync: ${intl.DateFormat('HH:mm').format(sync.lastCloudSync!)}',
               isDark: isDark,
             ),
-          const SizedBox(width: 12),
-          _buildFooterActionButton(
-            context,
-            icon: Icons.cloud_outlined,
-            label: 'Bulutli xizmat',
-            onTap: () => _showCloudSyncDialog(context, sync),
-            isActive: auth.isActivated,
-            isLoading: sync.isSyncingCloud,
-            isDark: isDark,
-          ),
+          if (auth.currentUser?.role == UserRole.admin) ...[
+            const SizedBox(width: 12),
+            _buildFooterActionButton(
+              context,
+              icon: Icons.cloud_outlined,
+              label: 'Bulutli xizmat',
+              onTap: () => _showCloudSyncDialog(context, sync),
+              isActive: auth.isActivated,
+              isLoading: sync.isSyncingCloud,
+              isDark: isDark,
+            ),
+          ],
           const SizedBox(width: 8),
           if (sync.isMaster == false && sync.masterAddress != null) ...[
              _buildFooterActionButton(
@@ -598,40 +601,66 @@ class _MainLayoutState extends State<MainLayout> {
   }
 
   void _confirmRestoreFromCloud(BuildContext context, SyncProvider sync) {
+    // Capture parent context BEFORE showing dialog
+    final parentContext = context;
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: Theme.of(context).cardColor,
+      builder: (dialogCtx) => AlertDialog(
+        backgroundColor: Theme.of(dialogCtx).cardColor,
         surfaceTintColor: Colors.transparent,
         title: const Text('Diqqat!'),
         content: const Text(
-          'Bulutdan zaxirani tiklash joriy barcha ma\'lumotlaringizni o\'chirib yuborada va bulutdagi nusxa bilan almashtiradi. Davom etasizmi?',
+          'Bulutdan zaxirani tiklash joriq barcha ma\'lumotlaringizni o\'chirib yuborada va bulutdagi nusqa bilan almashtiradi. Davom etasizmi?',
           style: TextStyle(color: Colors.redAccent),
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogCtx),
             child: const Text('Bekor qilish'),
           ),
           ElevatedButton(
             onPressed: () async {
-              Navigator.pop(context); // close confirm dialog
+              Navigator.pop(dialogCtx); // close confirm dialog
               try {
                 await sync.restoreDatabaseFromCloud();
                 
-                if (context.mounted) {
-                   // Refresh all data providers
-                   await context.read<AppState>().loadSettings();
-                   await context.read<AuthProvider>().loadAuth();
-                   await context.read<SettingsProvider>().loadSettings();
-                   
-                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Ma\'lumotlar bulutdan tiklandi!'), backgroundColor: Colors.green),
+                // Use parentContext (still valid, part of main layout tree)
+                if (parentContext.mounted) {
+                  // Show loading snackbar while reloading
+                  ScaffoldMessenger.of(parentContext).showSnackBar(
+                    const SnackBar(
+                      content: Row(
+                        children: [
+                          SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)),
+                          SizedBox(width: 12),
+                          Text('Ma\'lumotlar yangilanmoqda...'),
+                        ],
+                      ),
+                      duration: Duration(seconds: 3),
+                    ),
                   );
+                  
+                  // Reload all providers with parent context
+                  await parentContext.read<AppState>().loadSettings();
+                  await parentContext.read<AuthProvider>().loadAuth();
+                  await parentContext.read<SettingsProvider>().loadSettings();
+                  await parentContext.read<InventoryProvider>().reloadData();
+                  await parentContext.read<SalesProvider>().reloadSalesData();
+                  
+                  if (parentContext.mounted) {
+                    ScaffoldMessenger.of(parentContext).hideCurrentSnackBar();
+                    ScaffoldMessenger.of(parentContext).showSnackBar(
+                      const SnackBar(
+                        content: Text('✅ Ma\'lumotlar bulutdan muvaffaqiyatli tiklandi!'),
+                        backgroundColor: Colors.green,
+                        duration: Duration(seconds: 3),
+                      ),
+                    );
+                  }
                 }
               } catch (e) {
-                if (context.mounted) {
-                   ScaffoldMessenger.of(context).showSnackBar(
+                if (parentContext.mounted) {
+                  ScaffoldMessenger.of(parentContext).showSnackBar(
                     SnackBar(content: Text('Xatolik: $e'), backgroundColor: Colors.red),
                   );
                 }
@@ -646,18 +675,24 @@ class _MainLayoutState extends State<MainLayout> {
   }
 
   void _showCloudSyncDialog(BuildContext context, SyncProvider sync) {
+    // CRITICAL: capture main layout context BEFORE dialog opens.
+    // Builder callbacks rebind 'context' to the dialog's context,
+    // which becomes invalid after Navigator.pop(). We need the parent context
+    // to reload providers correctly after restore.
+    final mainContext = context;
+
     showDialog(
-      context: context,
-      builder: (context) => Consumer<SyncProvider>(
-        builder: (context, sync, child) => AlertDialog(
-          backgroundColor: Theme.of(context).cardColor,
+      context: mainContext,
+      builder: (dialogCtx) => Consumer<SyncProvider>(
+        builder: (_, sync, __) => AlertDialog(
+          backgroundColor: Theme.of(dialogCtx).cardColor,
           surfaceTintColor: Colors.transparent,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-          title: Row(
+          title: const Row(
             children: [
-              const Icon(Icons.cloud_sync_rounded, color: Colors.blue),
-              const SizedBox(width: 12),
-              const Text('Ma\'lumotlar zaxirasi'),
+              Icon(Icons.cloud_sync_rounded, color: Colors.blue),
+              SizedBox(width: 12),
+              Text('Ma\'lumotlar zaxirasi'),
             ],
           ),
           content: Column(
@@ -671,7 +706,7 @@ class _MainLayoutState extends State<MainLayout> {
                     style: const TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.bold),
                   ),
                 ),
-              if (sync.isSyncingCloud) ...[
+              if (sync.isSyncingCloud)
                 const Padding(
                   padding: EdgeInsets.symmetric(vertical: 20),
                   child: Column(
@@ -681,8 +716,8 @@ class _MainLayoutState extends State<MainLayout> {
                       Text('Sinxronizatsiya kutilmoqda...', style: TextStyle(fontSize: 12)),
                     ],
                   ),
-                ),
-              ] else ...[
+                )
+              else ...[
                 // Section: Cloud
                 const Text('🔥 Bulutli xizmat (Cloud)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.blue)),
                 const SizedBox(height: 12),
@@ -692,7 +727,8 @@ class _MainLayoutState extends State<MainLayout> {
                       child: OutlinedButton.icon(
                         icon: const Icon(Icons.cloud_download_rounded, size: 18),
                         label: const Text('Yuklab olish', style: TextStyle(fontSize: 12)),
-                        onPressed: () => _confirmRestoreFromCloud(context, sync),
+                        // Pass mainContext so _confirmRestoreFromCloud can reload providers
+                        onPressed: () => _confirmRestoreFromCloud(mainContext, sync),
                       ),
                     ),
                     const SizedBox(width: 10),
@@ -707,10 +743,18 @@ class _MainLayoutState extends State<MainLayout> {
                         label: const Text('Bulutga saqlash', style: TextStyle(fontSize: 12)),
                         onPressed: () async {
                           try {
-                             await sync.uploadDatabaseToCloud();
-                             if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Ma\'lumotlar bulutga saqlandi!'), backgroundColor: Colors.green));
+                            await sync.uploadDatabaseToCloud();
+                            if (mainContext.mounted) {
+                              ScaffoldMessenger.of(mainContext).showSnackBar(
+                                const SnackBar(content: Text('✅ Ma\'lumotlar bulutga saqlandi!'), backgroundColor: Colors.green),
+                              );
+                            }
                           } catch (e) {
-                             if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString()), backgroundColor: Colors.red));
+                            if (mainContext.mounted) {
+                              ScaffoldMessenger.of(mainContext).showSnackBar(
+                                SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
+                              );
+                            }
                           }
                         },
                       ),
@@ -723,7 +767,7 @@ class _MainLayoutState extends State<MainLayout> {
           actions: [
             if (!sync.isSyncingCloud)
               TextButton(
-                onPressed: () => Navigator.pop(context),
+                onPressed: () => Navigator.pop(dialogCtx),
                 child: const Text('Yopish'),
               ),
           ],
@@ -731,6 +775,7 @@ class _MainLayoutState extends State<MainLayout> {
       ),
     );
   }
+
 
   Widget _buildBottomNav() {
     return BottomNavigationBar(

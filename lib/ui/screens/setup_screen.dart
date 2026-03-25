@@ -27,7 +27,9 @@ class _SetupScreenState extends State<SetupScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: Center(
+      body: GestureDetector(
+        onTap: () => FocusScope.of(context).unfocus(),
+        child: Center(
         child: Container(
           width: 500,
           padding: const EdgeInsets.all(40),
@@ -131,6 +133,7 @@ class _SetupScreenState extends State<SetupScreen> {
                 SizedBox(height: 24),
                 TextField(
                   controller: _passwordController,
+                  autofocus: true,
                   decoration: InputDecoration(
                     labelText: "Xo'jayin paroli (Tiklash uchun)",
                     hintText: "Kamida 4 ta belgi",
@@ -139,7 +142,7 @@ class _SetupScreenState extends State<SetupScreen> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  obscureText: true,
+                  obscureText: false,
                 ),
               ],
 
@@ -238,6 +241,7 @@ class _SetupScreenState extends State<SetupScreen> {
           ),
         ),
       ),
+      ), // GestureDetector
     );
   }
 

@@ -145,17 +145,17 @@ class AuthProvider extends ChangeNotifier {
           .timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
-        setActivated(true, code);
+        await setActivated(true, code);
       } else {
         throw Exception("Faollashtirish kodi noto'g'ri!");
       }
     } catch (e) {
-      if (e is http.ClientException || e is IOException) {
+      if (e is http.ClientException || e is IOException || e is TimeoutException) {
          // Offline check
          final secret = deviceId!.substring(0, 8).split('').reversed.join('');
          final expected = "SS-$secret-OK".toUpperCase();
          if (code.toUpperCase() == expected) {
-            setActivated(true, code);
+            await setActivated(true, code);
          } else {
             throw Exception("Aloqa mavjud emas va oflayn kod noto'g'ri!");
          }
@@ -186,7 +186,7 @@ class AuthProvider extends ChangeNotifier {
         // 1. Licensing & Blocking
         bool isBlockedOnServer = data['blocked'] == true;
         if (isBlockedOnServer != _isBlocked) {
-          setBlocked(isBlockedOnServer);
+          await setBlocked(isBlockedOnServer);
         }
 
         // 2. Sync Professional Organization Details
@@ -251,7 +251,7 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void setActivated(bool value, String code) async {
+  Future<void> setActivated(bool value, String code) async {
     _isActivated = value;
     activationCode = code;
     final prefs = await SharedPreferences.getInstance();
@@ -260,7 +260,7 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void setBlocked(bool value) async {
+  Future<void> setBlocked(bool value) async {
     _isBlocked = value;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('isBlocked', value);

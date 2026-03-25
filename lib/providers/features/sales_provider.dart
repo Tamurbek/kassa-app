@@ -185,15 +185,19 @@ class SalesProvider extends ChangeNotifier {
   }
 
   Future<void> reloadSalesData() async {
-    _isLoading = true;
-    notifyListeners();
-    
-    sales = await DatabaseService.getSales();
-    returns = await DatabaseService.getReturns();
-    writeOffs = await DatabaseService.getWriteOffs();
-    
-    _isLoading = false;
-    notifyListeners();
+    try {
+      _isLoading = true;
+      notifyListeners();
+      
+      sales = await DatabaseService.getSales();
+      returns = await DatabaseService.getReturns();
+      writeOffs = await DatabaseService.getWriteOffs();
+    } catch (e) {
+      debugPrint('SalesProvider reloadData error: $e');
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 
   Future<void> saveSale(Sale sale) async {

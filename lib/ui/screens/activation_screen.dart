@@ -3,6 +3,10 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../providers/features/auth_provider.dart';
 import '../../providers/features/settings_provider.dart';
+import '../../providers/features/sync_provider.dart';
+import '../../providers/features/inventory_provider.dart';
+import '../../providers/features/sales_provider.dart';
+import '../../providers/app_state.dart';
 
 class ActivationScreen extends StatefulWidget {
   const ActivationScreen({super.key});
@@ -14,6 +18,7 @@ class ActivationScreen extends StatefulWidget {
 class _ActivationScreenState extends State<ActivationScreen> {
   final TextEditingController _codeController = TextEditingController();
   String? _error;
+  bool _isRestoring = false;
 
   @override
   void dispose() {
@@ -25,6 +30,7 @@ class _ActivationScreenState extends State<ActivationScreen> {
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
     final settings = context.watch<SettingsProvider>();
+    final sync = context.watch<SyncProvider>();
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -149,6 +155,7 @@ class _ActivationScreenState extends State<ActivationScreen> {
                 ),
                 style: const TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1),
                 onChanged: (_) => setState(() => _error = null),
+                enabled: !_isRestoring,
               ),
 
               const SizedBox(height: 24),
@@ -165,26 +172,75 @@ class _ActivationScreenState extends State<ActivationScreen> {
                     ),
                     elevation: 0,
                   ),
-                  onPressed: () async {
+                  onPressed: _isRestoring ? null : () async {
                     if (_codeController.text.isEmpty) {
                       setState(() => _error = 'Kodni kiriting!');
                       return;
                     }
+                    
+                    setState(() {
+                      _isRestoring = true;
+                      _error = null;
+                    });
+                    
                     try {
-                      await auth.activate(_codeController.text);
+                      final code = _codeController.text.trim();
+                      
+                      // 1. Try restore from cloud FIRST (with override)
+                      try {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Row(
+                              children: [
+                                SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)),
+                                SizedBox(width: 12),
+                                Text('Ma\'lumotlar yuklanmoqda...'),
+                              ],
+                            ),
+                            duration: Duration(minutes: 1),
+                          ),
+                        );
+                        
+                        await sync.restoreDatabaseFromCloud(activationCodeOverride: code);
+                        
+                        // 2. Refresh providers (Reload data BEFORE nav)
+                        if (mounted) {
+                          final mainContext = context;
+                          await mainContext.read<AppState>().loadSettings();
+                          await mainContext.read<SettingsProvider>().loadSettings();
+                          await mainContext.read<AuthProvider>().reloadUsers();
+                          await mainContext.read<InventoryProvider>().reloadData();
+                          await mainContext.read<SalesProvider>().reloadSalesData();
+                        }
+                      } catch (backupError) {
+                        debugPrint('Auto-restore skipped or failed: $backupError');
+                      }
+                      
+                      // 3. Commit Activation (this triggers nav to LoginScreen)
+                      if (mounted) {
+                        await auth.activate(code);
+                        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('✅ Faollashtirildi!'), backgroundColor: Colors.green),
+                        );
+                      }
                     } catch (e) {
-                      setState(
-                        () => _error = e.toString().replaceAll('Exception: ', ''),
-                      );
+                      setState(() {
+                         _error = e.toString().replaceAll('Exception: ', '');
+                         _isRestoring = false;
+                      });
+                      if (mounted) ScaffoldMessenger.of(context).hideCurrentSnackBar();
                     }
                   },
-                  child: const Text(
-                    'FAOLLASHTIRISH',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 1.2,
-                    ),
-                  ),
+                  child: _isRestoring 
+                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                    : const Text(
+                        'FAOLLASHTIRISH',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 1.2,
+                        ),
+                      ),
                 ),
               ),
 
@@ -211,7 +267,12 @@ class _ActivationScreenState extends State<ActivationScreen> {
               SizedBox(
                 width: double.infinity,
                 child: TextButton.icon(
-                  onPressed: () => settings.clearAllData(),
+                  onPressed: () async {
+                    await context.read<AppState>().resetTerminalMode();
+                    if (context.mounted) {
+                      await context.read<AuthProvider>().loadAuth();
+                    }
+                  },
                   style: TextButton.styleFrom(
                     foregroundColor: Colors.grey,
                     padding: const EdgeInsets.symmetric(vertical: 12),

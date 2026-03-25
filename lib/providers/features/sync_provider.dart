@@ -189,16 +189,20 @@ class SyncProvider extends ChangeNotifier {
   }
 
   /// Professional HTTP-based cloud synchronization (Restore)
-  Future<void> restoreDatabaseFromCloud() async {
+  Future<void> restoreDatabaseFromCloud({String? activationCodeOverride}) async {
     final prefs = await SharedPreferences.getInstance();
-    final rawCode = prefs.getString('activationCode');
-    final isActivated = prefs.getBool('isActivated') ?? false;
-
-    if (!isActivated || rawCode == null) {
-      throw Exception('Dastur faollashtirilmagan');
-    }
     
-    final activationCode = rawCode.trim().toUpperCase();
+    String? activationCode;
+    if (activationCodeOverride != null) {
+      activationCode = activationCodeOverride.trim().toUpperCase();
+    } else {
+      final rawCode = prefs.getString('activationCode');
+      final isActivated = prefs.getBool('isActivated') ?? false;
+      if (!isActivated || rawCode == null) {
+        throw Exception('Dastur faollashtirilmagan');
+      }
+      activationCode = rawCode.trim().toUpperCase();
+    }
 
     isSyncingCloud = true;
     syncingStage = 'Bulutdan yuklab olinmoqda...';

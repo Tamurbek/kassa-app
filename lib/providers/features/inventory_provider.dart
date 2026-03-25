@@ -26,21 +26,30 @@ class InventoryProvider extends ChangeNotifier {
   }
 
   Future<void> reloadData() async {
-    _isLoading = true;
-    notifyListeners();
-    
-    // Force recalculate stocks from documents to ensure 100% accuracy
-    await DatabaseService.recalculateStocks();
+    try {
+      _isLoading = true;
+      notifyListeners();
+      
+      // Force recalculate stocks from documents to ensure 100% accuracy
+      // This is wrapped in try-catch to avoid app crash if tables are missing/locked
+      try {
+        await DatabaseService.recalculateStocks();
+      } catch (e) {
+        debugPrint('Stock recalculation error: $e');
+      }
 
-    categories = await DatabaseService.getCategories();
-    products = await DatabaseService.getProducts();
-    warehouses = await DatabaseService.getWarehouses();
-    stockEntries = await DatabaseService.getStockEntries();
-    inventories = await DatabaseService.getInventories();
-    transfers = await DatabaseService.getStockTransfers();
-    
-    _isLoading = false;
-    notifyListeners();
+      categories = await DatabaseService.getCategories();
+      products = await DatabaseService.getProducts();
+      warehouses = await DatabaseService.getWarehouses();
+      stockEntries = await DatabaseService.getStockEntries();
+      inventories = await DatabaseService.getInventories();
+      transfers = await DatabaseService.getStockTransfers();
+    } catch (e) {
+      debugPrint('InventoryProvider reloadData error: $e');
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 
   Future<void> saveProduct(Product product) async {

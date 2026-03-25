@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:flutter/foundation.dart' hide Category;
 import '../models/models.dart';
 
 class DatabaseService {
@@ -1244,109 +1245,119 @@ class DatabaseService {
   }
 
   static Future<void> recalculateStocks() async {
-    final db = await database;
-    await db.transaction((txn) async {
-       // 1. Reset
-       await txn.delete('stocks');
+    try {
+      final db = await database;
+      await db.transaction((txn) async {
+        // 1. Reset
+        await txn.delete('stocks');
 
-       // 2. Fetch all documents that affect stock
-       final entries = await txn.query('stock_entries');
-       final sales = await txn.query('sales');
-       final returns = await txn.query('returns');
-       final woffs = await txn.query('write_offs');
-       final transfers = await txn.query('stock_transfers');
-       final inventories = await txn.query('inventories');
+        // 2. Fetch all documents that affect stock
+        final entries = await _safeQuery(txn, 'stock_entries');
+        final sales = await _safeQuery(txn, 'sales');
+        final returns = await _safeQuery(txn, 'returns');
+        final woffs = await _safeQuery(txn, 'write_offs');
+        final transfers = await _safeQuery(txn, 'stock_transfers');
+        final inventories = await _safeQuery(txn, 'inventories');
 
-       // 3. Flatten and unify into a timeline
-       List<Map<String, dynamic>> timeline = [];
+        // 3. Flatten and unify into a timeline
+        List<Map<String, dynamic>> timeline = [];
 
-       for (var d in entries) timeline.add({'type': 'entry', 'date': d['date'], 'doc': d});
-       for (var d in sales) timeline.add({'type': 'sale', 'date': d['date'], 'doc': d});
-       for (var d in returns) timeline.add({'type': 'return', 'date': d['date'], 'doc': d});
-       for (var d in woffs) timeline.add({'type': 'woff', 'date': d['date'], 'doc': d});
-       for (var d in transfers) timeline.add({'type': 'transfer', 'date': d['date'], 'doc': d});
-       for (var d in inventories) timeline.add({'type': 'inventory', 'date': d['date'], 'doc': d});
+        for (var d in entries) timeline.add({'type': 'entry', 'date': d['date'], 'doc': d});
+        for (var d in sales) timeline.add({'type': 'sale', 'date': d['date'], 'doc': d});
+        for (var d in returns) timeline.add({'type': 'return', 'date': d['date'], 'doc': d});
+        for (var d in woffs) timeline.add({'type': 'woff', 'date': d['date'], 'doc': d});
+        for (var d in transfers) timeline.add({'type': 'transfer', 'date': d['date'], 'doc': d});
+        for (var d in inventories) timeline.add({'type': 'inventory', 'date': d['date'], 'doc': d});
 
-       // 4. Sort by date (ascending)
-       timeline.sort((a, b) => a['date'].toString().compareTo(b['date'].toString()));
+        // 4. Sort by date (ascending)
+        timeline.sort((a, b) => a['date'].toString().compareTo(b['date'].toString()));
 
-       // 5. Process chronologically
-       for (var step in timeline) {
-         final type = step['type'];
-         final doc = step['doc'];
-         final dId = doc['id'];
+        // 5. Process chronologically
+        for (var step in timeline) {
+          final type = step['type'];
+          final doc = step['doc'];
+          final dId = doc['id'];
 
-         try {
-           switch (type) {
-             case 'entry':
-               final wId = doc['warehouseId'].toString();
-               final items = await txn.query('stock_entry_items', where: 'entryId = ?', whereArgs: [dId]);
-               for (var it in items) {
-                 await _increaseStockTxn(txn, it['productId'].toString(), wId, double.tryParse(it['quantity'].toString()) ?? 0);
-               }
-               break;
+          try {
+            switch (type) {
+              case 'entry':
+                final wId = doc['warehouseId'].toString();
+                final items = await txn.query('stock_entry_items', where: 'entryId = ?', whereArgs: [dId]);
+                for (var it in items) {
+                  await _increaseStockTxn(txn, it['productId'].toString(), wId, double.tryParse(it['quantity'].toString()) ?? 0);
+                }
+                break;
 
-             case 'sale':
-               final wId = doc['warehouseId'].toString();
-               final items = await txn.query('sale_items', where: 'saleId = ?', whereArgs: [dId]);
-               for (var it in items) {
-                 final pId = it['productId'].toString();
-                 // Check trackStock
-                 final pRes = await txn.query('products', columns: ['trackStock'], where: 'id = ?', whereArgs: [pId]);
-                 if (pRes.isNotEmpty && pRes.first['trackStock'] == 1) {
-                   await _decreaseStockTxn(txn, pId, wId, double.tryParse(it['quantity'].toString()) ?? 0);
-                 }
-               }
-               break;
+              case 'sale':
+                final wId = doc['warehouseId'].toString();
+                final items = await txn.query('sale_items', where: 'saleId = ?', whereArgs: [dId]);
+                for (var it in items) {
+                  final pId = it['productId'].toString();
+                  final pRes = await txn.query('products', columns: ['trackStock'], where: 'id = ?', whereArgs: [pId]);
+                  if (pRes.isNotEmpty && pRes.first['trackStock'] == 1) {
+                    await _decreaseStockTxn(txn, pId, wId, double.tryParse(it['quantity'].toString()) ?? 0);
+                  }
+                }
+                break;
 
-             case 'return':
-               final wId = doc['warehouseId'].toString();
-               final items = await txn.query('return_items', where: 'returnId = ?', whereArgs: [dId]);
-               for (var it in items) {
-                 await _increaseStockTxn(txn, it['productId'].toString(), wId, double.tryParse(it['quantity'].toString()) ?? 0);
-               }
-               break;
+              case 'return':
+                final wId = doc['warehouseId'].toString();
+                final items = await txn.query('return_items', where: 'returnId = ?', whereArgs: [dId]);
+                for (var it in items) {
+                  await _increaseStockTxn(txn, it['productId'].toString(), wId, double.tryParse(it['quantity'].toString()) ?? 0);
+                }
+                break;
 
-             case 'woff':
-               final wId = doc['warehouseId'].toString();
-               final items = await txn.query('write_off_items', where: 'writeOffId = ?', whereArgs: [dId]);
-               for (var it in items) {
-                 await _decreaseStockTxn(txn, it['productId'].toString(), wId, double.tryParse(it['quantity'].toString()) ?? 0);
-               }
-               break;
+              case 'woff':
+                final wId = doc['warehouseId'].toString();
+                final items = await txn.query('write_off_items', where: 'writeOffId = ?', whereArgs: [dId]);
+                for (var it in items) {
+                  await _decreaseStockTxn(txn, it['productId'].toString(), wId, double.tryParse(it['quantity'].toString()) ?? 0);
+                }
+                break;
 
-             case 'transfer':
-               final from = doc['fromWarehouseId'].toString();
-               final to = doc['toWarehouseId'].toString();
-               final items = await txn.query('stock_transfer_items', where: 'transferId = ?', whereArgs: [dId]);
-               for (var it in items) {
-                 final pId = it['productId'].toString();
-                 final qty = double.tryParse(it['quantity'].toString()) ?? 0;
-                 await _decreaseStockTxn(txn, pId, from, qty);
-                 await _increaseStockTxn(txn, pId, to, qty);
-               }
-               break;
+              case 'transfer':
+                final from = doc['fromWarehouseId'].toString();
+                final to = doc['toWarehouseId'].toString();
+                final items = await txn.query('stock_transfer_items', where: 'transferId = ?', whereArgs: [dId]);
+                for (var it in items) {
+                  final pId = it['productId'].toString();
+                  final qty = double.tryParse(it['quantity'].toString()) ?? 0;
+                  await _decreaseStockTxn(txn, pId, from, qty);
+                  await _increaseStockTxn(txn, pId, to, qty);
+                }
+                break;
 
-             case 'inventory':
-               final wId = doc['warehouseId'].toString();
-               final items = await txn.query('inventory_items', where: 'inventoryId = ?', whereArgs: [dId]);
-               for (var it in items) {
-                 final pId = it['productId'].toString();
-                 final actual = double.tryParse(it['actualQuantity'].toString()) ?? 0;
-                 // Set absolute value
-                 await txn.insert('stocks', {
-                   'productId': pId,
-                   'warehouseId': wId,
-                   'quantity': actual
-                 }, conflictAlgorithm: ConflictAlgorithm.replace);
-               }
-               break;
-           }
-         } catch (e) {
-             print('Recalculate step error ($type, ID: $dId): $e');
-         }
-       }
-    });
+              case 'inventory':
+                final wId = doc['warehouseId'].toString();
+                final items = await txn.query('inventory_items', where: 'inventoryId = ?', whereArgs: [dId]);
+                for (var it in items) {
+                  final actual = double.tryParse(it['actualQuantity'].toString()) ?? 0;
+                  await txn.insert('stocks', {
+                    'productId': it['productId'].toString(),
+                    'warehouseId': wId,
+                    'quantity': actual
+                  }, conflictAlgorithm: ConflictAlgorithm.replace);
+                }
+                break;
+            }
+          } catch (e) {
+            debugPrint('Recalculate step error ($type, ID: $dId): $e');
+          }
+        }
+      });
+    } catch (e) {
+      debugPrint('Overall recalculateStocks error: $e');
+    }
+  }
+
+  static Future<List<Map<String, dynamic>>> _safeQuery(dynamic dbOrTxn, String table) async {
+    try {
+      return await dbOrTxn.query(table);
+    } catch (e) {
+      debugPrint('Safe query failed for table $table: $e');
+      return [];
+    }
   }
 
   static Future<void> _increaseStockTxn(Transaction txn, String pId, String wId, double qty) async {
