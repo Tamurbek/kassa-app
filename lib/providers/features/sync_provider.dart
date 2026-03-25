@@ -134,12 +134,14 @@ class SyncProvider extends ChangeNotifier {
   /// Professional HTTP-based cloud synchronization (Backup)
   Future<void> uploadDatabaseToCloud() async {
     final prefs = await SharedPreferences.getInstance();
-    final activationCode = prefs.getString('activationCode');
+    final rawCode = prefs.getString('activationCode');
     final isActivated = prefs.getBool('isActivated') ?? false;
 
-    if (!isActivated || activationCode == null) {
+    if (!isActivated || rawCode == null) {
       throw Exception('Dastur faollashtirilmagan');
     }
+    
+    final activationCode = rawCode.trim().toUpperCase();
 
     isSyncingCloud = true;
     syncingStage = 'Terminalardan ma\'lumotlarni jamlash...';
@@ -189,19 +191,21 @@ class SyncProvider extends ChangeNotifier {
   /// Professional HTTP-based cloud synchronization (Restore)
   Future<void> restoreDatabaseFromCloud() async {
     final prefs = await SharedPreferences.getInstance();
-    final activationCode = prefs.getString('activationCode');
+    final rawCode = prefs.getString('activationCode');
     final isActivated = prefs.getBool('isActivated') ?? false;
 
-    if (!isActivated || activationCode == null) {
+    if (!isActivated || rawCode == null) {
       throw Exception('Dastur faollashtirilmagan');
     }
+    
+    final activationCode = rawCode.trim().toUpperCase();
 
     isSyncingCloud = true;
     syncingStage = 'Bulutdan yuklab olinmoqda...';
     notifyListeners();
 
     final downloadUrl = "https://web-production-d2ed7.up.railway.app/backup/$activationCode";
-    debugPrint("Restoring from cloud: $downloadUrl");
+    debugPrint("Restoring from cloud URL: $downloadUrl");
 
     try {
       final response = await http
@@ -237,9 +241,9 @@ class SyncProvider extends ChangeNotifier {
         notifyListeners();
         debugPrint("Cloud restore successful");
       } else if (response.statusCode == 404) {
-        throw Exception('Ushbu kod uchun bulutli zaxira topilmadi');
+        throw Exception('Ushbu kod ($activationCode) uchun bulutli serverdan zaxira topilmadi. Avval "Bulutga saqlash" tugmasini bosganingizga ishonch hosil qiling.');
       } else {
-        throw Exception('Bulutdan zaxirani yuklab bo\'lmadi (Server xatosi: ${response.statusCode})');
+        throw Exception('Bulutdan zaxirani yuklab bo\'mladi (Server xatosi: ${response.statusCode})');
       }
     } catch (e) {
       debugPrint("Restore error detail: $e");

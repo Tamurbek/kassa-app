@@ -627,7 +627,12 @@ class SettingsScreen extends StatelessWidget {
                             try {
                                await sync.restoreDatabaseFromCloud();
                                if (context.mounted) {
-                                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Ma\'lumotlar muvaffaqiyatli tiklandi!'), backgroundColor: Colors.green));
+                                  // Refresh all data providers
+                                  await context.read<AppState>().loadSettings();
+                                  await context.read<AuthProvider>().loadAuth();
+                                  await context.read<SettingsProvider>().loadSettings();
+                                  
+                                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Ma\'lumotlar muvaffaqiyatli tiklandi!'), backgroundColor: Colors.green));
                                }
                             } catch (e) {
                                if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString()), backgroundColor: Colors.red));
