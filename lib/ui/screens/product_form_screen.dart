@@ -146,27 +146,38 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: AppBar(
-        title: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: Image.asset(
-                'assets/icon.png',
-                width: 30,
-                height: 30,
-                fit: BoxFit.cover,
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(kToolbarHeight),
+        child: Container(
+          color: Theme.of(context).cardColor,
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 1400),
+              child: AppBar(
+                title: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.asset(
+                        'assets/icon.png',
+                        width: 30,
+                        height: 30,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Text(widget.product == null ? 'Yangi Mahsulot' : 'Tahrirlash'),
+                  ],
+                ),
+                elevation: 0,
+                backgroundColor: Colors.transparent,
+                foregroundColor: Theme.of(context).colorScheme.onSurface,
+                centerTitle: true,
               ),
             ),
-            SizedBox(width: 12),
-            Text(widget.product == null ? 'Yangi Mahsulot' : 'Tahrirlash'),
-          ],
+          ),
         ),
-        elevation: 0,
-        backgroundColor: Theme.of(context).cardColor,
-        foregroundColor: Theme.of(context).colorScheme.onSurface,
-        centerTitle: true,
       ),
       body: Center(
         child: ConstrainedBox(

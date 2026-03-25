@@ -8,6 +8,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import '../../providers/app_state.dart';
+import '../../services/update_service.dart';
 
 class AppUpdateDialog extends StatefulWidget {
   const AppUpdateDialog({
@@ -52,9 +53,11 @@ class _AppUpdateDialogState extends State<AppUpdateDialog> {
       await _downloadAndInstallApk(context);
     } else if (Platform.isWindows) {
       await _downloadAndInstallExe(context);
+    } else if (Platform.isMacOS) {
+      await _downloadAndInstallMacOS(context);
     } else {
-      // For other platforms, we might just open the URL
-      // But this app is mainly Android/Windows
+      await UpdateService.openDownloadPage(widget.url);
+      if (context.mounted) Navigator.pop(context);
     }
   }
 
@@ -166,6 +169,60 @@ class _AppUpdateDialogState extends State<AppUpdateDialog> {
       
       await Future.delayed(const Duration(seconds: 1));
       exit(0); 
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        isDownloading = false;
+        errorMessage = 'Yuklab olishda xatolik: ${e.toString()}';
+      });
+    }
+  }
+
+  Future<void> _downloadAndInstallMacOS(BuildContext context) async {
+    setState(() {
+      isDownloading = true;
+      downloadProgress = 0.0;
+      errorMessage = null;
+    });
+
+    try {
+      final dio = Dio();
+      final tempDir = await getTemporaryDirectory();
+      final fileName = widget.url.split('/').last;
+      final filePath = '${tempDir.path}/$fileName';
+
+      final file = File(filePath);
+      if (await file.exists()) {
+        await file.delete();
+      }
+
+      await dio.download(
+        _getDownloadUrl(),
+        filePath,
+        onReceiveProgress: (received, total) {
+          if (total != -1 && mounted) {
+            setState(() {
+              downloadProgress = received / total;
+            });
+          }
+        },
+      );
+
+      if (!mounted) return;
+
+      setState(() {
+        isDownloading = false;
+      });
+
+      // macOS da .dmg yoki .pkg faylni ochish
+      final result = await OpenAppFile.open(filePath);
+      if (result.type != ResultType.done) {
+        throw Exception('Faylni ochib bo\'lmadi: ${result.message}');
+      }
+      
+      if (context.mounted) {
+        Navigator.of(context).pop();
+      }
     } catch (e) {
       if (!mounted) return;
       setState(() {

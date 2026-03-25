@@ -15,41 +15,52 @@ class ReturnsHistoryScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        title: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: Image.asset(
-                'assets/icon.png',
-                width: 30,
-                height: 30,
-                fit: BoxFit.cover,
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(kToolbarHeight),
+        child: Container(
+          color: Theme.of(context).cardColor,
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 1400),
+              child: AppBar(
+                automaticallyImplyLeading: false,
+                title: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.asset(
+                        'assets/icon.png',
+                        width: 30,
+                        height: 30,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    const Text('Vazvratlar Tarixi'),
+                  ],
+                ),
+                elevation: 0,
+                backgroundColor: Colors.transparent,
+                foregroundColor: Theme.of(context).colorScheme.onSurface,
+                centerTitle: true,
+                leading: onMenuPressed != null
+                    ? IconButton(
+                        icon: const Icon(Icons.menu_rounded),
+                        onPressed: onMenuPressed,
+                      )
+                    : null,
+                actions: [
+                  IconButton(
+                    icon: const Icon(Icons.add_circle_outline_rounded, color: Colors.orange),
+                    onPressed: () => _showReturnDialog(context, sales, inventory),
+                  ),
+                  const SizedBox(width: 8),
+                ],
               ),
             ),
-            SizedBox(width: 12),
-            Text('Vazvratlar Tarixi'),
-          ],
-        ),
-        elevation: 0,
-        backgroundColor: Theme.of(context).cardColor,
-        foregroundColor: Theme.of(context).colorScheme.onSurface,
-        centerTitle: true,
-        leading: onMenuPressed != null
-            ? IconButton(
-                icon: Icon(Icons.menu_rounded),
-                onPressed: onMenuPressed,
-              )
-            : null,
-        actions: [
-          IconButton(
-            icon: Icon(Icons.add_circle_outline_rounded, color: Colors.orange),
-            onPressed: () => _showReturnDialog(context, sales, inventory),
           ),
-          SizedBox(width: 8),
-        ],
+        ),
       ),
       body: sales.returns.isEmpty
           ? Center(

@@ -5,6 +5,7 @@ import 'package:printing/printing.dart';
 import '../../providers/features/settings_provider.dart';
 import '../../providers/features/sync_provider.dart';
 import '../../providers/features/auth_provider.dart';
+import '../../providers/app_state.dart';
 import '../../models/models.dart';
 import '../../services/update_service.dart';
 import '../dialogs/app_update_dialog.dart';
@@ -136,6 +137,50 @@ class SettingsScreen extends StatelessWidget {
                     const SizedBox(height: 24),
                     _buildSection(
                       context,
+                      'Ko\'rinish va Rejimlar',
+                      'Ilova ko\'rinishi va ishlash usulini sozlash',
+                      [
+                        _buildSettingsTile(
+                          context,
+                          icon: Icons.brightness_6_rounded,
+                          color: Colors.amber,
+                          title: 'Mavzu (Dark Mode)',
+                          subtitle: settings.themeMode == ThemeMode.dark
+                              ? 'Tungi rejim'
+                              : settings.themeMode == ThemeMode.light
+                                  ? 'Yorug\' rejim'
+                                  : 'Tizim rejimi',
+                          onTap: () => _showThemePicker(context, settings),
+                        ),
+                        _buildSettingsTile(
+                          context,
+                          icon: Icons.image_outlined,
+                          color: Colors.lightBlue,
+                          title: 'Mahsulot rasmlari',
+                          subtitle: settings.showProductImages ? 'Ko\'rsatish' : 'Bekitish',
+                          trailing: Switch(
+                            value: settings.showProductImages,
+                            onChanged: (v) => settings.toggleShowProductImages(),
+                          ),
+                          onTap: () => settings.toggleShowProductImages(),
+                        ),
+                        _buildSettingsTile(
+                          context,
+                          icon: Icons.qr_code_scanner_rounded,
+                          color: Colors.green,
+                          title: 'Scan Rejimi (Klaviatura)',
+                          subtitle: settings.isBarcodeScanMode ? 'Yoqilgan' : 'O\'chirilgan',
+                          trailing: Switch(
+                            value: settings.isBarcodeScanMode,
+                            onChanged: (v) => settings.toggleBarcodeScanMode(),
+                          ),
+                          onTap: () => settings.toggleBarcodeScanMode(),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+                    _buildSection(
+                      context,
                       'Printer va Cheklar',
                       'Chek chiqarish va printer sozlamalari',
                       [
@@ -144,7 +189,9 @@ class SettingsScreen extends StatelessWidget {
                           icon: Icons.print_rounded,
                           color: Colors.blue,
                           title: 'Sotuv Prinfari',
-                          subtitle: settings.selectedPrinterName ?? 'Tanlanmagan',
+                          subtitle: (settings.selectedPrinterName == 'Network' 
+                              ? (settings.networkPrinterIp ?? 'IP kiritilmagan') 
+                              : (settings.selectedPrinterName ?? 'Tanlanmagan')),
                           onTap: () => _showPrinterPicker(context, settings),
                         ),
                         _buildSettingsTile(
@@ -152,7 +199,9 @@ class SettingsScreen extends StatelessWidget {
                           icon: Icons.qr_code_scanner_rounded,
                           color: Colors.indigo,
                           title: 'Shtrix-kod Printeri',
-                          subtitle: settings.barcodePrinterName ?? 'Tanlanmagan',
+                          subtitle: (settings.barcodePrinterName == 'Network' 
+                              ? (settings.networkBarcodePrinterIp ?? 'IP kiritilmagan') 
+                              : (settings.barcodePrinterName ?? 'Tanlanmagan')),
                           onTap: () => _showBarcodePrinterPicker(context, settings),
                         ),
                         _buildSettingsTile(
@@ -397,6 +446,7 @@ class SettingsScreen extends StatelessWidget {
     if (context.mounted) {
       showModalBottomSheet(
         context: context,
+        backgroundColor: Theme.of(context).cardColor,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         ),
@@ -410,7 +460,23 @@ class SettingsScreen extends StatelessWidget {
                 'Printerni tanlang',
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
+              ListTile(
+                leading: const Icon(Icons.wifi, color: Colors.blue),
+                title: const Text('Network Printer (Direct IP)', style: TextStyle(fontWeight: FontWeight.bold)),
+                subtitle: Text(settings.networkPrinterIp ?? 'Hali kiritilmagan'),
+                trailing: settings.selectedPrinterName == 'Network'
+                    ? Icon(Icons.check_circle, color: Theme.of(context).colorScheme.primary)
+                    : const Icon(Icons.edit_note),
+                onTap: () {
+                  _showIpInputDialog(context, settings, isBarcode: false);
+                },
+              ),
+              const Divider(),
+              const Padding(
+                padding: EdgeInsets.only(left: 16, top: 8, bottom: 4),
+                child: Text('Tizimdagi printerlar', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey)),
+              ),
               Expanded(
                 child: ListView(
                   children: [
@@ -425,6 +491,11 @@ class SettingsScreen extends StatelessWidget {
                             Navigator.pop(context);
                           },
                         )),
+                    if (devices.isEmpty)
+                       const Padding(
+                        padding: EdgeInsets.all(20.0),
+                        child: Center(child: Text('Printerlar topilmadi', style: TextStyle(color: Colors.grey))),
+                      ),
                   ],
                 ),
               ),
@@ -435,11 +506,49 @@ class SettingsScreen extends StatelessWidget {
     }
   }
 
+  void _showIpInputDialog(BuildContext context, SettingsProvider settings, {required bool isBarcode}) {
+    final controller = TextEditingController(text: isBarcode ? settings.networkBarcodePrinterIp : settings.networkPrinterIp);
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Printer IP manzilini kiriting'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          decoration: const InputDecoration(
+            hintText: '192.168.1.100',
+            labelText: 'IP Manzil',
+            border: OutlineInputBorder(),
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Bekor qilish')),
+          ElevatedButton(
+            onPressed: () {
+              final ip = controller.text.trim();
+              if (isBarcode) {
+                settings.updateNetworkBarcodePrinterIp(ip);
+                settings.updateBarcodePrinter('Network');
+              } else {
+                settings.updateNetworkPrinterIp(ip);
+                settings.updatePrinter('Network');
+              }
+              Navigator.pop(ctx);
+              Navigator.pop(context); // close bottom sheet
+            },
+            child: const Text('Saqlash'),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _showBarcodePrinterPicker(BuildContext context, SettingsProvider settings) async {
     final devices = await Printing.listPrinters();
     if (context.mounted) {
       showModalBottomSheet(
         context: context,
+        backgroundColor: Theme.of(context).cardColor,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         ),
@@ -453,7 +562,23 @@ class SettingsScreen extends StatelessWidget {
                 'Shtrix-kod printerni tanlang',
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
+              ListTile(
+                leading: const Icon(Icons.wifi, color: Colors.blue),
+                title: const Text('Network Printer (Direct IP)', style: TextStyle(fontWeight: FontWeight.bold)),
+                subtitle: Text(settings.networkBarcodePrinterIp ?? 'Hali kiritilmagan'),
+                trailing: settings.barcodePrinterName == 'Network'
+                    ? Icon(Icons.check_circle, color: Theme.of(context).colorScheme.primary)
+                    : const Icon(Icons.edit_note),
+                onTap: () {
+                  _showIpInputDialog(context, settings, isBarcode: true);
+                },
+              ),
+              const Divider(),
+              const Padding(
+                padding: EdgeInsets.only(left: 16, top: 8, bottom: 4),
+                child: Text('Tizimdagi printerlar', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey)),
+              ),
               Expanded(
                 child: ListView(
                   children: [
@@ -468,6 +593,11 @@ class SettingsScreen extends StatelessWidget {
                             Navigator.pop(context);
                           },
                         )),
+                    if (devices.isEmpty)
+                      const Padding(
+                        padding: EdgeInsets.all(20.0),
+                        child: Center(child: Text('Printerlar topilmadi', style: TextStyle(color: Colors.grey))),
+                      ),
                   ],
                 ),
               ),
@@ -479,7 +609,123 @@ class SettingsScreen extends StatelessWidget {
   }
 
   void _showCloudDialog(BuildContext context, SyncProvider sync) {
-    // Already implemented as individual tile in settings or separate dialog.
+    showDialog(
+      context: context,
+      builder: (context) => Consumer<SyncProvider>(
+        builder: (context, sync, child) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          title: Row(
+            children: [
+              Icon(Icons.cloud_sync_rounded, color: Theme.of(context).colorScheme.primary),
+              const SizedBox(width: 12),
+              const Text('Bulutli Xizmat'),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (sync.lastCloudSync != null)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: Text(
+                    'Oxirgi sinxronizatsiya: ${sync.lastCloudSync!.toString().substring(0, 16)}',
+                    style: const TextStyle(fontSize: 13, color: Colors.grey),
+                  ),
+                ),
+              if (sync.isSyncingCloud) ...[
+                const CircularProgressIndicator(),
+                const SizedBox(height: 16),
+                Text(sync.syncingStage, textAlign: TextAlign.center),
+              ] else ...[
+                const Text(
+                  'Barcha ma\'lumotlaringizni (mahsulotlar, sotuvlar, qoldiqlar) bulutli serverga zaxira qilishingiz yoki u yerdan qayta tiklashingiz mumkin.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 14),
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                        icon: const Icon(Icons.cloud_download_rounded),
+                        label: const Text('Yuklab olish'),
+                        onPressed: () async {
+                          final confirm = await _showConfirmDialog(context, 'Bulutdan yuklash oldingi ma\'lumotlarni butunlay O\'CHIRIB yuboradi. Davom etasizmi?');
+                          if (confirm == true) {
+                            try {
+                              await sync.restoreDatabaseFromCloud();
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Ma\'lumotlar muvaffaqiyatli tiklandi!'), backgroundColor: Colors.green));
+                                Navigator.pop(context);
+                                // Restart logic usually needed here
+                              }
+                            } catch (e) {
+                              if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString()), backgroundColor: Colors.red));
+                            }
+                          }
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Theme.of(context).colorScheme.primary,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                        icon: const Icon(Icons.cloud_upload_rounded),
+                        label: const Text('Zaxira qilish'),
+                        onPressed: () async {
+                          try {
+                            await sync.uploadDatabaseToCloud();
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Ma\'lumotlar bulutga saqlandi!'), backgroundColor: Colors.green));
+                            }
+                          } catch (e) {
+                            if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString()), backgroundColor: Colors.red));
+                          }
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ],
+          ),
+          actions: [
+            if (!sync.isSyncingCloud)
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Yopish'),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<bool?> _showConfirmDialog(BuildContext context, String message) {
+    return showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Diqqat!'),
+        content: Text(message),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Yo\'q')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Ha, davom etilsin'),
+          ),
+        ],
+      ),
+    );
   }
 
   void _showEditOrgInfoDialog(BuildContext context, AuthProvider auth, SettingsProvider settings, {required String field}) {
@@ -625,6 +871,57 @@ class SettingsScreen extends StatelessWidget {
                   : null,
               onTap: () {
                 settings.updateReceiptSettings(width: 80);
+                Navigator.pop(context);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showThemePicker(BuildContext context, SettingsProvider settings) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Theme.of(context).cardColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Mavzuni tanlang',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 24),
+            ListTile(
+              leading: const Icon(Icons.brightness_auto_rounded),
+              title: const Text('Tizim rejimi'),
+              trailing: settings.themeMode == ThemeMode.system ? const Icon(Icons.check_circle, color: Colors.blue) : null,
+              onTap: () {
+                settings.setThemeMode(ThemeMode.system);
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.light_mode_rounded),
+              title: const Text('Yorug\' rejim'),
+              trailing: settings.themeMode == ThemeMode.light ? const Icon(Icons.check_circle, color: Colors.blue) : null,
+              onTap: () {
+                settings.setThemeMode(ThemeMode.light);
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.dark_mode_rounded),
+              title: const Text('Tungi rejim'),
+              trailing: settings.themeMode == ThemeMode.dark ? const Icon(Icons.check_circle, color: Colors.blue) : null,
+              onTap: () {
+                settings.setThemeMode(ThemeMode.dark);
                 Navigator.pop(context);
               },
             ),

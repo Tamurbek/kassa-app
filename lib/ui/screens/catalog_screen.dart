@@ -18,11 +18,16 @@ class _CatalogScreenState extends State<CatalogScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final TextEditingController _searchController = TextEditingController();
+  String _searchText = '';
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _tabController.addListener(() {
+      if (_tabController.indexIsChanging) return;
+      setState(() {});
+    });
   }
 
   @override
@@ -53,6 +58,7 @@ class _CatalogScreenState extends State<CatalogScreen>
                   Tab(text: 'Kategoriyalar'),
                 ],
               ),
+              _buildSearchBar(),
               Expanded(
                 child: TabBarView(
                   controller: _tabController,
@@ -154,6 +160,43 @@ class _CatalogScreenState extends State<CatalogScreen>
     );
   }
 
+  Widget _buildSearchBar() {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+      color: Theme.of(context).cardColor.withOpacity(0.5),
+      child: TextField(
+        controller: _searchController,
+        onChanged: (val) => setState(() => _searchText = val.toLowerCase()),
+        decoration: InputDecoration(
+          hintText: _tabController.index == 0
+              ? 'Mahsulot nomi yoki shtrix-kodi bo\'yicha qidirish...'
+              : 'Kategoriya nomi bo\'yicha qidirish...',
+          prefixIcon: const Icon(Icons.search_rounded),
+          suffixIcon: _searchText.isNotEmpty
+              ? IconButton(
+                  icon: const Icon(Icons.close_rounded),
+                  onPressed: () {
+                    _searchController.clear();
+                    setState(() => _searchText = '');
+                  },
+                )
+              : null,
+          filled: true,
+          fillColor: Theme.of(context).scaffoldBackgroundColor,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: Theme.of(context).dividerColor),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: Theme.of(context).dividerColor),
+          ),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        ),
+      ),
+    );
+  }
+
   Widget _buildActionButton({
     required IconData icon,
     String? label,
@@ -176,9 +219,18 @@ class _CatalogScreenState extends State<CatalogScreen>
   Widget _buildProductsTab() {
     return Consumer<InventoryProvider>(
       builder: (context, inventory, child) {
-        final products = inventory.activeProducts;
+        final products = inventory.activeProducts.where((p) {
+          if (_searchText.isEmpty) return true;
+          return p.name.toLowerCase().contains(_searchText) ||
+              p.barcode.toLowerCase().contains(_searchText);
+        }).toList();
+
         if (products.isEmpty) {
-          return const Center(child: Text('Mahsulotlar mavjud emas'));
+          return Center(
+            child: Text(_searchText.isEmpty
+                ? 'Mahsulotlar mavjud emas'
+                : 'Qidiruv bo\'yicha mahsulot topilmadi'),
+          );
         }
 
         return ListView.builder(
@@ -210,9 +262,17 @@ class _CatalogScreenState extends State<CatalogScreen>
   Widget _buildCategoriesTab() {
     return Consumer<InventoryProvider>(
       builder: (context, inventory, child) {
-        final categories = inventory.activeCategories;
+        final categories = inventory.activeCategories.where((c) {
+          if (_searchText.isEmpty) return true;
+          return c.name.toLowerCase().contains(_searchText);
+        }).toList();
+
         if (categories.isEmpty) {
-          return const Center(child: Text('Kategoriyalar mavjud emas'));
+          return Center(
+            child: Text(_searchText.isEmpty
+                ? 'Kategoriyalar mavjud emas'
+                : 'Qidiruv bo\'yicha kategoriya topilmadi'),
+          );
         }
 
         return ListView.builder(

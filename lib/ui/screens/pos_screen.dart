@@ -76,7 +76,7 @@ class _POSScreenState extends State<POSScreen> {
       final text = controller.text.replaceAll(',', '.');
       final newQty = double.tryParse(text) ?? 0;
       try {
-        sales.updateCartQuantity(item.productId, newQty);
+        sales.updateCartQuantity(item.productId, newQty, product: product, warehouseId: context.read<SettingsProvider>().currentRegister?.warehouseId);
         Navigator.pop(context);
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -228,7 +228,7 @@ class _POSScreenState extends State<POSScreen> {
       final sales = context.read<SalesProvider>();
       final settings = context.read<SettingsProvider>();
       
-      sales.addToCartByBarcode(barcode, inventory.products);
+      sales.addToCartByBarcode(barcode, inventory.products, warehouseId: settings.currentRegister?.warehouseId);
 
       final product = inventory.products.firstWhere(
         (p) => p.barcode == barcode || p.additionalBarcodes.contains(barcode),
@@ -681,7 +681,7 @@ class _POSScreenState extends State<POSScreen> {
     return InkWell(
       onTap: () {
         try {
-          sales.addToCart(product);
+          sales.addToCart(product, warehouseId: settings.currentRegister?.warehouseId);
         } catch (e) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -937,7 +937,7 @@ class _POSScreenState extends State<POSScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     itemCount: sales.cart.length,
                     itemBuilder: (context, index) =>
-                        _buildCartItem(sales.cart[index], inventory, sales),
+                        _buildCartItem(sales.cart[index], inventory, sales, settings),
                   ),
           ),
           _buildCartFooter(sales),
@@ -967,7 +967,7 @@ class _POSScreenState extends State<POSScreen> {
     );
   }
 
-  Widget _buildCartItem(SaleItem item, InventoryProvider inventory, SalesProvider sales) {
+  Widget _buildCartItem(SaleItem item, InventoryProvider inventory, SalesProvider sales, SettingsProvider settings) {
     final product = inventory.products
         .where((p) => p.id == item.productId)
         .firstOrNull;
@@ -1087,7 +1087,7 @@ class _POSScreenState extends State<POSScreen> {
                     () {
                       if (product != null) {
                         try {
-                          sales.addToCart(product);
+                          sales.addToCart(product, warehouseId: context.read<SettingsProvider>().currentRegister?.warehouseId);
                         } catch (e) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(

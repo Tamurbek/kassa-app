@@ -84,16 +84,29 @@ class _InventoryScreenState extends State<InventoryScreen> {
     final inventoryProv = context.watch<InventoryProvider>();
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          widget.inventory == null
-              ? 'Yangi Inventarizatsiya'
-              : 'Inventarizatsiyani Tahrirlash',
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(kToolbarHeight),
+        child: Container(
+          color: Theme.of(context).cardColor,
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 1400),
+              child: AppBar(
+                title: Text(
+                  widget.inventory == null
+                      ? 'Yangi Inventarizatsiya'
+                      : 'Inventarizatsiyani Tahrirlash',
+                ),
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                actions: [
+                  IconButton(icon: Icon(Icons.save), onPressed: _save),
+                  SizedBox(width: 8),
+                ],
+              ),
+            ),
+          ),
         ),
-        actions: [
-          IconButton(icon: Icon(Icons.save), onPressed: _save),
-          SizedBox(width: 8),
-        ],
       ),
       body: Center(
         child: ConstrainedBox(

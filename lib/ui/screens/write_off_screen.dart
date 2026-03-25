@@ -74,12 +74,26 @@ class _WriteOffScreenState extends State<WriteOffScreen> {
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: AppBar(
-        title: Text(widget.writeOff == null ? 'Yangi Chiqit' : 'Chiqitni Tahrirlash', style: const TextStyle(fontWeight: FontWeight.bold)),
-        actions: [
-          IconButton(icon: const Icon(Icons.save_rounded), onPressed: _save),
-          const SizedBox(width: 8),
-        ],
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(kToolbarHeight),
+        child: Container(
+          color: Theme.of(context).cardColor,
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 1400),
+              child: AppBar(
+                title: Text(widget.writeOff == null ? 'Yangi Chiqit' : 'Chiqitni Tahrirlash', 
+                    style: const TextStyle(fontWeight: FontWeight.bold)),
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                actions: [
+                  IconButton(icon: const Icon(Icons.save_rounded), onPressed: _save),
+                  const SizedBox(width: 8),
+                ],
+              ),
+            ),
+          ),
+        ),
       ),
       body: Center(
         child: ConstrainedBox(

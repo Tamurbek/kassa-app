@@ -181,38 +181,49 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: AppBar(
-        title: Row(
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: Image.asset(
-                'assets/icon.png',
-                width: 32,
-                height: 32,
-                fit: BoxFit.cover,
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(kToolbarHeight),
+        child: Container(
+          color: Theme.of(context).cardColor,
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 1400),
+              child: AppBar(
+                title: Row(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.asset(
+                        'assets/icon.png',
+                        width: 32,
+                        height: 32,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      'To\'lovni Yakunlash',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w900,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                    ),
+                  ],
+                ),
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                centerTitle: false,
+                leading: IconButton(
+                  icon: Icon(
+                    Icons.arrow_back_ios_new_rounded,
+                    color: Theme.of(context).colorScheme.onSurface,
+                    size: 20,
+                  ),
+                  onPressed: () => Navigator.pop(context),
+                ),
               ),
             ),
-            SizedBox(width: 12),
-            Text(
-              'To\'lovni Yakunlash',
-              style: TextStyle(
-                fontWeight: FontWeight.w900,
-                color: Theme.of(context).colorScheme.onSurface,
-              ),
-            ),
-          ],
-        ),
-        backgroundColor: Theme.of(context).cardColor,
-        elevation: 0,
-        centerTitle: false,
-        leading: IconButton(
-          icon: Icon(
-            Icons.arrow_back_ios_new_rounded,
-            color: Theme.of(context).colorScheme.onSurface,
-            size: 20,
           ),
-          onPressed: () => Navigator.pop(context),
         ),
       ),
       body: LayoutBuilder(
