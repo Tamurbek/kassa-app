@@ -332,6 +332,7 @@ class ExcelImportService {
             productId: product.id,
             productName: product.name,
             quantity: qty,
+            costPrice: cost > 0 ? cost : product.costPrice,
           ));
           if (cost > 0) {
              await DatabaseService.updateProductCostPrice(product.id, cost);

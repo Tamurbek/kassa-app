@@ -22,6 +22,8 @@ class _POSScreenState extends State<POSScreen> {
   final TextEditingController _searchController = TextEditingController();
   bool _showKeyboard = false;
   final FocusNode _searchFocusNode = FocusNode();
+  int _currentPage = 1;
+  static const int _pageSize = 20;
 
   @override
   void initState() {
@@ -270,6 +272,17 @@ class _POSScreenState extends State<POSScreen> {
       return matchesCategory && matchesSearch;
     }).toList();
 
+    // Reset page if it's out of bounds after filtering
+    final totalPages = (filteredProducts.length / _pageSize).ceil();
+    if (_currentPage > totalPages && totalPages > 0) {
+      _currentPage = totalPages;
+    } else if (totalPages == 0) {
+      _currentPage = 1;
+    }
+
+    final startIndex = (_currentPage - 1) * _pageSize;
+    final paginatedProducts = filteredProducts.skip(startIndex).take(_pageSize).toList();
+
     return KeyboardListener(
       focusNode: _focusNode,
       autofocus: false,
@@ -292,10 +305,18 @@ class _POSScreenState extends State<POSScreen> {
                         child: Column(
                           children: [
                             Expanded(
-                              child: _buildProductGrid(
-                                filteredProducts,
-                                state,
-                                constraints.maxWidth,
+                              child: Column(
+                                children: [
+                                  Expanded(
+                                    child: _buildProductGrid(
+                                      paginatedProducts,
+                                      state,
+                                      constraints.maxWidth,
+                                    ),
+                                  ),
+                                  if (filteredProducts.length > _pageSize)
+                                    _buildPagination(filteredProducts.length),
+                                ],
                               ),
                             ),
                             AnimatedSwitcher(
@@ -348,141 +369,178 @@ class _POSScreenState extends State<POSScreen> {
 
   Widget _buildTopBar(AppState state, bool isMobile) {
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        border: Border(
+          bottom: BorderSide(
+            color: Theme.of(context).dividerColor.withOpacity(0.5),
+            width: 1,
+          ),
+        ),
+      ),
       child: Row(
         children: [
-
-          ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: Image.asset(
-              'assets/icon.png',
-              width: 40,
-              height: 40,
-              fit: BoxFit.cover,
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.primary.withOpacity(0.08),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(
+              Icons.point_of_sale_rounded,
+              color: Theme.of(context).colorScheme.primary,
+              size: 28,
             ),
           ),
-          SizedBox(width: 16),
+          const SizedBox(width: 16),
           Expanded(
             child: Container(
-              height: 55,
+              height: 50,
               decoration: BoxDecoration(
-                color: Theme.of(context).cardColor,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Theme.of(context).dividerColor),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.04),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? Colors.white.withOpacity(0.05)
+                    : Colors.grey.withOpacity(0.05),
+                borderRadius: BorderRadius.circular(15),
+                border: Border.all(
+                  color: Theme.of(context).dividerColor.withOpacity(0.3),
+                ),
               ),
               child: TextField(
                 controller: _searchController,
                 focusNode: _searchFocusNode,
-                onChanged: (v) => setState(() {}),
+                onChanged: (v) => setState(() {
+                  _currentPage = 1;
+                }),
                 onSubmitted: (v) {
                   _processBarcode(v);
                   _searchController.clear();
                   if (state.isBarcodeScanMode) _searchFocusNode.requestFocus();
                 },
+                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
                 decoration: InputDecoration(
                   hintText: 'Qidirish yoki shtrix kodni o\'qing...',
+                  hintStyle: TextStyle(
+                    color: Theme.of(context).textTheme.bodySmall?.color?.withOpacity(0.5),
+                    fontSize: 14,
+                  ),
                   prefixIcon: Icon(
-                    Icons.search,
-                    color: Theme.of(context).colorScheme.primary,
+                    Icons.search_rounded,
+                    color: Theme.of(context).colorScheme.primary.withOpacity(0.7),
+                    size: 20,
                   ),
                   suffixIcon: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      IconButton(
-                        icon: Icon(
-                          Icons.keyboard_outlined,
-                          color: _showKeyboard
-                              ? Theme.of(context).colorScheme.primary
-                              : Colors.grey.shade400,
-                        ),
-                        onPressed: () =>
-                            setState(() => _showKeyboard = !_showKeyboard),
+                      _buildTopBarAction(
+                        icon: Icons.keyboard_hide_rounded,
+                        isActive: _showKeyboard,
+                        onTap: () => setState(() => _showKeyboard = !_showKeyboard),
+                        tooltip: 'Virtual klaviatura',
                       ),
-                      IconButton(
-                        icon: Icon(
-                          state.isBarcodeScanMode
-                              ? Icons.qr_code_scanner_rounded
-                              : Icons.barcode_reader,
-                          color: state.isBarcodeScanMode
-                              ? Theme.of(context).colorScheme.primary
-                              : Colors.grey.shade400,
-                        ),
-                        onPressed: () {
+                      _buildTopBarAction(
+                        icon: state.isBarcodeScanMode
+                            ? Icons.qr_code_scanner_rounded
+                            : Icons.barcode_reader,
+                        isActive: state.isBarcodeScanMode,
+                        onTap: () {
                           state.toggleBarcodeScanMode();
-                          // Read the UPDATED state value after toggle
-                          final nowScanMode = context.read<AppState>().isBarcodeScanMode;
+                           final nowScanMode = context.read<AppState>().isBarcodeScanMode;
                           if (nowScanMode) {
                             setState(() => _showKeyboard = false);
-                            // Small delay to ensure state propagates before requesting focus
                             Future.delayed(const Duration(milliseconds: 100), () {
                               if (mounted) _searchFocusNode.requestFocus();
                             });
                           } else {
-                            // Leaving scan mode — give focus back to keyboard listener
                             _focusNode.requestFocus();
                           }
                         },
+                        tooltip: 'Scan rejimi',
                       ),
-                      IconButton(
-                        tooltip: state.showProductImages
-                            ? 'Rasmsiz rejim'
-                            : 'Rasmli rejim',
-                        icon: Icon(
-                          state.showProductImages
-                              ? Icons.image_outlined
-                              : Icons.image_not_supported_outlined,
-                          color: state.showProductImages
-                              ? Theme.of(context).colorScheme.primary
-                              : Colors.grey.shade400,
-                        ),
-                        onPressed: () => state.toggleShowProductImages(),
+                      _buildTopBarAction(
+                        icon: state.showProductImages
+                            ? Icons.image_outlined
+                            : Icons.image_not_supported_outlined,
+                        isActive: state.showProductImages,
+                        onTap: () => state.toggleShowProductImages(),
+                        tooltip: state.showProductImages ? 'Rasmlarni yashirish' : 'Rasmlarni ko\'rsatish',
                       ),
+                      const SizedBox(width: 4),
                     ],
                   ),
                   border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(vertical: 18),
+                  contentPadding: const EdgeInsets.symmetric(vertical: 12),
                 ),
               ),
             ),
           ),
-          if (!isMobile) SizedBox(width: 20),
+          if (!isMobile) const SizedBox(width: 16),
           if (!isMobile) _buildKassaInfo(state),
           if (widget.onMenuPressed != null)
             Padding(
-              padding: const EdgeInsets.only(left: 16),
-              child: InkWell(
-                onTap: widget.onMenuPressed,
-                borderRadius: BorderRadius.circular(12),
-                child: Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).cardColor,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Theme.of(context).dividerColor),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.04),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Icon(
-                    Icons.menu_rounded,
-                    color: Theme.of(context).colorScheme.primary,
-                    size: 28,
-                  ),
-                ),
+              padding: const EdgeInsets.only(left: 12),
+              child: _buildIconButton(
+                icon: Icons.menu_rounded,
+                onTap: widget.onMenuPressed!,
               ),
             ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildTopBarAction({
+    required IconData icon,
+    required bool isActive,
+    required VoidCallback onTap,
+    required String tooltip,
+  }) {
+    return Tooltip(
+      message: tooltip,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 2),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(8),
+          child: Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: isActive
+                  ? Theme.of(context).colorScheme.primary.withOpacity(0.12)
+                  : Colors.transparent,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(
+              icon,
+              size: 20,
+              color: isActive
+                  ? Theme.of(context).colorScheme.primary
+                  : Theme.of(context).textTheme.bodySmall?.color?.withOpacity(0.6),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildIconButton({required IconData icon, required VoidCallback onTap}) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.primary.withOpacity(0.05),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+          ),
+        ),
+        child: Icon(
+          icon,
+          color: Theme.of(context).colorScheme.primary,
+          size: 24,
+        ),
       ),
     );
   }
@@ -533,8 +591,9 @@ class _POSScreenState extends State<POSScreen> {
   }
 
   Widget _buildCategoryChips(List<String> categories) {
-    return SizedBox(
+    return Container(
       height: 60,
+      margin: const EdgeInsets.symmetric(vertical: 8),
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -543,33 +602,36 @@ class _POSScreenState extends State<POSScreen> {
           final cat = categories[index];
           final isSelected = selectedCategory == cat;
           return Padding(
-            padding: const EdgeInsets.only(right: 10, bottom: 10),
-            child: FilterChip(
+            padding: const EdgeInsets.only(right: 12),
+            child: ChoiceChip(
               label: Text(cat),
               selected: isSelected,
-              onSelected: (val) => setState(() => selectedCategory = cat),
+              onSelected: (val) {
+                if (val) {
+                  setState(() {
+                    selectedCategory = cat;
+                    _currentPage = 1;
+                  });
+                }
+              },
               backgroundColor: Theme.of(context).cardColor,
               selectedColor: Theme.of(context).colorScheme.primary,
-              iconTheme: IconThemeData(
-                color: isSelected
-                    ? Colors.white
-                    : Theme.of(context).colorScheme.primary,
-              ),
               labelStyle: TextStyle(
-                color: isSelected
-                    ? Colors.white
-                    : Theme.of(context).colorScheme.onSurface,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                color: isSelected ? Colors.white : Theme.of(context).textTheme.bodyLarge?.color,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                fontSize: 13,
               ),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
                 side: BorderSide(
-                  color: isSelected
-                      ? Colors.transparent
-                      : Theme.of(context).dividerColor,
+                  color: isSelected ? Colors.transparent : Theme.of(context).dividerColor,
+                  width: 1,
                 ),
               ),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              showCheckmark: false,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              elevation: isSelected ? 4 : 0,
+              shadowColor: Theme.of(context).colorScheme.primary.withOpacity(0.4),
             ),
           );
         },
@@ -619,112 +681,217 @@ class _POSScreenState extends State<POSScreen> {
       child: Container(
         decoration: BoxDecoration(
           color: Theme.of(context).cardColor,
-          borderRadius: BorderRadius.circular(state.showProductImages ? 20 : 12),
-          border: Border.all(color: Theme.of(context).dividerColor),
+          borderRadius: BorderRadius.circular(state.showProductImages ? 20 : 16),
+          border: Border.all(
+            color: Theme.of(context).dividerColor.withOpacity(0.5),
+            width: 1,
+          ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.02),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
+              color: Colors.black.withOpacity(0.03),
+              blurRadius: 15,
+              offset: const Offset(0, 5),
             ),
           ],
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (state.showProductImages)
-              Expanded(
-                child: Container(
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: Colors.transparent,
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(20),
-                  ),
-                  image: product.imagePath != null
-                      ? DecorationImage(
-                          image: FileImage(File(product.imagePath!)),
-                          fit: BoxFit.cover,
-                        )
-                      : null,
-                ),
-                child: product.imagePath == null
-                    ? Center(
-                        child: Container(
-                          padding: const EdgeInsets.all(20),
-                          decoration: BoxDecoration(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.primary.withOpacity(0.15),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(
-                            state.categories.any(
-                                  (c) =>
-                                      c.id == product.categoryId &&
-                                      c.name == 'Ichimliklar',
-                                )
-                                ? Icons.local_drink_rounded
-                                : Icons.restaurant_rounded,
-                            size: 40,
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.primary.withOpacity(0.5),
-                          ),
-                        ),
-                      )
-                    : null,
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    product.name,
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  SizedBox(height: 8),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(state.showProductImages ? 20 : 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (state.showProductImages)
+                Expanded(
+                  child: Stack(
                     children: [
-                      Text(
-                        '${NumberFormat.currency(locale: 'uz_UZ', symbol: '', decimalDigits: 0).format(product.price)} s',
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.primary,
-                          fontWeight: FontWeight.w800,
-                          fontSize: 13,
-                        ),
-                      ),
                       Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 6,
-                          vertical: 2,
-                        ),
+                        width: double.infinity,
                         decoration: BoxDecoration(
-                          color: isLowStock
-                              ? Colors.red.withOpacity(0.1)
-                              : Colors.green.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(6),
+                          color: Theme.of(context).colorScheme.primary.withOpacity(0.05),
+                          image: product.imagePath != null
+                              ? DecorationImage(
+                                  image: FileImage(File(product.imagePath!)),
+                                  fit: BoxFit.cover,
+                                )
+                              : null,
                         ),
-                        child: Text(
-                          '${stock % 1 == 0 ? stock.toInt() : stock.toStringAsFixed(1)} ${product.unit}',
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                            color: isLowStock ? Colors.redAccent : Colors.green,
-                          ),
-                        ),
+                        child: product.imagePath == null
+                            ? Center(
+                                child: Icon(
+                                  state.categories.any(
+                                            (c) =>
+                                                c.id == product.categoryId &&
+                                                c.name == 'Ichimliklar',
+                                          )
+                                      ? Icons.local_drink_rounded
+                                      : Icons.restaurant_rounded,
+                                  size: 48,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .primary
+                                      .withOpacity(0.2),
+                                ),
+                              )
+                            : null,
                       ),
+                      PositionBagde(isLowStock: isLowStock, stock: stock, unit: product.unit),
                     ],
                   ),
-                ],
+                ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      product.name,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                        letterSpacing: -0.2,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 6),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          '${NumberFormat.currency(locale: 'uz_UZ', symbol: '', decimalDigits: 0).format(product.price)} s',
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.primary,
+                            fontWeight: FontWeight.w900,
+                            fontSize: 15,
+                          ),
+                        ),
+                        if (!state.showProductImages)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: isLowStock
+                                  ? Colors.red.withOpacity(0.1)
+                                  : Colors.green.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              '${stock % 1 == 0 ? stock.toInt() : stock.toStringAsFixed(1)} ${product.unit}',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                                color: isLowStock ? Colors.redAccent : Colors.green,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPagination(int totalItems) {
+    final totalPages = (totalItems / _pageSize).ceil();
+    if (totalPages <= 1) return const SizedBox.shrink();
+
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+      decoration: BoxDecoration(
+        color: Theme.of(context).scaffoldBackgroundColor,
+        border: Border(top: BorderSide(color: Theme.of(context).dividerColor.withOpacity(0.2))),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          _buildPageBtn(
+            Icons.chevron_left_rounded,
+            _currentPage > 1 ? () => setState(() => _currentPage--) : null,
+          ),
+          const SizedBox(width: 12),
+          for (int i = 1; i <= totalPages; i++)
+            if (i == 1 || i == totalPages || (i >= _currentPage - 1 && i <= _currentPage + 1))
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: _buildPageNumberBtn(i, i == _currentPage),
+              )
+            else if (i == 2 && _currentPage > 3 || i == totalPages - 1 && _currentPage < totalPages - 2)
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 4),
+                child: Text('...', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
+              ),
+          const SizedBox(width: 12),
+          _buildPageBtn(
+            Icons.chevron_right_rounded,
+            _currentPage < totalPages ? () => setState(() => _currentPage++) : null,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPageBtn(IconData icon, VoidCallback? onTap) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          width: 44,
+          height: 44,
+          decoration: BoxDecoration(
+            border: Border.all(color: Theme.of(context).dividerColor),
+            borderRadius: BorderRadius.circular(12),
+            color: onTap == null ? Colors.grey.withOpacity(0.05) : Theme.of(context).cardColor,
+          ),
+          child: Icon(
+            icon,
+            color: onTap == null ? Colors.grey.shade400 : Theme.of(context).colorScheme.primary,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPageNumberBtn(int page, bool isSelected) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => setState(() => _currentPage = page),
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          width: 44,
+          height: 44,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: isSelected ? Theme.of(context).colorScheme.primary : Theme.of(context).cardColor,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: isSelected ? Theme.of(context).colorScheme.primary : Theme.of(context).dividerColor,
             ),
-          ],
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ]
+                : null,
+          ),
+          child: Text(
+            page.toString(),
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: isSelected ? Colors.white : Theme.of(context).textTheme.bodyLarge?.color,
+            ),
+          ),
         ),
       ),
     );
@@ -1238,4 +1405,47 @@ class _POSScreenState extends State<POSScreen> {
       ],
     ),
   );
+}
+
+class PositionBagde extends StatelessWidget {
+  final bool isLowStock;
+  final double stock;
+  final String unit;
+
+  const PositionBagde({
+    super.key,
+    required this.isLowStock,
+    required this.stock,
+    required this.unit,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+      top: 12,
+      right: 12,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: isLowStock ? Colors.red.withOpacity(0.9) : Colors.green.withOpacity(0.9),
+          borderRadius: BorderRadius.circular(10),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Text(
+          '${stock % 1 == 0 ? stock.toInt() : stock.toStringAsFixed(1)} $unit',
+          style: const TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+      ),
+    );
+  }
 }

@@ -25,8 +25,11 @@ class SettingsScreen extends StatelessWidget {
         children: [
           _buildHeader(context),
           Expanded(
-            child: ListView(
-              padding: const EdgeInsets.all(24),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 1400),
+                child: ListView(
+                  padding: const EdgeInsets.all(24),
               children: [
                 if (isAdmin)
                   _buildSection(
@@ -497,6 +500,8 @@ class SettingsScreen extends StatelessWidget {
                   ),
                 ],
               ],
+                ),
+              ),
             ),
           ),
         ],

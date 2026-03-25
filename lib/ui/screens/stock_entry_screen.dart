@@ -37,6 +37,7 @@ class _StockEntryScreenState extends State<StockEntryScreen> {
           'productId': item.productId,
           'productName': item.productName,
           'quantity': item.quantity,
+          'costPrice': item.costPrice,
         });
       }
     } else {
@@ -121,208 +122,239 @@ class _StockEntryScreenState extends State<StockEntryScreen> {
           const SizedBox(width: 16),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: Theme.of(context).cardColor,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Theme.of(context).dividerColor.withOpacity(0.5)),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.03),
-                    blurRadius: 20,
-                    offset: const Offset(0, 10),
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildInputCard(
-                          title: 'Ombor',
-                          child: DropdownButtonHideUnderline(
-                            child: DropdownButton<String>(
-                              value: entryWarehouseId,
-                              isExpanded: true,
-                              items: state.warehouses
-                                  .map((w) => DropdownMenuItem(value: w.id, child: Text(w.name)))
-                                  .toList(),
-                              onChanged: (val) => setState(() => entryWarehouseId = val),
-                            ),
-                          ),
-                        ),
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1400),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).cardColor,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: Theme.of(context).dividerColor.withOpacity(0.5)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.03),
+                        blurRadius: 20,
+                        offset: const Offset(0, 10),
                       ),
-                      const SizedBox(width: 24),
-                      Expanded(
-                        child: _buildInputCard(
-                          title: 'Sana',
-                          child: InkWell(
-                            onTap: _pickDate,
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              child: Row(
-                                children: [
-                                  const Icon(Icons.calendar_month_rounded, size: 20, color: Colors.grey),
-                                  const SizedBox(width: 12),
-                                  Text(
-                                    DateFormat('MMM d, yyyy HH:mm').format(selectedDate),
-                                    style: const TextStyle(fontWeight: FontWeight.w600),
-                                  ),
-                                ],
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildInputCard(
+                              title: 'Ombor',
+                              child: DropdownButtonHideUnderline(
+                                child: DropdownButton<String>(
+                                  value: entryWarehouseId,
+                                  isExpanded: true,
+                                  items: state.warehouses
+                                      .map((w) => DropdownMenuItem(value: w.id, child: Text(w.name)))
+                                      .toList(),
+                                  onChanged: (val) => setState(() => entryWarehouseId = val),
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-                  _buildInputCard(
-                    title: 'Tavsif (izoh)',
-                    child: TextField(
-                      controller: descriptionCtrl,
-                      decoration: const InputDecoration(
-                        hintText: 'Qo\'shimcha ma\'lumotlar...',
-                        border: InputBorder.none,
-                        icon: Icon(Icons.notes_rounded, size: 20),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 32),
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: Theme.of(context).cardColor,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: barcodeCtrl,
-                          focusNode: barcodeFocusNode,
-                          decoration: const InputDecoration(
-                            labelText: 'Shtrix kod orqali qo\'shish',
-                            hintText: 'Shtrix kodni o\'qing...',
-                            border: OutlineInputBorder(),
-                            prefixIcon: Icon(Icons.qr_code_scanner_rounded),
+                          const SizedBox(width: 24),
+                          Expanded(
+                            child: _buildInputCard(
+                              title: 'Sana',
+                              child: InkWell(
+                                onTap: _pickDate,
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 12),
+                                  child: Row(
+                                    children: [
+                                      const Icon(Icons.calendar_month_rounded, size: 20, color: Colors.grey),
+                                      const SizedBox(width: 12),
+                                      Text(
+                                        DateFormat('MMM d, yyyy HH:mm').format(selectedDate),
+                                        style: const TextStyle(fontWeight: FontWeight.w600),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
                           ),
-                          onSubmitted: (val) => _handleBarcode(val, state),
-                        ),
+                        ],
                       ),
-                      const SizedBox(width: 8),
-                      IconButton.filled(
-                        onPressed: () => _handleBarcode(barcodeCtrl.text, state),
-                        icon: const Icon(Icons.add),
+                      const SizedBox(height: 24),
+                      _buildInputCard(
+                        title: 'Tavsif (izoh)',
+                        child: TextField(
+                          controller: descriptionCtrl,
+                          decoration: const InputDecoration(
+                            hintText: 'Qo\'shimcha ma\'lumotlar...',
+                            border: InputBorder.none,
+                            icon: Icon(Icons.notes_rounded, size: 20),
+                          ),
+                        ),
                       ),
                     ],
                   ),
-                ],
-              ),
-            ),
-            const Divider(height: 48),
-            const SizedBox(height: 16),
-            const Text(
-              'Mahsulotlar',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-            ),
-            const SizedBox(height: 16),
-            ...items.asMap().entries.map((entry) {
-              final idx = entry.key;
-              final item = entry.value;
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: Row(
-                  children: [
-                    Expanded(
-                      flex: 3,
-                      child: DropdownButtonFormField<String>(
-                        value: item['productId'],
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                          contentPadding: EdgeInsets.symmetric(horizontal: 12),
-                        ),
-                        hint: const Text('Tanlang'),
-                        items: state.products
-                            .where((p) => !p.isDeleted || p.id == item['productId'])
-                            .map((p) => DropdownMenuItem(
-                                  value: p.id,
-                                  child: Text(p.isDeleted ? '${p.name} (O\'chirilgan)' : p.name),
-                                ))
-                            .toList(),
-                        onChanged: (val) {
-                          if (val == null) return;
-                          final p = state.products.firstWhere((p) => p.id == val);
-                          setState(() {
-                            items[idx]['productId'] = val;
-                            items[idx]['productName'] = p.name;
-                          });
-                        },
+                ),
+                const SizedBox(height: 32),
+                Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).cardColor,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextField(
+                              controller: barcodeCtrl,
+                              focusNode: barcodeFocusNode,
+                              decoration: const InputDecoration(
+                                labelText: 'Shtrix kod orqali qo\'shish',
+                                hintText: 'Shtrix kodni o\'qing...',
+                                border: OutlineInputBorder(),
+                                prefixIcon: Icon(Icons.qr_code_scanner_rounded),
+                              ),
+                              onSubmitted: (val) => _handleBarcode(val, state),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          IconButton.filled(
+                            onPressed: () => _handleBarcode(barcodeCtrl.text, state),
+                            icon: const Icon(Icons.add),
+                          ),
+                        ],
                       ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      flex: 1,
-                      child: TextFormField(
-                        initialValue: item['quantity'] == 0 ? '' : item['quantity'].toString(),
-                        decoration: const InputDecoration(
-                          hintText: 'Soni',
-                          border: OutlineInputBorder(),
-                          contentPadding: EdgeInsets.symmetric(horizontal: 12),
+                    ],
+                  ),
+                ),
+                const Divider(height: 48),
+                const SizedBox(height: 16),
+                const Text(
+                  'Mahsulotlar',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                ),
+                const SizedBox(height: 16),
+                ...items.asMap().entries.map((entry) {
+                  final idx = entry.key;
+                  final item = entry.value;
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          flex: 4,
+                          child: DropdownButtonFormField<String>(
+                            value: item['productId'],
+                            isExpanded: true,
+                            decoration: const InputDecoration(
+                              border: OutlineInputBorder(),
+                              contentPadding: EdgeInsets.symmetric(horizontal: 12),
+                            ),
+                            hint: const Text('Tanlang'),
+                            items: state.products
+                                .where((p) => !p.isDeleted || p.id == item['productId'])
+                                .map((p) => DropdownMenuItem(
+                                      value: p.id,
+                                      child: Text(
+                                        p.isDeleted ? '${p.name} (O\'ch.)' : p.name,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ))
+                                .toList(),
+                            onChanged: (val) {
+                              if (val == null) return;
+                              final p = state.products.firstWhere((p) => p.id == val);
+                              setState(() {
+                                items[idx]['productId'] = val;
+                                items[idx]['productName'] = p.name;
+                                items[idx]['costPrice'] = p.costPrice;
+                              });
+                            },
+                          ),
                         ),
-                        keyboardType: TextInputType.number,
-                        onChanged: (val) => items[idx]['quantity'] = double.tryParse(val) ?? 0,
-                      ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          flex: 2,
+                          child: TextFormField(
+                            initialValue: item['costPrice'] == 0 ? '' : item['costPrice'].toString(),
+                            decoration: const InputDecoration(
+                              hintText: 'Tannarx',
+                              border: OutlineInputBorder(),
+                              contentPadding: EdgeInsets.symmetric(horizontal: 12),
+                              suffixText: 's',
+                            ),
+                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                            onChanged: (val) => items[idx]['costPrice'] = double.tryParse(val) ?? 0,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          flex: 2,
+                          child: TextFormField(
+                            initialValue: item['quantity'] == 0 ? '' : item['quantity'].toString(),
+                            decoration: const InputDecoration(
+                              hintText: 'Soni',
+                              border: OutlineInputBorder(),
+                              contentPadding: EdgeInsets.symmetric(horizontal: 12),
+                            ),
+                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                            onChanged: (val) => items[idx]['quantity'] = double.tryParse(val) ?? 0,
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.remove_circle, color: Colors.red),
+                          onPressed: () => setState(() => items.removeAt(idx)),
+                        ),
+                      ],
                     ),
-                    IconButton(
-                      icon: const Icon(Icons.remove_circle, color: Colors.red),
-                      onPressed: () => setState(() => items.removeAt(idx)),
+                  );
+                }).toList(),
+                const SizedBox(height: 16),
+                ElevatedButton.icon(
+                  onPressed: () => setState(() => items.add({
+                        'productId': null,
+                        'productName': '',
+                        'quantity': 0.0,
+                        'costPrice': 0.0,
+                      })),
+                  icon: const Icon(Icons.add),
+                  label: const Text('Mahsulot qo\'shish'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                    foregroundColor: Theme.of(context).colorScheme.primary,
+                    elevation: 0,
+                  ),
+                ),
+                const SizedBox(height: 32),
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton(
+                    onPressed: _save,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Theme.of(context).colorScheme.primary,
+                      foregroundColor: Colors.white,
                     ),
-                  ],
+                    child: const Text(
+                      'SAQLASH',
+                      style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1),
+                    ),
+                  ),
                 ),
-              );
-            }).toList(),
-            const SizedBox(height: 16),
-            ElevatedButton.icon(
-              onPressed: () => setState(() => items.add({'productId': null, 'productName': '', 'quantity': 0.0})),
-              icon: const Icon(Icons.add),
-              label: const Text('Mahsulot qo\'shish'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-                foregroundColor: Theme.of(context).colorScheme.primary,
-                elevation: 0,
-              ),
+              ],
             ),
-            const SizedBox(height: 32),
-            SizedBox(
-              width: double.infinity,
-              height: 50,
-              child: ElevatedButton(
-                onPressed: _save,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.primary,
-                  foregroundColor: Colors.white,
-                ),
-                child: const Text(
-                  'SAQLASH',
-                  style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1),
-                ),
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -345,6 +377,7 @@ class _StockEntryScreenState extends State<StockEntryScreen> {
             'productId': product.id,
             'productName': product.name,
             'quantity': 1.0,
+            'costPrice': product.costPrice,
           });
         }
         barcodeCtrl.clear();
@@ -372,6 +405,7 @@ class _StockEntryScreenState extends State<StockEntryScreen> {
               'productId': pItem.productId,
               'productName': pItem.productName,
               'quantity': pItem.quantity,
+              'costPrice': pItem.costPrice,
             });
           }
         }
@@ -396,6 +430,7 @@ class _StockEntryScreenState extends State<StockEntryScreen> {
             productId: i['productId'],
             productName: i['productName'],
             quantity: i['quantity'],
+            costPrice: (i['costPrice'] as num).toDouble(),
           ),
         )
         .toList();

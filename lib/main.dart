@@ -478,7 +478,12 @@ class _MainLayoutState extends State<MainLayout> {
                       ],
                     ),
                   ),
-                  _buildStatusFooter(state),
+                  Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 1400),
+                      child: _buildStatusFooter(state),
+                    ),
+                  ),
                   if (isSmall) _buildBottomNav(),
                 ],
               );
@@ -493,13 +498,19 @@ class _MainLayoutState extends State<MainLayout> {
     if (state.isMaster == null) return const SizedBox.shrink();
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
+    final Color statusColor = state.isMaster == true
+        ? (isDark ? const Color(0xFF60A5FA) : const Color(0xFF2563EB)) // Modern Blue
+        : (state.isConnected
+            ? (isDark ? const Color(0xFF4ADE80) : const Color(0xFF16A34A)) // Modern Green
+            : (isDark ? const Color(0xFFF87171) : const Color(0xFFDC2626))); // Modern Red
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
+        color: isDark ? const Color(0xFF1F1F1F) : Colors.white,
         border: Border(
           top: BorderSide(
-            color: Theme.of(context).dividerColor.withOpacity(0.1),
+            color: Theme.of(context).dividerColor.withOpacity(isDark ? 0.08 : 0.1),
             width: 1,
           ),
         ),
@@ -507,83 +518,72 @@ class _MainLayoutState extends State<MainLayout> {
       child: Row(
         children: [
           Container(
-            width: 10,
-            height: 10,
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
-              color: state.isMaster == true
-                  ? Colors.blue
-                  : (state.isConnected ? Colors.green : Colors.red),
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: (state.isMaster == true
-                          ? Colors.blue
-                          : (state.isConnected ? Colors.green : Colors.red))
-                      .withOpacity(0.3),
-                  blurRadius: 4,
-                  spreadRadius: 1,
+              color: statusColor.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: statusColor.withOpacity(0.2)),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    color: statusColor,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: statusColor.withOpacity(0.4),
+                        blurRadius: 4,
+                        spreadRadius: 1,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  state.isMaster == true
+                      ? 'Asosiy terminal (Master)'
+                      : (state.isConnected
+                          ? 'Asosiy terminalga ulangan'
+                          : 'Aloqa yo\'q'),
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    color: statusColor,
+                    letterSpacing: 0.2,
+                  ),
                 ),
               ],
             ),
           ),
-          const SizedBox(width: 10),
-          Text(
-            state.isMaster == true
-                ? 'Asosiy terminal (Master)'
-                : (state.isConnected
-                    ? 'Asosiy terminalga ulangan'
-                    : 'Asosiy terminal bilan aloqa yo\'q'),
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: state.isMaster == true
-                  ? Colors.blue
-                  : (state.isConnected ? Colors.green : Colors.red),
+          const SizedBox(width: 24),
+          _buildFooterInfoItem(
+            icon: Icons.person_rounded,
+            label: '${state.currentUser?.name ?? 'Noma\'lum'}',
+            isDark: isDark,
+          ),
+          if (state.currentUser?.role != null) ...[
+            const SizedBox(width: 16),
+            _buildFooterBadge(
+              state.currentUser!.role == UserRole.admin ? 'Admin' : 'Sotuvchi',
+              isDark: isDark,
             ),
-          ),
-          const SizedBox(width: 16),
-          const VerticalDivider(width: 1, thickness: 1, indent: 4, endIndent: 4),
-          const SizedBox(width: 16),
-          Icon(
-            Icons.person_outline_rounded,
-            size: 16,
-            color: Colors.grey.shade600,
-          ),
-          const SizedBox(width: 6),
-          Text(
-            'Hodim: ${state.currentUser?.name ?? 'Noma\'lum'}',
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: Colors.grey.shade700,
-            ),
-          ),
+          ],
           const Spacer(),
           if (state.isMaster == false && state.masterAddress != null) ...[
-            Text(
-              'IP: ${state.masterAddress}',
-              style: TextStyle(
-                fontSize: 11,
-                color: Colors.grey.shade500,
-                fontFamily: 'monospace',
-              ),
+            _buildFooterInfoItem(
+              icon: Icons.lan_rounded,
+              label: state.masterAddress!,
+              isDark: isDark,
+              isMono: true,
             ),
             const SizedBox(width: 16),
-          ],
-          IconButton(
-            icon: Icon(
-              Icons.logout_rounded,
-              size: 18,
-              color: Colors.grey.shade500,
-            ),
-            onPressed: () => state.logout(),
-            tooltip: 'Chiqish',
-            constraints: const BoxConstraints(),
-            padding: EdgeInsets.zero,
-          ),
-          if (state.isMaster == false && state.masterAddress != null) ...[
-            const SizedBox(width: 16),
-            InkWell(
+            _buildFooterActionButton(
+              icon: Icons.sync_rounded,
+              label: 'Yangilash',
               onTap: () async {
                 try {
                   await state.syncWithMaster();
@@ -596,32 +596,112 @@ class _MainLayoutState extends State<MainLayout> {
                   );
                 }
               },
-              borderRadius: BorderRadius.circular(8),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.sync_rounded,
-                      size: 16,
-                      color: state.isConnected ? Colors.green : Colors.grey,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      'Yangilash',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: state.isConnected ? Colors.green : Colors.grey,
-                      ),
-                    ),
-                  ],
-                ),
+              isActive: state.isConnected,
+              isDark: isDark,
+            ),
+            const SizedBox(width: 12),
+          ],
+          _buildFooterActionButton(
+            icon: Icons.logout_rounded,
+            label: 'Chiqish',
+            onTap: () => state.logout(),
+            isActive: true,
+            isDark: isDark,
+            isDanger: true,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFooterInfoItem({
+    required IconData icon,
+    required String label,
+    required bool isDark,
+    bool isMono = false,
+  }) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          icon,
+          size: 16,
+          color: isDark ? Colors.grey.shade500 : Colors.grey.shade600,
+        ),
+        const SizedBox(width: 6),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w700,
+            color: isDark ? Colors.grey.shade400 : Colors.grey.shade700,
+            fontFamily: isMono ? 'monospace' : null,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFooterBadge(String label, {required bool isDark}) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: isDark ? Colors.white.withOpacity(0.05) : Colors.grey.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.bold,
+          color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFooterActionButton({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+    required bool isActive,
+    required bool isDark,
+    bool isDanger = false,
+  }) {
+    final Color color = isDanger 
+        ? (isDark ? const Color(0xFFF87171) : const Color(0xFFB91C1C))
+        : (isDark ? Colors.grey.shade400 : Colors.grey.shade700);
+
+    return InkWell(
+      onTap: isActive ? onTap : null,
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: isActive 
+              ? (isDanger ? color.withOpacity(0.1) : (isDark ? Colors.white10 : Colors.grey.shade100))
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              size: 16,
+              color: isActive ? color : color.withOpacity(0.3),
+            ),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w900,
+                color: isActive ? color : color.withOpacity(0.3),
               ),
             ),
           ],
-        ],
+        ),
       ),
     );
   }

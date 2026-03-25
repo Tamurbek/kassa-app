@@ -90,174 +90,179 @@ class _WriteOffScreenState extends State<WriteOffScreen> {
           SizedBox(width: 8),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(24),
-        child: Container(
-          decoration: BoxDecoration(
-            color: Theme.of(context).cardColor,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Theme.of(context).dividerColor),
-          ),
-          padding: EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1400),
+          child: SingleChildScrollView(
+            padding: EdgeInsets.all(24),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Theme.of(context).cardColor,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Theme.of(context).dividerColor),
+              ),
+              padding: EdgeInsets.all(24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: DropdownButtonFormField<String>(
-                      value: woWarehouseId,
-                      decoration: const InputDecoration(
-                        labelText: 'Ombor',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.store),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: DropdownButtonFormField<String>(
+                          value: woWarehouseId,
+                          decoration: const InputDecoration(
+                            labelText: 'Ombor',
+                            border: OutlineInputBorder(),
+                            prefixIcon: Icon(Icons.store),
+                          ),
+                          items: state.warehouses
+                              .map(
+                                (w) => DropdownMenuItem(
+                                  value: w.id,
+                                  child: Text(w.name),
+                                ),
+                              )
+                              .toList(),
+                          onChanged: (val) => setState(() => woWarehouseId = val),
+                        ),
                       ),
-                      items: state.warehouses
-                          .map(
-                            (w) => DropdownMenuItem(
-                              value: w.id,
-                              child: Text(w.name),
+                      SizedBox(width: 16),
+                      Expanded(
+                        child: InkWell(
+                          onTap: _pickDate,
+                          child: InputDecorator(
+                            decoration: InputDecoration(
+                              labelText: 'Sana va vaqt',
+                              border: OutlineInputBorder(),
+                              prefixIcon: Icon(Icons.calendar_today),
                             ),
-                          )
-                          .toList(),
-                      onChanged: (val) => setState(() => woWarehouseId = val),
+                            child: Text(selectedDate.toString().substring(0, 16)),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 16),
+                  TextField(
+                    controller: descCtrl,
+                    decoration: const InputDecoration(
+                      labelText: 'Sababi/Tavsif',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.comment),
                     ),
                   ),
-                  SizedBox(width: 16),
-                  Expanded(
-                    child: InkWell(
-                      onTap: _pickDate,
-                      child: InputDecorator(
-                        decoration: InputDecoration(
-                          labelText: 'Sana va vaqt',
-                          border: OutlineInputBorder(),
-                          prefixIcon: Icon(Icons.calendar_today),
+                  SizedBox(height: 24),
+                  const Divider(),
+                  SizedBox(height: 16),
+                  Text(
+                    'Mahsulotlar',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                  ),
+                  SizedBox(height: 16),
+                  ...items.asMap().entries.map((entry) {
+                    final idx = entry.key;
+                    final item = entry.value;
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            flex: 3,
+                            child: DropdownButtonFormField<String>(
+                              value: item['productId'],
+                              decoration: InputDecoration(
+                                border: OutlineInputBorder(),
+                                contentPadding: EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                ),
+                              ),
+                              hint: Text('Tanlang'),
+                              items: state.activeProducts
+                                  .map(
+                                    (p) => DropdownMenuItem(
+                                      value: p.id,
+                                      child: Text(p.name),
+                                    ),
+                                  )
+                                  .toList(),
+                              onChanged: (val) {
+                                if (val == null) return;
+                                final p = state.activeProducts.firstWhere(
+                                  (p) => p.id == val,
+                                );
+                                setState(() {
+                                  items[idx]['productId'] = val;
+                                  items[idx]['productName'] = p.name;
+                                });
+                              },
+                            ),
+                          ),
+                          SizedBox(width: 8),
+                          Expanded(
+                            flex: 1,
+                            child: TextFormField(
+                              initialValue: item['quantity'] == 0
+                                  ? ''
+                                  : item['quantity'].toString(),
+                              decoration: const InputDecoration(
+                                hintText: 'Soni',
+                                border: OutlineInputBorder(),
+                                contentPadding: EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                ),
+                              ),
+                              keyboardType: TextInputType.number,
+                              onChanged: (val) => items[idx]['quantity'] =
+                                  double.tryParse(val) ?? 0,
+                            ),
+                          ),
+                          IconButton(
+                            icon: Icon(Icons.remove_circle, color: Colors.red),
+                            onPressed: () => setState(() => items.removeAt(idx)),
+                          ),
+                        ],
+                      ),
+                    );
+                  }),
+                  SizedBox(height: 16),
+                  ElevatedButton.icon(
+                    onPressed: () => setState(
+                      () => items.add({
+                        'productId': null,
+                        'productName': '',
+                        'quantity': 0.0,
+                      }),
+                    ),
+                    icon: Icon(Icons.add),
+                    label: Text('Mahsulot qo\'shish'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.redAccent.withOpacity(0.1),
+                      foregroundColor: Colors.redAccent,
+                      elevation: 0,
+                    ),
+                  ),
+                  SizedBox(height: 32),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton(
+                      onPressed: _save,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.redAccent,
+                        foregroundColor: Colors.white,
+                      ),
+                      child: Text(
+                        'Saqlash',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 1,
                         ),
-                        child: Text(selectedDate.toString().substring(0, 16)),
                       ),
                     ),
                   ),
                 ],
               ),
-              SizedBox(height: 16),
-              TextField(
-                controller: descCtrl,
-                decoration: const InputDecoration(
-                  labelText: 'Sababi/Tavsif',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.comment),
-                ),
-              ),
-              SizedBox(height: 24),
-              const Divider(),
-              SizedBox(height: 16),
-              Text(
-                'Mahsulotlar',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-              ),
-              SizedBox(height: 16),
-              ...items.asMap().entries.map((entry) {
-                final idx = entry.key;
-                final item = entry.value;
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        flex: 3,
-                        child: DropdownButtonFormField<String>(
-                          value: item['productId'],
-                          decoration: InputDecoration(
-                            border: OutlineInputBorder(),
-                            contentPadding: EdgeInsets.symmetric(
-                              horizontal: 12,
-                            ),
-                          ),
-                          hint: Text('Tanlang'),
-                          items: state.activeProducts
-                              .map(
-                                (p) => DropdownMenuItem(
-                                  value: p.id,
-                                  child: Text(p.name),
-                                ),
-                              )
-                              .toList(),
-                          onChanged: (val) {
-                            if (val == null) return;
-                            final p = state.activeProducts.firstWhere(
-                              (p) => p.id == val,
-                            );
-                            setState(() {
-                              items[idx]['productId'] = val;
-                              items[idx]['productName'] = p.name;
-                            });
-                          },
-                        ),
-                      ),
-                      SizedBox(width: 8),
-                      Expanded(
-                        flex: 1,
-                        child: TextFormField(
-                          initialValue: item['quantity'] == 0
-                              ? ''
-                              : item['quantity'].toString(),
-                          decoration: const InputDecoration(
-                            hintText: 'Soni',
-                            border: OutlineInputBorder(),
-                            contentPadding: EdgeInsets.symmetric(
-                              horizontal: 12,
-                            ),
-                          ),
-                          keyboardType: TextInputType.number,
-                          onChanged: (val) => items[idx]['quantity'] =
-                              double.tryParse(val) ?? 0,
-                        ),
-                      ),
-                      IconButton(
-                        icon: Icon(Icons.remove_circle, color: Colors.red),
-                        onPressed: () => setState(() => items.removeAt(idx)),
-                      ),
-                    ],
-                  ),
-                );
-              }),
-              SizedBox(height: 16),
-              ElevatedButton.icon(
-                onPressed: () => setState(
-                  () => items.add({
-                    'productId': null,
-                    'productName': '',
-                    'quantity': 0.0,
-                  }),
-                ),
-                icon: Icon(Icons.add),
-                label: Text('Mahsulot qo\'shish'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.redAccent.withOpacity(0.1),
-                  foregroundColor: Colors.redAccent,
-                  elevation: 0,
-                ),
-              ),
-              SizedBox(height: 32),
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: _save,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.redAccent,
-                    foregroundColor: Colors.white,
-                  ),
-                  child: Text(
-                    'Saqlash',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 1,
-                    ),
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),

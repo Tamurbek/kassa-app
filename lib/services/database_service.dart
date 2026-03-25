@@ -65,7 +65,7 @@ class DatabaseService {
 
     return await openDatabase(
       newPath,
-      version: 14,
+      version: 15,
       onCreate: (db, version) async {
         await db.execute('''
           CREATE TABLE categories (
@@ -201,7 +201,8 @@ class DatabaseService {
             entryId TEXT NOT NULL,
             productId TEXT NOT NULL,
             quantity REAL NOT NULL,
-            productName TEXT NOT NULL
+            productName TEXT NOT NULL,
+            costPrice REAL NOT NULL DEFAULT 0
           )
         ''');
         await db.execute('''
@@ -401,6 +402,12 @@ class DatabaseService {
               PRIMARY KEY (productId, warehouseId)
             )
           ''');
+        if (oldVersion < 15) {
+          try {
+            await db.execute('ALTER TABLE stock_entry_items ADD COLUMN costPrice REAL NOT NULL DEFAULT 0');
+          } catch (e) {
+            print("Migration 15 error: $e");
+          }
         }
       },
     );
@@ -745,7 +752,14 @@ class DatabaseService {
           'productId': item.productId,
           'productName': item.productName,
           'quantity': item.quantity,
+          'costPrice': item.costPrice,
         });
+
+        // Update product's general costPrice to the latest entry price
+        if (item.costPrice > 0) {
+          await txn.update('products', {'costPrice': item.costPrice}, 
+            where: 'id = ?', whereArgs: [item.productId]);
+        }
 
         // Atomic STOCK update
         final currentRes = await txn.query('stocks', 
@@ -784,6 +798,7 @@ class DatabaseService {
               'productId': i['productId'],
               'productName': i['productName'],
               'quantity': i['quantity'],
+              'costPrice': i['costPrice'],
             }),
           )
           .toList();

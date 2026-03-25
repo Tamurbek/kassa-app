@@ -165,116 +165,121 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
         foregroundColor: Theme.of(context).colorScheme.onSurface,
         centerTitle: true,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildImagePicker(),
-              SizedBox(height: 32),
-              _buildTextField(
-                'Mahsulot nomi',
-                _nameController,
-                Icons.inventory_2_outlined,
-              ),
-              SizedBox(height: 20),
-              _buildCategoryDropdown(state),
-              SizedBox(height: 20),
-              Row(
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1400),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: _buildTextField(
-                      'Tannarxi (so\'m)',
-                      _costPriceController,
-                      Icons.shopping_bag_outlined,
-                      isNumber: true,
-                    ),
+                  _buildImagePicker(),
+                  SizedBox(height: 32),
+                  _buildTextField(
+                    'Mahsulot nomi',
+                    _nameController,
+                    Icons.inventory_2_outlined,
                   ),
-                  SizedBox(width: 16),
-                  Expanded(
-                    child: _buildTextField(
-                      'Narxi (so\'m)',
-                      _priceController,
-                      Icons.payments_outlined,
-                      isNumber: true,
-                    ),
+                  SizedBox(height: 20),
+                  _buildCategoryDropdown(state),
+                  SizedBox(height: 20),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildTextField(
+                          'Tannarxi (so\'m)',
+                          _costPriceController,
+                          Icons.shopping_bag_outlined,
+                          isNumber: true,
+                        ),
+                      ),
+                      SizedBox(width: 16),
+                      Expanded(
+                        child: _buildTextField(
+                          'Narxi (so\'m)',
+                          _priceController,
+                          Icons.payments_outlined,
+                          isNumber: true,
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-              SizedBox(height: 20),
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildTextField(
-                      'Shtrix-kod',
-                      _barcodeController,
-                      Icons.qr_code_scanner_outlined,
-                      suffix: IconButton(
-                        icon: Icon(Icons.auto_awesome, color: Theme.of(context).colorScheme.primary),
-                        tooltip: 'Generatsiya qilish',
-                        onPressed: () {
-                          setState(() {
-                            _barcodeController.text = state.generateBarcode();
-                          });
-                        },
+                  SizedBox(height: 20),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildTextField(
+                          'Shtrix-kod',
+                          _barcodeController,
+                          Icons.qr_code_scanner_outlined,
+                          suffix: IconButton(
+                            icon: Icon(Icons.auto_awesome, color: Theme.of(context).colorScheme.primary),
+                            tooltip: 'Generatsiya qilish',
+                            onPressed: () {
+                              setState(() {
+                                _barcodeController.text = state.generateBarcode();
+                              });
+                            },
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 20),
+                  _buildAdditionalBarcodes(),
+                  SizedBox(height: 20),
+                  _buildTrackStockToggle(),
+                  if (widget.product != null) ...[
+                    SizedBox(height: 20),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 55,
+                      child: OutlinedButton.icon(
+                        onPressed: () => PrintService.printBarcodeLabel(
+                          product: widget.product!,
+                          printerName: state.barcodePrinterName,
+                          ipAddress: state.networkBarcodePrinterIp,
+                        ),
+                        icon: Icon(Icons.print_outlined),
+                        label: Text('SHTRIX-KODNI CHOP ETISH'),
+                        style: OutlinedButton.styleFrom(
+                          side: BorderSide(color: Colors.teal),
+                          foregroundColor: Colors.teal,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                  SizedBox(height: 48),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 55,
+                    child: ElevatedButton(
+                      onPressed: _save,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Theme.of(context).colorScheme.primary,
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                      child: Text(
+                        'SAQLASH',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 1,
+                        ),
                       ),
                     ),
                   ),
                 ],
               ),
-              SizedBox(height: 20),
-              _buildAdditionalBarcodes(),
-              SizedBox(height: 20),
-              _buildTrackStockToggle(),
-              if (widget.product != null) ...[
-                SizedBox(height: 20),
-                SizedBox(
-                  width: double.infinity,
-                  height: 55,
-                  child: OutlinedButton.icon(
-                    onPressed: () => PrintService.printBarcodeLabel(
-                      product: widget.product!,
-                      printerName: state.barcodePrinterName,
-                      ipAddress: state.networkBarcodePrinterIp,
-                    ),
-                    icon: Icon(Icons.print_outlined),
-                    label: Text('SHTRIX-KODNI CHOP ETISH'),
-                    style: OutlinedButton.styleFrom(
-                      side: BorderSide(color: Colors.teal),
-                      foregroundColor: Colors.teal,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-              SizedBox(height: 48),
-              SizedBox(
-                width: double.infinity,
-                height: 55,
-                child: ElevatedButton(
-                  onPressed: _save,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).colorScheme.primary,
-                    foregroundColor: Colors.white,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                  ),
-                  child: Text(
-                    'SAQLASH',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 1,
-                    ),
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),

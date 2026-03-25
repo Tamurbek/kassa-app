@@ -36,70 +36,75 @@ class TerminalManagementScreen extends StatelessWidget {
         centerTitle: true,
       ),
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: ListView.builder(
-        padding: const EdgeInsets.all(24),
-        itemCount: state.registers.length,
-        itemBuilder: (context, index) {
-          final reg = state.registers[index];
-          final warehouse = state.warehouses.firstWhere(
-            (w) => w.id == reg.warehouseId,
-            orElse: () => Warehouse(id: '', name: 'Noma\'lum'),
-          );
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1400),
+          child: ListView.builder(
+            padding: const EdgeInsets.all(24),
+            itemCount: state.registers.length,
+            itemBuilder: (context, index) {
+              final reg = state.registers[index];
+              final warehouse = state.warehouses.firstWhere(
+                (w) => w.id == reg.warehouseId,
+                orElse: () => Warehouse(id: '', name: 'Noma\'lum'),
+              );
 
-          return Container(
-            margin: const EdgeInsets.only(bottom: 16),
-            decoration: BoxDecoration(
-              color: Theme.of(context).cardColor,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(
-                    Theme.of(context).brightness == Brightness.dark
-                        ? 0.3
-                        : 0.02,
-                  ),
-                  blurRadius: 10,
-                ),
-              ],
-            ),
-            child: ListTile(
-              contentPadding: const EdgeInsets.all(16),
-              leading: Container(
-                padding: const EdgeInsets.all(12),
+              return Container(
+                margin: const EdgeInsets.only(bottom: 16),
                 decoration: BoxDecoration(
-                  color: Colors.blue.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(Icons.storefront_rounded, color: Colors.blue),
-              ),
-              title: Text(
-                reg.name,
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-              ),
-              subtitle: Text(
-                'ID: ${reg.id.substring(0, reg.id.length < 8 ? reg.id.length : 8)}${reg.id.length > 8 ? "..." : ""} \nOmbor: ${warehouse.name}',
-              ),
-              isThreeLine: true,
-              trailing: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  IconButton(
-                    icon: Icon(Icons.edit_outlined, color: Colors.blue),
-                    onPressed: () =>
-                        _showRegisterDialog(context, state, register: reg),
-                  ),
-                  IconButton(
-                    icon: Icon(
-                      Icons.delete_outline_rounded,
-                      color: Colors.redAccent,
+                  color: Theme.of(context).cardColor,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(
+                        Theme.of(context).brightness == Brightness.dark
+                            ? 0.3
+                            : 0.02,
+                      ),
+                      blurRadius: 10,
                     ),
-                    onPressed: () => _confirmDelete(context, state, reg),
+                  ],
+                ),
+                child: ListTile(
+                  contentPadding: const EdgeInsets.all(16),
+                  leading: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(Icons.storefront_rounded, color: Colors.blue),
                   ),
-                ],
-              ),
-            ),
-          );
-        },
+                  title: Text(
+                    reg.name,
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                  ),
+                  subtitle: Text(
+                    'ID: ${reg.id.substring(0, reg.id.length < 8 ? reg.id.length : 8)}${reg.id.length > 8 ? "..." : ""} \nOmbor: ${warehouse.name}',
+                  ),
+                  isThreeLine: true,
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: Icon(Icons.edit_outlined, color: Colors.blue),
+                        onPressed: () =>
+                            _showRegisterDialog(context, state, register: reg),
+                      ),
+                      IconButton(
+                        icon: Icon(
+                          Icons.delete_outline_rounded,
+                          color: Colors.redAccent,
+                        ),
+                        onPressed: () => _confirmDelete(context, state, reg),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showRegisterDialog(context, state),

@@ -315,23 +315,27 @@ class StockEntryItem {
   final String productId;
   final String productName;
   final double quantity;
+  final double costPrice; // NEW: tannarx at entry
 
   StockEntryItem({
     required this.productId,
     required this.productName,
     required this.quantity,
+    this.costPrice = 0.0,
   });
 
   Map<String, dynamic> toJson() => {
     'productId': productId,
     'productName': productName,
     'quantity': quantity,
+    'costPrice': costPrice,
   };
 
   factory StockEntryItem.fromJson(Map<String, dynamic> json) => StockEntryItem(
     productId: json['productId']?.toString() ?? '',
     productName: json['productName']?.toString() ?? 'Noma\'lum',
     quantity: double.tryParse(json['quantity']?.toString() ?? '1') ?? 1.0,
+    costPrice: double.tryParse(json['costPrice']?.toString() ?? '0') ?? 0.0,
   );
 }
 

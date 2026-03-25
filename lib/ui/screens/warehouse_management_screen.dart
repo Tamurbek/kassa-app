@@ -36,97 +36,102 @@ class WarehouseManagementScreen extends StatelessWidget {
         centerTitle: true,
       ),
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: ListView.builder(
-        padding: const EdgeInsets.all(24),
-        itemCount: state.warehouses.length,
-        itemBuilder: (context, index) {
-          final warehouse = state.warehouses[index];
-          return Container(
-            margin: const EdgeInsets.only(bottom: 16),
-            decoration: BoxDecoration(
-              color: Theme.of(context).cardColor,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(
-                    Theme.of(context).brightness == Brightness.dark
-                        ? 0.3
-                        : 0.02,
-                  ),
-                  blurRadius: 10,
-                ),
-              ],
-            ),
-            child: ListTile(
-              contentPadding: const EdgeInsets.all(16),
-              leading: Container(
-                padding: const EdgeInsets.all(12),
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1400),
+          child: ListView.builder(
+            padding: const EdgeInsets.all(24),
+            itemCount: state.warehouses.length,
+            itemBuilder: (context, index) {
+              final warehouse = state.warehouses[index];
+              return Container(
+                margin: const EdgeInsets.only(bottom: 16),
                 decoration: BoxDecoration(
-                  color: Colors.orange.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(Icons.warehouse_rounded, color: Colors.orange),
-              ),
-              title: Row(
-                children: [
-                  Text(
-                    warehouse.name,
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                  ),
-                  if (warehouse.isMain) ...[
-                    SizedBox(width: 8),
-                    Container(
-                      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: Colors.green.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(color: Colors.green.withOpacity(0.3)),
+                  color: Theme.of(context).cardColor,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(
+                        Theme.of(context).brightness == Brightness.dark
+                            ? 0.3
+                            : 0.02,
                       ),
-                      child: Text(
-                        'Asosiy',
-                        style: TextStyle(color: Colors.green, fontSize: 10, fontWeight: FontWeight.bold),
-                      ),
+                      blurRadius: 10,
                     ),
                   ],
-                ],
-              ),
-              subtitle: Text(
-                'ID: ${warehouse.id.substring(0, warehouse.id.length < 8 ? warehouse.id.length : 8)}${warehouse.id.length > 8 ? "..." : ""}',
-              ),
-              trailing: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (!warehouse.isMain)
-                    IconButton(
-                      icon: Icon(Icons.star_outline_rounded, color: Colors.orange),
-                      tooltip: 'Asosiy ombor qilib belgilash',
-                      onPressed: () => state.setWarehouseAsMain(warehouse.id),
-                    )
-                  else
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      child: Icon(Icons.star_rounded, color: Colors.orange),
+                ),
+                child: ListTile(
+                  contentPadding: const EdgeInsets.all(16),
+                  leading: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                  IconButton(
-                    icon: Icon(Icons.edit_outlined, color: Colors.blue),
-                    onPressed: () => _showWarehouseDialog(
-                      context,
-                      state,
-                      warehouse: warehouse,
-                    ),
+                    child: Icon(Icons.warehouse_rounded, color: Colors.orange),
                   ),
-                  IconButton(
-                    icon: Icon(
-                      Icons.delete_outline_rounded,
-                      color: Colors.redAccent,
-                    ),
-                    onPressed: () => _confirmDelete(context, state, warehouse),
+                  title: Row(
+                    children: [
+                      Text(
+                        warehouse.name,
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                      ),
+                      if (warehouse.isMain) ...[
+                        SizedBox(width: 8),
+                        Container(
+                          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: Colors.green.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: Colors.green.withOpacity(0.3)),
+                          ),
+                          child: Text(
+                            'Asosiy',
+                            style: TextStyle(color: Colors.green, fontSize: 10, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
-                ],
-              ),
-            ),
-          );
-        },
+                  subtitle: Text(
+                    'ID: ${warehouse.id.substring(0, warehouse.id.length < 8 ? warehouse.id.length : 8)}${warehouse.id.length > 8 ? "..." : ""}',
+                  ),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (!warehouse.isMain)
+                        IconButton(
+                          icon: Icon(Icons.star_outline_rounded, color: Colors.orange),
+                          tooltip: 'Asosiy ombor qilib belgilash',
+                          onPressed: () => state.setWarehouseAsMain(warehouse.id),
+                        )
+                      else
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          child: Icon(Icons.star_rounded, color: Colors.orange),
+                        ),
+                      IconButton(
+                        icon: Icon(Icons.edit_outlined, color: Colors.blue),
+                        onPressed: () => _showWarehouseDialog(
+                          context,
+                          state,
+                          warehouse: warehouse,
+                        ),
+                      ),
+                      IconButton(
+                        icon: Icon(
+                          Icons.delete_outline_rounded,
+                          color: Colors.redAccent,
+                        ),
+                        onPressed: () => _confirmDelete(context, state, warehouse),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showWarehouseDialog(context, state),

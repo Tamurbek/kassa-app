@@ -53,199 +53,325 @@ class _BarcodePrintScreenState extends State<BarcodePrintScreen> {
   Widget build(BuildContext context) {
     final state = context.watch<AppState>();
     final query = _searchController.text.toLowerCase();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     
     final filteredProducts = state.activeProducts.where((p) {
       return p.name.toLowerCase().contains(query) || p.barcode.contains(query);
     }).toList();
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text('Shtrix-kodlarni chop etish', style: TextStyle(fontWeight: FontWeight.w900)),
-        elevation: 0,
-        centerTitle: false,
+        title: const Text('Shtrix-kodlarni chop etish'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
-      body: Row(
-        children: [
-          // Selection Side (Left)
-          Expanded(
-            flex: 1,
-            child: Container(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                children: [
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1400),
+          child: Row(
+            children: [
+              // Selection Side (Left)
+              Expanded(
+                flex: 1,
+                child: Container(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    children: [
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).cardColor,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                              color: Theme.of(context).dividerColor.withOpacity(0.5)),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(isDark ? 0.3 : 0.05),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                    child: TextField(
-                      controller: _searchController,
-                      onChanged: (_) => setState(() {}),
-                      decoration: const InputDecoration(
-                        hintText: 'Mahsulot qidirish...',
-                        prefixIcon: Icon(Icons.search, color: Colors.grey),
-                        border: InputBorder.none,
-                        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 15),
+                        child: TextField(
+                          controller: _searchController,
+                          onChanged: (_) => setState(() {}),
+                          decoration: InputDecoration(
+                            hintText: 'Mahsulot qidirish...',
+                            prefixIcon: Icon(Icons.search_rounded,
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .primary
+                                    .withOpacity(0.7)),
+                            border: InputBorder.none,
+                            contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 15),
+                          ),
+                        ),
                       ),
-                    ),
+                      const SizedBox(height: 20),
+                      Expanded(
+                        child: filteredProducts.isEmpty
+                            ? Center(
+                                child: Text('Mahsulot topilmadi',
+                                    style: TextStyle(color: Colors.grey.shade500)))
+                            : ListView.builder(
+                                itemCount: filteredProducts.length,
+                                itemBuilder: (context, index) {
+                                  final p = filteredProducts[index];
+                                  return Container(
+                                    margin: const EdgeInsets.only(bottom: 12),
+                                    decoration: BoxDecoration(
+                                      color: Theme.of(context).cardColor,
+                                      borderRadius: BorderRadius.circular(16),
+                                      border: Border.all(
+                                          color: Theme.of(context)
+                                              .dividerColor
+                                              .withOpacity(0.5)),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black
+                                              .withOpacity(isDark ? 0.2 : 0.03),
+                                          blurRadius: 5,
+                                          offset: const Offset(0, 2),
+                                        ),
+                                      ],
+                                    ),
+                                    child: ListTile(
+                                      contentPadding: const EdgeInsets.symmetric(
+                                          horizontal: 16, vertical: 8),
+                                      title: Text(p.name,
+                                          style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 14)),
+                                      subtitle: Text(p.barcode,
+                                          style: TextStyle(
+                                              fontSize: 12,
+                                              color: Theme.of(context)
+                                                  .textTheme
+                                                  .bodySmall
+                                                  ?.color)),
+                                      trailing: IconButton(
+                                        icon: Icon(Icons.add_circle_rounded,
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .primary),
+                                        onPressed: () => _addItem(p),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 20),
-                  Expanded(
-                    child: ListView.builder(
-                      itemCount: filteredProducts.length,
-                      itemBuilder: (context, index) {
-                        final p = filteredProducts[index];
-                        return Container(
-                          margin: const EdgeInsets.only(bottom: 12),
+                ),
+              ),
+    
+              // Cart/Print Side (Right)
+              Expanded(
+                flex: 2,
+                child: Container(
+                  margin: const EdgeInsets.fromLTRB(0, 24, 24, 24),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).cardColor,
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(
+                        color: Theme.of(context).dividerColor.withOpacity(0.5)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(isDark ? 0.3 : 0.05),
+                        blurRadius: 20,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(32),
+                        child: Text(
+                          'Chop etish uchun tanlanganlar',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w900,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                        ),
+                      ),
+                      Divider(height: 1, color: Theme.of(context).dividerColor),
+                      Expanded(
+                        child: selectedItems.isEmpty
+                            ? Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.qr_code_scanner_rounded,
+                                        size: 80,
+                                        color: Theme.of(context)
+                                            .dividerColor
+                                            .withOpacity(0.5)),
+                                    const SizedBox(height: 24),
+                                    Text('Hozircha mahsulot tanlanmagan',
+                                        style: TextStyle(
+                                          color: Theme.of(context)
+                                              .textTheme
+                                              .bodySmall
+                                              ?.color
+                                              ?.withOpacity(0.5),
+                                          fontSize: 16,
+                                        )),
+                                  ],
+                                ),
+                              )
+                            : ListView.separated(
+                                padding: const EdgeInsets.symmetric(horizontal: 32),
+                                itemCount: selectedItems.length,
+                                separatorBuilder: (_, __) => Divider(
+                                    height: 1,
+                                    color: Theme.of(context)
+                                        .dividerColor
+                                        .withOpacity(0.5)),
+                                itemBuilder: (context, index) {
+                                  final item = selectedItems[index];
+                                  final Product p = item['product'];
+                                  final int qty = item['quantity'];
+    
+                                  return Padding(
+                                    padding: const EdgeInsets.symmetric(vertical: 20),
+                                    child: Row(
+                                      children: [
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(p.name,
+                                                  style: const TextStyle(
+                                                      fontWeight: FontWeight.bold,
+                                                      fontSize: 16)),
+                                              const SizedBox(height: 4),
+                                              Text(p.barcode,
+                                                  style: TextStyle(
+                                                      fontSize: 13,
+                                                      color: Theme.of(context)
+                                                          .textTheme
+                                                          .bodySmall
+                                                          ?.color)),
+                                            ],
+                                          ),
+                                        ),
+                                        Container(
+                                          padding: const EdgeInsets.all(4),
+                                          decoration: BoxDecoration(
+                                            color: Theme.of(context)
+                                                .scaffoldBackgroundColor,
+                                            borderRadius: BorderRadius.circular(12),
+                                          ),
+                                          child: Row(
+                                            children: [
+                                              _buildQtyBtn(
+                                                icon: Icons.remove_rounded,
+                                                onTap: () => _updateQuantity(index, -1),
+                                                color: Colors.red.withOpacity(0.1),
+                                                iconColor: Colors.redAccent,
+                                              ),
+                                              const SizedBox(width: 8),
+                                              SizedBox(
+                                                width: 50,
+                                                child: Text(
+                                                  qty.toString(),
+                                                  textAlign: TextAlign.center,
+                                                  style: const TextStyle(
+                                                      fontWeight: FontWeight.w900,
+                                                      fontSize: 18),
+                                                ),
+                                              ),
+                                              const SizedBox(width: 8),
+                                              _buildQtyBtn(
+                                                icon: Icons.add_rounded,
+                                                onTap: () => _updateQuantity(index, 1),
+                                                color: Colors.green.withOpacity(0.1),
+                                                iconColor: Colors.green,
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                },
+                              ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(32),
+                        child: Container(
                           decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.03),
-                                blurRadius: 5,
-                                offset: const Offset(0, 2),
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .primary
+                                    .withOpacity(0.3),
+                                blurRadius: 15,
+                                offset: const Offset(0, 8),
                               ),
                             ],
                           ),
-                          child: ListTile(
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                            title: Text(p.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                            subtitle: Text(p.barcode, style: const TextStyle(fontSize: 12, color: Colors.grey)),
-                            trailing: IconButton(
-                              icon: const Icon(Icons.add_circle, color: Color(0xFF5D5FEF)),
-                              onPressed: () => _addItem(p),
+                          child: ElevatedButton.icon(
+                            onPressed: selectedItems.isEmpty
+                                ? null
+                                : () => PrintService.printBarcodeLabels(
+                                      items: selectedItems,
+                                      printerName: state.barcodePrinterName,
+                                      ipAddress: state.networkBarcodePrinterIp,
+                                    ),
+                            icon: const Icon(Icons.print_rounded, size: 24),
+                            label: const Text('BARCHASINI CHOP ETISH'),
+                            style: ElevatedButton.styleFrom(
+                              minimumSize: const Size.fromHeight(64),
+                              backgroundColor: Theme.of(context).colorScheme.primary,
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16)),
+                              textStyle: const TextStyle(
+                                fontWeight: FontWeight.w900,
+                                fontSize: 16,
+                                letterSpacing: 0.5,
+                              ),
                             ),
                           ),
-                        );
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          
-          // Cart/Print Side (Right)
-          Expanded(
-            flex: 2,
-            child: Container(
-              margin: const EdgeInsets.fromLTRB(0, 24, 24, 24),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 15,
-                    offset: const Offset(0, 5),
-                  ),
-                ],
-              ),
-              child: Column(
-                children: [
-                  const Padding(
-                    padding: EdgeInsets.all(32),
-                    child: Text(
-                      'Chop etish uchun tanlanganlar',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  const Divider(height: 1),
-                  Expanded(
-                    child: selectedItems.isEmpty
-                    ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.qr_code_scanner_rounded, size: 64, color: Colors.grey.shade200),
-                            const SizedBox(height: 16),
-                            Text('Hozircha mahsulot tanlanmagan', style: TextStyle(color: Colors.grey.shade400)),
-                          ],
                         ),
-                      )
-                    : ListView.separated(
-                        padding: const EdgeInsets.symmetric(horizontal: 32),
-                        itemCount: selectedItems.length,
-                        separatorBuilder: (_, __) => const Divider(height: 1),
-                        itemBuilder: (context, index) {
-                          final item = selectedItems[index];
-                          final Product p = item['product'];
-                          final int qty = item['quantity'];
-                          
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(p.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-                                      Text(p.barcode, style: const TextStyle(fontSize: 12, color: Colors.grey)),
-                                    ],
-                                  ),
-                                ),
-                                Row(
-                                  children: [
-                                    IconButton(
-                                      icon: const Icon(Icons.remove_circle, color: Colors.grey),
-                                      onPressed: () => _updateQuantity(index, -1),
-                                    ),
-                                    Container(
-                                      width: 40,
-                                      alignment: Alignment.center,
-                                      child: Text(
-                                        qty.toString(),
-                                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                                      ),
-                                    ),
-                                    IconButton(
-                                      icon: const Icon(Icons.add_circle, color: Color(0xFF4CAF50)),
-                                      onPressed: () => _updateQuantity(index, 1),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          );
-                        },
                       ),
+                    ],
                   ),
-                  Padding(
-                    padding: const EdgeInsets.all(32),
-                    child: ElevatedButton.icon(
-                      onPressed: selectedItems.isEmpty
-                      ? null
-                      : () => PrintService.printBarcodeLabels(
-                          items: selectedItems,
-                          printerName: state.barcodePrinterName,
-                          ipAddress: state.networkBarcodePrinterIp,
-                        ),
-                      icon: const Icon(Icons.print, size: 20),
-                      label: const Text('BARCHASINI CHOP ETISH', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1.2)),
-                      style: ElevatedButton.styleFrom(
-                        minimumSize: const Size.fromHeight(60),
-                        backgroundColor: const Color(0xFF5D5FEF),
-                        foregroundColor: Colors.white,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
-            ),
+            ],
           ),
-        ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildQtyBtn({
+    required IconData icon,
+    required VoidCallback onTap,
+    required Color color,
+    required Color iconColor,
+  }) {
+    return Material(
+      color: color,
+      borderRadius: BorderRadius.circular(8),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          padding: const EdgeInsets.all(8),
+          child: Icon(icon, size: 20, color: iconColor),
+        ),
       ),
     );
   }
