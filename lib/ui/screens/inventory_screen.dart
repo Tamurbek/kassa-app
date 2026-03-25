@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 import '../../models/models.dart';
-import '../../providers/app_state.dart';
+import '../../providers/features/inventory_provider.dart';
 
 class InventoryScreen extends StatefulWidget {
   final InventoryEntry? inventory;
@@ -24,7 +24,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
   @override
   void initState() {
     super.initState();
-    final state = context.read<AppState>();
+    final inventoryProv = context.read<InventoryProvider>();
 
     if (widget.inventory != null) {
       invWarehouseId = widget.inventory!.warehouseId;
@@ -39,8 +39,8 @@ class _InventoryScreenState extends State<InventoryScreen> {
         });
       }
     } else {
-      if (state.warehouses.isNotEmpty) {
-        invWarehouseId = state.warehouses.first.id;
+      if (inventoryProv.warehouses.isNotEmpty) {
+        invWarehouseId = inventoryProv.warehouses.first.id;
       }
     }
   }
@@ -81,7 +81,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final state = context.watch<AppState>();
+    final inventoryProv = context.watch<InventoryProvider>();
 
     return Scaffold(
       appBar: AppBar(
@@ -120,7 +120,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
                             border: OutlineInputBorder(),
                             prefixIcon: Icon(Icons.store),
                           ),
-                          items: state.warehouses
+                          items: inventoryProv.warehouses
                               .map(
                                 (w) => DropdownMenuItem(
                                   value: w.id,
@@ -171,12 +171,12 @@ class _InventoryScreenState extends State<InventoryScreen> {
                             border: OutlineInputBorder(),
                             prefixIcon: Icon(Icons.qr_code_scanner),
                           ),
-                          onSubmitted: (val) => _handleBarcode(val, state),
+                          onSubmitted: (val) => _handleBarcode(val, inventoryProv),
                         ),
                       ),
                       const SizedBox(width: 8),
                       IconButton.filled(
-                        onPressed: () => _handleBarcode(barcodeCtrl.text, state),
+                        onPressed: () => _handleBarcode(barcodeCtrl.text, inventoryProv),
                         icon: const Icon(Icons.add),
                         style: IconButton.styleFrom(
                           backgroundColor: Colors.teal,
@@ -210,7 +210,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
                                 ),
                               ),
                               hint: Text('Tanlang'),
-                              items: state.activeProducts
+                              items: inventoryProv.activeProducts
                                   .map(
                                     (p) => DropdownMenuItem(
                                       value: p.id,
@@ -218,9 +218,9 @@ class _InventoryScreenState extends State<InventoryScreen> {
                                     ),
                                   )
                                   .toList(),
-                              onChanged: (val) {
+                                onChanged: (val) {
                                 if (val == null) return;
-                                final p = state.activeProducts.firstWhere(
+                                final p = inventoryProv.activeProducts.firstWhere(
                                   (p) => p.id == val,
                                 );
                                 setState(() {
@@ -315,11 +315,11 @@ class _InventoryScreenState extends State<InventoryScreen> {
     );
   }
 
-  void _handleBarcode(String barcode, AppState state) {
+  void _handleBarcode(String barcode, InventoryProvider inventoryProv) {
     if (barcode.isEmpty) return;
 
     try {
-      final product = state.products.firstWhere(
+      final product = inventoryProv.products.firstWhere(
         (p) => p.barcode == barcode || p.additionalBarcodes.contains(barcode),
       );
 
@@ -353,7 +353,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
   }
 
   void _save() {
-    final state = context.read<AppState>();
+    final inventoryProv = context.read<InventoryProvider>();
     if (invWarehouseId == null) return;
 
     final finalItems = items
@@ -384,12 +384,12 @@ class _InventoryScreenState extends State<InventoryScreen> {
     );
 
     if (widget.inventory == null) {
-      state.addInventory(entry);
+      inventoryProv.addInventory(entry);
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Inventarizatsiya saqlandi')));
     } else {
-      state.updateInventory(entry);
+      inventoryProv.updateInventory(entry);
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Inventarizatsiya tahrirlandi')));

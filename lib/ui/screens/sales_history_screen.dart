@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
-import '../../providers/app_state.dart';
+import '../../providers/features/sales_provider.dart';
+import '../../providers/features/settings_provider.dart';
 import '../../models/models.dart';
 import '../../services/print_service.dart';
 
@@ -20,9 +21,10 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final state = context.watch<AppState>();
+    final salesProv = context.watch<SalesProvider>();
+    final settingsProv = context.watch<SettingsProvider>();
 
-    final filteredSales = state.sales.where((s) {
+    final filteredSales = salesProv.sales.where((s) {
       // Date filter
       bool matchesDate = true;
       if (_dateRange != null) {
@@ -46,14 +48,14 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen> {
     final totalAmount = filteredSales.fold<double>(
       0,
       (sum, item) {
-        final isReturned = state.returns.any((r) => r.saleId == item.id);
+        final isReturned = salesProv.returns.any((r) => r.saleId == item.id);
         return isReturned ? sum : sum + item.total;
       },
     );
     final totalProfit = filteredSales.fold<double>(
       0,
       (sum, sale) {
-        final isReturned = state.returns.any((r) => r.saleId == sale.id);
+        final isReturned = salesProv.returns.any((r) => r.saleId == sale.id);
         return isReturned
             ? sum
             : sum + sale.items.fold(0, (iSum, item) => iSum + item.profit);
@@ -67,7 +69,7 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen> {
           constraints: const BoxConstraints(maxWidth: 1400),
           child: Column(
             children: [
-              _buildHeader(state),
+              _buildHeader(settingsProv),
               if (filteredSales.isNotEmpty)
                 Container(
                   margin: const EdgeInsets.fromLTRB(24, 0, 24, 0),
@@ -146,7 +148,7 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen> {
                         itemCount: filteredSales.length,
                         itemBuilder: (context, index) {
                           final sale = filteredSales[index];
-                          return _buildSaleCard(sale, state);
+                          return _buildSaleCard(sale, salesProv, settingsProv);
                         },
                       ),
               ),
@@ -157,7 +159,7 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen> {
     );
   }
 
-  Widget _buildHeader(AppState state) {
+  Widget _buildHeader(SettingsProvider settingsProv) {
     return Container(
       padding: const EdgeInsets.all(24),
       color: Theme.of(context).cardColor,
@@ -176,7 +178,7 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen> {
                   fit: BoxFit.cover,
                 ),
               ),
-              SizedBox(width: 16),
+              const SizedBox(width: 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -218,11 +220,11 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen> {
                 ),
             ],
           ),
-          SizedBox(height: 20),
+          const SizedBox(height: 20),
           Row(
             children: [
               Expanded(child: _buildFilterButton()),
-              SizedBox(width: 16),
+              const SizedBox(width: 16),
               Expanded(
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -260,7 +262,7 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen> {
                             style: TextStyle(fontSize: 13),
                           ),
                         ),
-                        ...state.registers.map(
+                        ...settingsProv.registers.map(
                           (r) => DropdownMenuItem(
                             value: r.id,
                             child: Text(r.name, style: TextStyle(fontSize: 13)),
@@ -416,9 +418,9 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen> {
     );
   }
 
-  Widget _buildSaleCard(Sale sale, AppState state) {
-    final isReturned = state.returns.any((r) => r.saleId == sale.id);
-    final registerName = state.registers
+  Widget _buildSaleCard(Sale sale, SalesProvider salesProv, SettingsProvider settingsProv) {
+    final isReturned = salesProv.returns.any((r) => r.saleId == sale.id);
+    final registerName = settingsProv.registers
             .where((r) => r.id == sale.registerId)
             .firstOrNull
             ?.name ??
@@ -578,7 +580,7 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen> {
                     ),
                   ],
                 ),
-                SizedBox(height: 20),
+                const SizedBox(height: 20),
                 Row(
                   children: [
                     Expanded(
@@ -595,19 +597,19 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen> {
                           items: sale.items,
                           total: sale.total,
                           registerName: registerName,
-                          printerName: state.selectedPrinterName,
-                          ipAddress: state.networkPrinterIp,
-                          orgName: state.organizationName,
-                          orgAddress: state.organizationAddress,
-                          instagram: state.instagramUsername,
-                          logoPath: state.organizationLogoPath,
-                          width: state.receiptWidth,
-                          footerText: state.receiptFooterText,
-                          showLogo: state.showLogoOnReceipt,
-                          showInstagram: state.showInstagramOnReceipt,
+                          printerName: settingsProv.selectedPrinterName,
+                          ipAddress: settingsProv.networkPrinterIp,
+                          orgName: settingsProv.organizationName,
+                          orgAddress: settingsProv.organizationAddress,
+                          instagram: settingsProv.instagramUsername,
+                          logoPath: settingsProv.organizationLogoPath,
+                          width: settingsProv.receiptWidth,
+                          footerText: settingsProv.receiptFooterText,
+                          showLogo: settingsProv.showLogoOnReceipt,
+                          showInstagram: settingsProv.showInstagramOnReceipt,
                         ),
-                        icon: Icon(Icons.print_rounded, size: 18),
-                        label: Text(
+                        icon: const Icon(Icons.print_rounded, size: 18),
+                        label: const Text(
                           'Chekni chiqarish',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
@@ -616,7 +618,7 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen> {
                         ),
                       ),
                     ),
-                    SizedBox(width: 12),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: OutlinedButton.icon(
                         style: OutlinedButton.styleFrom(
@@ -627,7 +629,7 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen> {
                           ),
                           padding: const EdgeInsets.symmetric(vertical: 12),
                         ),
-                        onPressed: isReturned ? null : () => _confirmReturn(context, state, sale),
+                        onPressed: isReturned ? null : () => _confirmReturn(context, salesProv, sale),
                         icon: Icon(isReturned ? Icons.check_circle_outline : Icons.assignment_return_outlined, size: 18),
                         label: Text(
                           isReturned ? 'Vazvrat qilingan' : 'Vazvrat qilish',
@@ -648,19 +650,19 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen> {
     );
   }
 
-  void _confirmReturn(BuildContext context, AppState state, Sale sale) {
+  void _confirmReturn(BuildContext context, SalesProvider salesProv, Sale sale) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        title: Text('Vazvratni tasdiqlang'),
+        title: const Text('Vazvratni tasdiqlang'),
         content: Text(
           'Sotuv #${sale.id.substring(0, 8).toUpperCase()} uchun barcha mahsulotlarni omborga qaytarmoqchimisiz?',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Bekor qilish'),
+            child: const Text('Bekor qilish'),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -669,7 +671,7 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen> {
             ),
             onPressed: () async {
               final ret = SaleReturn(
-                id: Uuid().v4(),
+                id: const Uuid().v4(),
                 saleId: sale.id,
                 date: DateTime.now(),
                 total: sale.total,
@@ -685,7 +687,7 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen> {
                     )
                     .toList(),
               );
-              await state.addReturn(ret);
+              await salesProv.addReturn(ret);
               if (mounted) {
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -695,7 +697,7 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen> {
                 );
               }
             },
-            child: Text('Muvaffaqiyatli qaytarish'),
+            child: const Text('Muvaffaqiyatli qaytarish'),
           ),
         ],
       ),

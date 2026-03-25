@@ -62,6 +62,15 @@ class Category {
 
   factory Category.create(String name) => Category(id: Uuid().v4(), name: name);
 
+  Category copyWith({
+    String? name,
+    bool? isDeleted,
+  }) => Category(
+    id: id,
+    name: name ?? this.name,
+    isDeleted: isDeleted ?? this.isDeleted,
+  );
+
   Map<String, dynamic> toJson() => {
     'id': id,
     'name': name,
@@ -254,6 +263,20 @@ class SaleItem {
     required this.price,
     this.costPrice = 0.0,
   });
+
+  SaleItem copyWith({
+    String? productId,
+    String? productName,
+    double? quantity,
+    double? price,
+    double? costPrice,
+  }) => SaleItem(
+    productId: productId ?? this.productId,
+    productName: productName ?? this.productName,
+    quantity: quantity ?? this.quantity,
+    price: price ?? this.price,
+    costPrice: costPrice ?? this.costPrice,
+  );
 
   double get subtotal => quantity * price;
   double get profit => quantity * (price - costPrice);

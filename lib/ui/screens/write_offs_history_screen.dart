@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../providers/app_state.dart';
+import '../../providers/features/sales_provider.dart';
+import '../../providers/features/inventory_provider.dart';
 import '../../models/models.dart';
 
 class WriteOffsHistoryScreen extends StatelessWidget {
@@ -9,7 +10,8 @@ class WriteOffsHistoryScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final state = context.watch<AppState>();
+    final sales = context.watch<SalesProvider>();
+    final inventory = context.watch<InventoryProvider>();
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -47,12 +49,12 @@ class WriteOffsHistoryScreen extends StatelessWidget {
               Icons.add_circle_outline_rounded,
               color: Colors.redAccent,
             ),
-            onPressed: () => _showWriteOffDialog(context, state),
+            onPressed: () => _showWriteOffDialog(context, sales, inventory),
           ),
           SizedBox(width: 8),
         ],
       ),
-      body: state.writeOffs.isEmpty
+      body: sales.writeOffs.isEmpty
           ? Center(
               child: Text(
                 'Hisobdan chiqarishlar mavjud emas',
@@ -61,12 +63,12 @@ class WriteOffsHistoryScreen extends StatelessWidget {
             )
           : ListView.builder(
               padding: const EdgeInsets.all(24),
-              itemCount: state.writeOffs.length,
+              itemCount: sales.writeOffs.length,
               itemBuilder: (context, index) {
-                final wo = state.writeOffs[index];
+                final wo = sales.writeOffs[index];
                 return _buildLogCard(
                   context,
-                  state,
+                  sales,
                   'Hisobdan chiqarish #${wo.id.substring(0, 8)}',
                   wo.date.toString().substring(0, 16),
                   wo.items.length.toString(),
@@ -86,13 +88,12 @@ class WriteOffsHistoryScreen extends StatelessWidget {
                             title: Text(i.productName),
                             trailing: Text('-${i.quantity}'),
                           ),
-                        )
-                        ,
+                        ),
                   ],
                   onDelete: () => _confirmDelete(
                     context,
                     'Hisobdan chiqarishni bekor qilmoqchimisiz?',
-                    () => state.deleteWriteOff(wo.id),
+                    () => sales.deleteWriteOff(wo.id),
                   ),
                 );
               },
@@ -102,7 +103,7 @@ class WriteOffsHistoryScreen extends StatelessWidget {
 
   Widget _buildLogCard(
     BuildContext context,
-    AppState state,
+    SalesProvider sales,
     String title,
     String subtitle,
     String count,
@@ -181,11 +182,11 @@ class WriteOffsHistoryScreen extends StatelessWidget {
     );
   }
 
-  void _showWriteOffDialog(BuildContext context, AppState state) {
+  void _showWriteOffDialog(BuildContext context, SalesProvider sales, InventoryProvider inventory) {
     final List<Map<String, dynamic>> items = [];
     final descCtrl = TextEditingController();
-    String? woWarehouseId = state.warehouses.isNotEmpty
-        ? state.warehouses.first.id
+    String? woWarehouseId = inventory.warehouses.isNotEmpty
+        ? inventory.warehouses.first.id
         : null;
 
     showDialog(
@@ -205,7 +206,7 @@ class WriteOffsHistoryScreen extends StatelessWidget {
                       labelText: 'Qaysi ombordan?',
                       border: OutlineInputBorder(),
                     ),
-                    items: state.warehouses
+                    items: inventory.warehouses
                         .map(
                           (w) => DropdownMenuItem(
                             value: w.id,
@@ -225,7 +226,6 @@ class WriteOffsHistoryScreen extends StatelessWidget {
                     ),
                   ),
                   const Divider(height: 32),
-                  // Barcode Input
                   Row(
                     children: [
                       Expanded(
@@ -239,7 +239,7 @@ class WriteOffsHistoryScreen extends StatelessWidget {
                           onSubmitted: (barcode) {
                             if (barcode.isEmpty) return;
                             try {
-                              final p = state.products.firstWhere(
+                              final p = inventory.activeProducts.firstWhere(
                                 (p) =>
                                     p.barcode == barcode ||
                                     p.additionalBarcodes.contains(barcode),
@@ -284,7 +284,7 @@ class WriteOffsHistoryScreen extends StatelessWidget {
                             child: DropdownButton<String>(
                               isExpanded: true,
                               value: item['productId'],
-                              items: state.activeProducts
+                              items: inventory.activeProducts
                                   .map(
                                     (p) => DropdownMenuItem(
                                       value: p.id,
@@ -293,7 +293,7 @@ class WriteOffsHistoryScreen extends StatelessWidget {
                                   )
                                   .toList(),
                               onChanged: (val) {
-                                final p = state.activeProducts.firstWhere(
+                                final p = inventory.activeProducts.firstWhere(
                                   (p) => p.id == val,
                                 );
                                 setDialogState(() {
@@ -367,7 +367,7 @@ class WriteOffsHistoryScreen extends StatelessWidget {
                         )
                         .toList(),
                   );
-                  state.addWriteOff(wo);
+                  sales.addWriteOff(wo);
                   Navigator.pop(context);
                 }
               },

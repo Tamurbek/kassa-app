@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../providers/app_state.dart';
+import '../../providers/features/sales_provider.dart';
+import '../../providers/features/inventory_provider.dart';
 import '../../models/models.dart';
 
 class ReturnsHistoryScreen extends StatelessWidget {
@@ -9,7 +10,8 @@ class ReturnsHistoryScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final state = context.watch<AppState>();
+    final sales = context.watch<SalesProvider>();
+    final inventory = context.watch<InventoryProvider>();
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -44,12 +46,12 @@ class ReturnsHistoryScreen extends StatelessWidget {
         actions: [
           IconButton(
             icon: Icon(Icons.add_circle_outline_rounded, color: Colors.orange),
-            onPressed: () => _showReturnDialog(context, state),
+            onPressed: () => _showReturnDialog(context, sales, inventory),
           ),
           SizedBox(width: 8),
         ],
       ),
-      body: state.returns.isEmpty
+      body: sales.returns.isEmpty
           ? Center(
               child: Text(
                 'Vazvratlar mavjud emas',
@@ -58,12 +60,12 @@ class ReturnsHistoryScreen extends StatelessWidget {
             )
           : ListView.builder(
               padding: const EdgeInsets.all(24),
-              itemCount: state.returns.length,
+              itemCount: sales.returns.length,
               itemBuilder: (context, index) {
-                final ret = state.returns[index];
+                final ret = sales.returns[index];
                 return _buildLogCard(
                   context,
-                  state,
+                  sales,
                   'Vazvrat #${ret.id.substring(0, 8)}',
                   'Sotuv #${ret.saleId.substring(0, 8)} • ${ret.date.toString().substring(0, 16)}',
                   ret.items.length.toString(),
@@ -81,7 +83,7 @@ class ReturnsHistoryScreen extends StatelessWidget {
                   onDelete: () => _confirmDelete(
                     context,
                     'Vazvratni bekor qilmoqchimisiz?',
-                    () => state.deleteReturn(ret.id),
+                    () => sales.deleteReturn(ret.id),
                   ),
                 );
               },
@@ -91,7 +93,7 @@ class ReturnsHistoryScreen extends StatelessWidget {
 
   Widget _buildLogCard(
     BuildContext context,
-    AppState state,
+    SalesProvider sales,
     String title,
     String subtitle,
     String count,
@@ -170,11 +172,11 @@ class ReturnsHistoryScreen extends StatelessWidget {
     );
   }
 
-  void _showReturnDialog(BuildContext context, AppState state) {
+  void _showReturnDialog(BuildContext context, SalesProvider sales, InventoryProvider inventory) {
     final List<Map<String, dynamic>> items = [];
     final saleIdCtrl = TextEditingController();
-    String? returnWarehouseId = state.warehouses.isNotEmpty
-        ? state.warehouses.first.id
+    String? returnWarehouseId = inventory.warehouses.isNotEmpty
+        ? inventory.warehouses.first.id
         : null;
 
     showDialog(
@@ -194,7 +196,7 @@ class ReturnsHistoryScreen extends StatelessWidget {
                       labelText: 'Qaysi omborga?',
                       border: OutlineInputBorder(),
                     ),
-                    items: state.warehouses
+                    items: inventory.warehouses
                         .map(
                           (w) => DropdownMenuItem(
                             value: w.id,
@@ -214,7 +216,6 @@ class ReturnsHistoryScreen extends StatelessWidget {
                     ),
                   ),
                   const Divider(height: 32),
-                  // Barcode Input
                   Row(
                     children: [
                       Expanded(
@@ -228,7 +229,7 @@ class ReturnsHistoryScreen extends StatelessWidget {
                           onSubmitted: (barcode) {
                             if (barcode.isEmpty) return;
                             try {
-                              final p = state.products.firstWhere(
+                              final p = inventory.activeProducts.firstWhere(
                                 (p) =>
                                     p.barcode == barcode ||
                                     p.additionalBarcodes.contains(barcode),
@@ -274,7 +275,7 @@ class ReturnsHistoryScreen extends StatelessWidget {
                             child: DropdownButton<String>(
                               isExpanded: true,
                               value: item['productId'],
-                              items: state.activeProducts
+                              items: inventory.activeProducts
                                   .map(
                                     (p) => DropdownMenuItem(
                                       value: p.id,
@@ -283,7 +284,7 @@ class ReturnsHistoryScreen extends StatelessWidget {
                                   )
                                   .toList(),
                               onChanged: (val) {
-                                final p = state.activeProducts.firstWhere(
+                                final p = inventory.activeProducts.firstWhere(
                                   (p) => p.id == val,
                                 );
                                 setDialogState(() {
@@ -366,7 +367,7 @@ class ReturnsHistoryScreen extends StatelessWidget {
                         )
                         .toList(),
                   );
-                  state.addReturn(ret);
+                  sales.addReturn(ret);
                   Navigator.pop(context);
                 }
               },

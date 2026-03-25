@@ -5,7 +5,9 @@ import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 import 'package:provider/provider.dart';
 import '../../models/models.dart';
-import '../../providers/app_state.dart';
+import '../../providers/features/inventory_provider.dart';
+import '../../providers/features/settings_provider.dart';
+import '../widgets/app_button.dart';
 import '../../services/print_service.dart';
 
 class ProductFormScreen extends StatefulWidget {
@@ -86,17 +88,17 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
 
   void _save() async {
     if (_formKey.currentState!.validate()) {
-      final state = context.read<AppState>();
+      final inventory = context.read<InventoryProvider>();
 
-      if (_selectedCategoryId == null && state.categories.isEmpty) {
+      if (_selectedCategoryId == null && inventory.categories.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Avval kategoriya yarating')),
         );
         return;
       }
 
-      if (_selectedCategoryId == null && state.categories.isNotEmpty) {
-        _selectedCategoryId = state.categories.first.id;
+      if (_selectedCategoryId == null && inventory.categories.isNotEmpty) {
+        _selectedCategoryId = inventory.categories.first.id;
       }
 
       final name = _nameController.text;
@@ -118,7 +120,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
           imagePath: _imagePath,
           trackStock: _trackStock,
         ).copyWith(additionalBarcodes: additionalBarcodes);
-        await state.addProduct(product);
+        await inventory.saveProduct(product);
       } else {
         final updatedProduct = widget.product!.copyWith(
           name: name,
@@ -130,7 +132,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
           imagePath: _imagePath,
           trackStock: _trackStock,
         );
-        await state.updateProduct(updatedProduct);
+        await inventory.saveProduct(updatedProduct);
       }
 
       if (mounted) Navigator.pop(context);
@@ -139,7 +141,8 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final state = context.watch<AppState>();
+    final inventory = context.watch<InventoryProvider>();
+    final settings = context.watch<SettingsProvider>();
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -183,7 +186,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                     Icons.inventory_2_outlined,
                   ),
                   SizedBox(height: 20),
-                  _buildCategoryDropdown(state),
+                  _buildCategoryDropdown(inventory),
                   SizedBox(height: 20),
                   Row(
                     children: [
@@ -219,7 +222,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                             tooltip: 'Generatsiya qilish',
                             onPressed: () {
                               setState(() {
-                                _barcodeController.text = state.generateBarcode();
+                                _barcodeController.text = inventory.generateBarcode();
                               });
                             },
                           ),
@@ -239,8 +242,8 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                       child: OutlinedButton.icon(
                         onPressed: () => PrintService.printBarcodeLabel(
                           product: widget.product!,
-                          printerName: state.barcodePrinterName,
-                          ipAddress: state.networkBarcodePrinterIp,
+                          printerName: settings.barcodePrinterName,
+                          ipAddress: settings.networkBarcodePrinterIp,
                         ),
                         icon: Icon(Icons.print_outlined),
                         label: Text('SHTRIX-KODNI CHOP ETISH'),
@@ -255,27 +258,9 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                     ),
                   ],
                   SizedBox(height: 48),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 55,
-                    child: ElevatedButton(
-                      onPressed: _save,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Theme.of(context).colorScheme.primary,
-                        foregroundColor: Colors.white,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                      ),
-                      child: Text(
-                        'SAQLASH',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 1,
-                        ),
-                      ),
-                    ),
+                  AppButton(
+                    label: 'SAQLASH',
+                    onPressed: _save,
                   ),
                 ],
               ),
@@ -409,7 +394,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
     );
   }
 
-  Widget _buildCategoryDropdown(AppState state) {
+  Widget _buildCategoryDropdown(InventoryProvider inventory) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -438,7 +423,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                 Icons.keyboard_arrow_down_rounded,
                 color: Theme.of(context).colorScheme.primary,
               ),
-              items: state.categories
+              items: inventory.categories
                   .map(
                     (c) => DropdownMenuItem(value: c.id, child: Text(c.name)),
                   )

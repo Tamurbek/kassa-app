@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../providers/app_state.dart';
+import '../../providers/features/inventory_provider.dart';
+import '../../providers/features/auth_provider.dart';
 import '../../models/models.dart';
 
 class TrashScreen extends StatefulWidget {
@@ -25,7 +26,7 @@ class _TrashScreenState extends State<TrashScreen> {
               labelColor: Theme.of(context).colorScheme.primary,
               unselectedLabelColor: Colors.grey.shade400,
               indicatorColor: Theme.of(context).colorScheme.primary,
-              tabs: [
+              tabs: const [
                 Tab(text: 'Mahsulotlar'),
                 Tab(text: 'Kategoriyalar'),
                 Tab(text: 'Hodimlar'),
@@ -55,7 +56,6 @@ class _TrashScreenState extends State<TrashScreen> {
         children: [
           Row(
             children: [
-
               ClipRRect(
                 borderRadius: BorderRadius.circular(12),
                 child: Image.asset(
@@ -65,7 +65,7 @@ class _TrashScreenState extends State<TrashScreen> {
                   fit: BoxFit.cover,
                 ),
               ),
-              SizedBox(width: 16),
+              const SizedBox(width: 16),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -111,9 +111,9 @@ class _TrashScreenState extends State<TrashScreen> {
   }
 
   Widget _buildDeletedProducts() {
-    return Consumer<AppState>(
-      builder: (context, state, child) {
-        final products = state.deletedProducts;
+    return Consumer<InventoryProvider>(
+      builder: (context, inventory, child) {
+        final products = inventory.deletedProducts;
         if (products.isEmpty) {
           return _buildEmptyState('O\'chirilgan mahsulotlar yo\'q');
         }
@@ -127,7 +127,7 @@ class _TrashScreenState extends State<TrashScreen> {
               title: p.name,
               subtitle: 'Barcode: ${p.barcode}',
               icon: Icons.inventory_2_outlined,
-              onRestore: () => state.restoreProduct(p.id),
+              onRestore: () => inventory.restoreProduct(p.id),
             );
           },
         );
@@ -136,9 +136,9 @@ class _TrashScreenState extends State<TrashScreen> {
   }
 
   Widget _buildDeletedCategories() {
-    return Consumer<AppState>(
-      builder: (context, state, child) {
-        final categories = state.deletedCategories;
+    return Consumer<InventoryProvider>(
+      builder: (context, inventory, child) {
+        final categories = inventory.deletedCategories;
         if (categories.isEmpty) {
           return _buildEmptyState('O\'chirilgan kategoriyalar yo\'q');
         }
@@ -153,7 +153,7 @@ class _TrashScreenState extends State<TrashScreen> {
               subtitle:
                   'ID: ${c.id.substring(0, c.id.length < 8 ? c.id.length : 8)}${c.id.length > 8 ? "..." : ""}',
               icon: Icons.category_outlined,
-              onRestore: () => state.restoreCategory(c.id),
+              onRestore: () => inventory.restoreCategory(c.id),
             );
           },
         );
@@ -162,9 +162,9 @@ class _TrashScreenState extends State<TrashScreen> {
   }
 
   Widget _buildDeletedUsers() {
-    return Consumer<AppState>(
-      builder: (context, state, child) {
-        final users = state.deletedUsers;
+    return Consumer<AuthProvider>(
+      builder: (context, auth, child) {
+        final users = auth.deletedUsers;
         if (users.isEmpty) {
           return _buildEmptyState('O\'chirilgan hodimlar yo\'q');
         }
@@ -179,7 +179,7 @@ class _TrashScreenState extends State<TrashScreen> {
               subtitle:
                   'Role: ${u.role == UserRole.admin ? "Admin" : "Kassir"}',
               icon: Icons.person_outline,
-              onRestore: () => state.restoreUser(u.id),
+              onRestore: () => auth.restoreUser(u.id),
             );
           },
         );
@@ -221,7 +221,7 @@ class _TrashScreenState extends State<TrashScreen> {
             ),
             child: Icon(icon, color: Colors.grey, size: 20),
           ),
-          SizedBox(width: 16),
+          const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -248,8 +248,8 @@ class _TrashScreenState extends State<TrashScreen> {
           ),
           TextButton.icon(
             onPressed: onRestore,
-            icon: Icon(Icons.restore, size: 18),
-            label: Text('Tiklash'),
+            icon: const Icon(Icons.restore, size: 18),
+            label: const Text('Tiklash'),
             style: TextButton.styleFrom(
               foregroundColor: Theme.of(context).colorScheme.primary,
             ),
@@ -265,7 +265,7 @@ class _TrashScreenState extends State<TrashScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(Icons.delete_outline, size: 64, color: Colors.grey.shade300),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           Text(
             message,
             style: TextStyle(color: Colors.grey.shade500, fontSize: 16),

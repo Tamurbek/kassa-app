@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/app_state.dart';
+import '../../providers/features/auth_provider.dart';
 
 class SetupScreen extends StatefulWidget {
   const SetupScreen({super.key});
@@ -193,6 +194,11 @@ class _SetupScreenState extends State<SetupScreen> {
                               ip: _ipController.text,
                               password: _passwordController.text,
                             );
+                            
+                            // Re-load auth and settings to sync activation status
+                            if (mounted) {
+                              await context.read<AuthProvider>().loadAuth();
+                            }
                           } catch (e) {
                             if (context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(

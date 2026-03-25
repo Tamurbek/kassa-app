@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 import '../../models/models.dart';
-import '../../providers/app_state.dart';
+import '../../providers/features/inventory_provider.dart';
+import '../../providers/features/sales_provider.dart';
 
 class ReturnScreen extends StatefulWidget {
   final SaleReturn? saleReturn;
@@ -22,7 +24,7 @@ class _ReturnScreenState extends State<ReturnScreen> {
   @override
   void initState() {
     super.initState();
-    final state = context.read<AppState>();
+    final inventory = context.read<InventoryProvider>();
 
     if (widget.saleReturn != null) {
       returnWarehouseId = widget.saleReturn!.warehouseId;
@@ -37,8 +39,8 @@ class _ReturnScreenState extends State<ReturnScreen> {
         });
       }
     } else {
-      if (state.warehouses.isNotEmpty) {
-        returnWarehouseId = state.warehouses.first.id;
+      if (inventory.warehouses.isNotEmpty) {
+        returnWarehouseId = inventory.mainWarehouse?.id ?? inventory.warehouses.first.id;
       }
     }
   }
@@ -63,13 +65,7 @@ class _ReturnScreenState extends State<ReturnScreen> {
       );
       if (time != null) {
         setState(() {
-          selectedDate = DateTime(
-            date.year,
-            date.month,
-            date.day,
-            time.hour,
-            time.minute,
-          );
+          selectedDate = DateTime(date.year, date.month, date.day, time.hour, time.minute);
         });
       }
     }
@@ -77,87 +73,58 @@ class _ReturnScreenState extends State<ReturnScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final state = context.watch<AppState>();
+    final inventory = context.watch<InventoryProvider>();
+    final sales = context.watch<SalesProvider>();
 
     return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        title: Text(
-          widget.saleReturn == null
-              ? 'Yangi Vazvrat (Qaytarish)'
-              : 'Vazvratni Tahrirlash',
-        ),
+        title: Text(widget.saleReturn == null ? 'Yangi Vazvrat' : 'Vazvratni Tahrirlash', style: const TextStyle(fontWeight: FontWeight.bold)),
         actions: [
-          IconButton(icon: Icon(Icons.save), onPressed: _save),
-          SizedBox(width: 8),
+          IconButton(icon: const Icon(Icons.save_rounded), onPressed: _save),
+          const SizedBox(width: 8),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(24),
-        child: Container(
-          decoration: BoxDecoration(
-            color: Theme.of(context).cardColor,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Theme.of(context).dividerColor),
-          ),
-          padding: EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 800),
+          child: ListView(
+            padding: const EdgeInsets.all(24),
             children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: DropdownButtonFormField<String>(
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).cardColor,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: Theme.of(context).dividerColor),
+                ),
+                child: Column(
+                  children: [
+                    DropdownButtonFormField<String>(
                       value: returnWarehouseId,
-                      decoration: const InputDecoration(
-                        labelText: 'Qaysi omborga қайтади?',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.store),
-                      ),
-                      items: state.warehouses
-                          .map(
-                            (w) => DropdownMenuItem(
-                              value: w.id,
-                              child: Text(w.name),
-                            ),
-                          )
-                          .toList(),
-                      onChanged: (val) =>
-                          setState(() => returnWarehouseId = val),
+                      decoration: const InputDecoration(labelText: 'Qaysi omborga qaytadi?', border: OutlineInputBorder(), prefixIcon: Icon(Icons.store_rounded)),
+                      items: inventory.warehouses.map((w) => DropdownMenuItem(value: w.id, child: Text(w.name))).toList(),
+                      onChanged: (val) => setState(() => returnWarehouseId = val),
                     ),
-                  ),
-                  SizedBox(width: 16),
-                  Expanded(
-                    child: InkWell(
+                    const SizedBox(height: 16),
+                    InkWell(
                       onTap: _pickDate,
                       child: InputDecorator(
-                        decoration: InputDecoration(
-                          labelText: 'Sana va vaqt',
-                          border: OutlineInputBorder(),
-                          prefixIcon: Icon(Icons.calendar_today),
-                        ),
-                        child: Text(selectedDate.toString().substring(0, 16)),
+                        decoration: const InputDecoration(labelText: 'Sana va vaqt', border: OutlineInputBorder(), prefixIcon: Icon(Icons.calendar_today_rounded)),
+                        child: Text(DateFormat('dd.MM.yyyy HH:mm').format(selectedDate)),
                       ),
                     ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 16),
-              TextField(
-                controller: saleIdCtrl,
-                decoration: const InputDecoration(
-                  labelText: 'Sotuv ID (ixtiyoriy)',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.receipt_long),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: saleIdCtrl,
+                      decoration: const InputDecoration(labelText: 'Sotuv ID (ixtiyoriy)', border: OutlineInputBorder(), prefixIcon: Icon(Icons.receipt_long_rounded)),
+                    ),
+                  ],
                 ),
               ),
-              SizedBox(height: 24),
-              const Divider(),
-              SizedBox(height: 16),
-              Text(
-                'Mahsulotlar',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-              ),
-              SizedBox(height: 16),
+              const SizedBox(height: 32),
+              const Text('Mahsulotlar', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+              const SizedBox(height: 16),
               ...items.asMap().entries.map((entry) {
                 final idx = entry.key;
                 final item = entry.value;
@@ -169,26 +136,12 @@ class _ReturnScreenState extends State<ReturnScreen> {
                         flex: 3,
                         child: DropdownButtonFormField<String>(
                           value: item['productId'],
-                          decoration: InputDecoration(
-                            border: OutlineInputBorder(),
-                            contentPadding: EdgeInsets.symmetric(
-                              horizontal: 12,
-                            ),
-                          ),
-                          hint: Text('Tanlang'),
-                          items: state.activeProducts
-                              .map(
-                                (p) => DropdownMenuItem(
-                                  value: p.id,
-                                  child: Text(p.name),
-                                ),
-                              )
-                              .toList(),
+                          decoration: const InputDecoration(border: OutlineInputBorder(), contentPadding: EdgeInsets.symmetric(horizontal: 12)),
+                          hint: const Text('Tanlang'),
+                          items: inventory.activeProducts.map((p) => DropdownMenuItem(value: p.id, child: Text(p.name))).toList(),
                           onChanged: (val) {
                             if (val == null) return;
-                            final p = state.activeProducts.firstWhere(
-                              (p) => p.id == val,
-                            );
+                            final p = inventory.activeProducts.firstWhere((p) => p.id == val);
                             setState(() {
                               items[idx]['productId'] = val;
                               items[idx]['productName'] = p.name;
@@ -197,68 +150,36 @@ class _ReturnScreenState extends State<ReturnScreen> {
                           },
                         ),
                       ),
-                      SizedBox(width: 8),
+                      const SizedBox(width: 8),
                       Expanded(
                         flex: 1,
                         child: TextFormField(
-                          initialValue: item['quantity'] == 0
-                              ? ''
-                              : item['quantity'].toString(),
-                          decoration: const InputDecoration(
-                            hintText: 'Soni',
-                            border: OutlineInputBorder(),
-                            contentPadding: EdgeInsets.symmetric(
-                              horizontal: 12,
-                            ),
-                          ),
+                          initialValue: item['quantity'] == 0 ? '' : item['quantity'].toString(),
+                          decoration: const InputDecoration(hintText: 'Soni', border: OutlineInputBorder(), contentPadding: EdgeInsets.symmetric(horizontal: 12)),
                           keyboardType: TextInputType.number,
-                          onChanged: (val) => items[idx]['quantity'] =
-                              double.tryParse(val) ?? 0,
+                          onChanged: (val) => items[idx]['quantity'] = double.tryParse(val) ?? 0,
                         ),
                       ),
-                      IconButton(
-                        icon: Icon(Icons.remove_circle, color: Colors.orange),
-                        onPressed: () => setState(() => items.removeAt(idx)),
-                      ),
+                      IconButton(icon: const Icon(Icons.remove_circle_outline, color: Colors.orange), onPressed: () => setState(() => items.removeAt(idx))),
                     ],
                   ),
                 );
               }),
-              SizedBox(height: 16),
-              ElevatedButton.icon(
-                onPressed: () => setState(
-                  () => items.add({
-                    'productId': null,
-                    'productName': '',
-                    'quantity': 0.0,
-                    'price': 0.0,
-                  }),
-                ),
-                icon: Icon(Icons.add),
-                label: Text('Mahsulot qo\'shish'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.orange.withOpacity(0.1),
-                  foregroundColor: Colors.orange,
-                  elevation: 0,
-                ),
+              const SizedBox(height: 16),
+              OutlinedButton.icon(
+                onPressed: () => setState(() => items.add({'productId': null, 'productName': '', 'quantity': 0.0, 'price': 0.0})),
+                icon: const Icon(Icons.add_rounded),
+                label: const Text('Mahsulot qo\'shish'),
+                style: OutlinedButton.styleFrom(foregroundColor: Colors.orange, side: const BorderSide(color: Colors.orange)),
               ),
-              SizedBox(height: 32),
+              const SizedBox(height: 32),
               SizedBox(
                 width: double.infinity,
-                height: 50,
+                height: 54,
                 child: ElevatedButton(
                   onPressed: _save,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.orange,
-                    foregroundColor: Colors.white,
-                  ),
-                  child: Text(
-                    'Vazvratni Saqlash',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 1,
-                    ),
-                  ),
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.orange, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                  child: const Text('VAZVRATNI SAQLASH', style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1)),
                 ),
               ),
             ],
@@ -268,36 +189,17 @@ class _ReturnScreenState extends State<ReturnScreen> {
     );
   }
 
-  void _save() {
-    final state = context.read<AppState>();
+  Future<void> _save() async {
+    final sales = context.read<SalesProvider>();
     if (returnWarehouseId == null) return;
 
-    final finalItems = items
-        .where((i) => i['productId'] != null && i['quantity'] > 0)
-        .map(
-          (i) => SaleReturnItem(
-            productId: i['productId'],
-            productName: i['productName'],
-            quantity: i['quantity'],
-            price: i['price'],
-          ),
-        )
-        .toList();
+    final finalItems = items.where((i) => i['productId'] != null && (i['quantity'] as num) > 0).map((i) => SaleReturnItem(productId: i['productId'], productName: i['productName'], quantity: (i['quantity'] as num).toDouble(), price: (i['price'] as num).toDouble())).toList();
+    if (finalItems.isEmpty) return;
 
-    if (finalItems.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Kamida 1 ta mahsulot kiriting!')));
-      return;
-    }
-
-    double total = 0;
-    for (var i in finalItems) {
-      total += (i.price * i.quantity);
-    }
+    double total = finalItems.fold(0, (sum, i) => sum + (i.price * i.quantity));
 
     final entry = SaleReturn(
-      id: widget.saleReturn?.id ?? Uuid().v4(),
+      id: widget.saleReturn?.id ?? const Uuid().v4(),
       warehouseId: returnWarehouseId!,
       date: selectedDate,
       saleId: saleIdCtrl.text.isEmpty ? 'HAND_RETURN' : saleIdCtrl.text,
@@ -305,18 +207,11 @@ class _ReturnScreenState extends State<ReturnScreen> {
       total: total,
     );
 
-    if (widget.saleReturn == null) {
-      state.addReturn(entry);
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Vazvrat hujjati saqlandi')));
-    } else {
-      state.updateReturn(entry);
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Vazvrat hujjati tahrirlandi')));
+    try {
+      await sales.saveReturn(entry);
+      if (mounted) Navigator.pop(context);
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Xatolik: $e')));
     }
-
-    Navigator.pop(context);
   }
 }

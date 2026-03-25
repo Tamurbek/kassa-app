@@ -1355,4 +1355,17 @@ class DatabaseService {
     double curQty = cur.isNotEmpty ? (double.tryParse(cur.first['quantity']?.toString() ?? '0') ?? 0) : 0;
     await txn.insert('stocks', {'productId':pId, 'warehouseId':wId, 'quantity':curQty - qty}, conflictAlgorithm: ConflictAlgorithm.replace);
   }
+
+  static Future<void> deleteStockTransfer(String id) async {
+    final db = await database;
+    await db.transaction((txn) async {
+      await txn.delete('stock_transfers', where: 'id = ?', whereArgs: [id]);
+      await txn.delete('stock_transfer_items', where: 'transferId = ?', whereArgs: [id]);
+    });
+  }
+
+  static Future<void> deleteSetting(String key) async {
+    final db = await DatabaseService.database;
+    await db.delete('settings', where: 'key = ?', whereArgs: [key]);
+  }
 }

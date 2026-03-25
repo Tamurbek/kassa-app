@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
-import '../../providers/app_state.dart';
+import '../../providers/features/sales_provider.dart';
+import '../../providers/features/settings_provider.dart';
+import '../../providers/features/auth_provider.dart';
 import '../../services/print_service.dart';
 
 class CheckoutScreen extends StatefulWidget {
@@ -23,8 +25,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   @override
   void initState() {
     super.initState();
-    final state = context.read<AppState>();
-    receivedController.text = state.cartTotal.toStringAsFixed(0);
+    final sales = context.read<SalesProvider>();
+    receivedController.text = sales.cartTotal.toStringAsFixed(0);
   }
 
   void onNumPressed(String val) {
@@ -51,36 +53,46 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     });
   }
 
-  Future<void> _executeSale(AppState state) async {
+  Future<void> _executeSale(
+    SalesProvider sales,
+    SettingsProvider settings,
+    AuthProvider auth,
+  ) async {
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (context) =>
-          Center(child: CircularProgressIndicator(color: Colors.white)),
+          const Center(child: CircularProgressIndicator(color: Colors.white)),
     );
 
     try {
-      if (state.selectedPrinterName != null ||
-          (state.networkPrinterIp != null &&
-              state.networkPrinterIp!.isNotEmpty)) {
+      if (settings.selectedPrinterName != null ||
+          (settings.networkPrinterIp != null &&
+              settings.networkPrinterIp!.isNotEmpty)) {
         await PrintService.printReceipt(
-          items: state.cart,
-          total: state.cartTotal,
-          registerName: state.currentRegister?.name ?? 'Kassa',
-          printerName: state.selectedPrinterName,
-          ipAddress: state.networkPrinterIp,
-          orgName: state.organizationName,
-          orgAddress: state.organizationAddress,
-          instagram: state.instagramUsername,
-          logoPath: state.organizationLogoPath,
-          width: state.receiptWidth,
-          footerText: state.receiptFooterText,
-          showLogo: state.showLogoOnReceipt,
-          showInstagram: state.showInstagramOnReceipt,
+          items: sales.cart,
+          total: sales.cartTotal,
+          registerName: settings.currentRegister?.name ?? 'Kassa',
+          printerName: settings.selectedPrinterName,
+          ipAddress: settings.networkPrinterIp,
+          orgName: settings.organizationName,
+          orgAddress: settings.organizationAddress,
+          instagram: settings.instagramUsername,
+          logoPath: settings.organizationLogoPath,
+          width: settings.receiptWidth,
+          footerText: settings.receiptFooterText,
+          showLogo: settings.showLogoOnReceipt,
+          showInstagram: settings.showInstagramOnReceipt,
         );
       }
 
-      await state.processSale();
+      final receivedAmount = double.tryParse(receivedController.text) ?? sales.cartTotal;
+
+      await sales.checkout(
+        registerId: settings.currentRegister?.id,
+        warehouseId: settings.currentRegister?.warehouseId,
+      );
+
       if (mounted) {
         Navigator.pop(context); // close loader
         _showSuccessDialog();
@@ -158,8 +170,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final state = context.watch<AppState>();
-    final total = state.cartTotal;
+    final sales = context.watch<SalesProvider>();
+    final settings = context.watch<SettingsProvider>();
+    final auth = context.watch<AuthProvider>();
+    
+    final total = sales.cartTotal;
     final receivedStr = receivedController.text;
     final received = double.tryParse(receivedStr) ?? 0;
     final change = received - total;
@@ -221,7 +236,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     ),
                   ),
                 ),
-                _buildSimpleFooter(state),
+                _buildSimpleFooter(sales, settings, auth),
               ],
             );
           }
@@ -249,7 +264,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           ),
                         ),
                       ),
-                      _buildSimpleFooter(state),
+                      _buildSimpleFooter(sales, settings, auth),
                     ],
                   ),
                 ),
@@ -605,7 +620,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
-  Widget _buildSimpleFooter(AppState state) {
+  Widget _buildSimpleFooter(SalesProvider sales, SettingsProvider settings, AuthProvider auth) {
     return Container(
       padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
@@ -633,11 +648,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               ),
             ),
           ),
-          SizedBox(width: 20),
+          const SizedBox(width: 20),
           Expanded(
             flex: 2,
             child: ElevatedButton(
-              onPressed: () => _executeSale(state),
+              onPressed: () => _executeSale(sales, settings, auth),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Theme.of(context).colorScheme.primary,
                 foregroundColor: Colors.white,

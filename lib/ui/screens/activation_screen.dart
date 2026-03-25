@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import '../../providers/app_state.dart';
+import '../../providers/features/auth_provider.dart';
+import '../../providers/features/settings_provider.dart';
 
 class ActivationScreen extends StatefulWidget {
   const ActivationScreen({super.key});
@@ -22,7 +23,8 @@ class _ActivationScreenState extends State<ActivationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final state = context.watch<AppState>();
+    final auth = context.watch<AuthProvider>();
+    final settings = context.watch<SettingsProvider>();
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -46,16 +48,14 @@ class _ActivationScreenState extends State<ActivationScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(20),
-                child: Image.asset(
-                  'assets/icon.png',
-                  width: 100,
-                  height: 100,
-                  fit: BoxFit.cover,
+              Padding(
+                padding: const EdgeInsets.only(bottom: 24),
+                child: Icon(
+                  Icons.shopping_bag_rounded,
+                  size: 100,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
               ),
-              SizedBox(height: 24),
               Text(
                 'Dastur faollashtirilmagan',
                 style: TextStyle(
@@ -65,7 +65,7 @@ class _ActivationScreenState extends State<ActivationScreen> {
                 ),
                 textAlign: TextAlign.center,
               ),
-              SizedBox(height: 12),
+              const SizedBox(height: 12),
               Text(
                 'Ushbu kompyuterda dasturdan foydalanish uchun litsenziya kodi talab qilinadi.',
                 style: TextStyle(
@@ -74,7 +74,7 @@ class _ActivationScreenState extends State<ActivationScreen> {
                 ),
                 textAlign: TextAlign.center,
               ),
-              SizedBox(height: 32),
+              const SizedBox(height: 32),
 
               // Device ID Section
               Container(
@@ -101,7 +101,7 @@ class _ActivationScreenState extends State<ActivationScreen> {
                         InkWell(
                           onTap: () {
                             Clipboard.setData(
-                              ClipboardData(text: state.activationRequestCode),
+                              ClipboardData(text: auth.activationRequestCode),
                             );
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
@@ -118,9 +118,9 @@ class _ActivationScreenState extends State<ActivationScreen> {
                         ),
                       ],
                     ),
-                    SizedBox(height: 8),
+                    const SizedBox(height: 8),
                     SelectableText(
-                      state.activationRequestCode,
+                      auth.activationRequestCode,
                       style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.w900,
@@ -132,7 +132,7 @@ class _ActivationScreenState extends State<ActivationScreen> {
                 ),
               ),
 
-              SizedBox(height: 32),
+              const SizedBox(height: 32),
 
               TextField(
                 controller: _codeController,
@@ -140,18 +140,18 @@ class _ActivationScreenState extends State<ActivationScreen> {
                   labelText: 'Aktivatsiya kodi',
                   hintText: 'SS-XXXX-OK',
                   errorText: _error,
-                  prefixIcon: Icon(Icons.vpn_key_rounded),
+                  prefixIcon: const Icon(Icons.vpn_key_rounded),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),
                   filled: true,
                   fillColor: Theme.of(context).cardColor,
                 ),
-                style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1),
+                style: const TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1),
                 onChanged: (_) => setState(() => _error = null),
               ),
 
-              SizedBox(height: 24),
+              const SizedBox(height: 24),
 
               SizedBox(
                 width: double.infinity,
@@ -171,15 +171,14 @@ class _ActivationScreenState extends State<ActivationScreen> {
                       return;
                     }
                     try {
-                      await state.activate(_codeController.text);
+                      await auth.activate(_codeController.text);
                     } catch (e) {
                       setState(
-                        () =>
-                            _error = e.toString().replaceAll('Exception: ', ''),
+                        () => _error = e.toString().replaceAll('Exception: ', ''),
                       );
                     }
                   },
-                  child: Text(
+                  child: const Text(
                     'FAOLLASHTIRISH',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
@@ -189,7 +188,7 @@ class _ActivationScreenState extends State<ActivationScreen> {
                 ),
               ),
 
-              SizedBox(height: 24),
+              const SizedBox(height: 24),
               Text(
                 'Kodni olish uchun Telegram botga murojaat qiling:',
                 style: TextStyle(
@@ -198,7 +197,7 @@ class _ActivationScreenState extends State<ActivationScreen> {
                 ),
                 textAlign: TextAlign.center,
               ),
-              SizedBox(height: 4),
+              const SizedBox(height: 4),
               Text(
                 '@SimpleSaleBot',
                 style: TextStyle(
@@ -208,11 +207,11 @@ class _ActivationScreenState extends State<ActivationScreen> {
                 ),
                 textAlign: TextAlign.center,
               ),
-              SizedBox(height: 32),
+              const SizedBox(height: 32),
               SizedBox(
                 width: double.infinity,
                 child: TextButton.icon(
-                  onPressed: () => state.resetTerminalMode(),
+                  onPressed: () => settings.clearAllData(),
                   style: TextButton.styleFrom(
                     foregroundColor: Colors.grey,
                     padding: const EdgeInsets.symmetric(vertical: 12),

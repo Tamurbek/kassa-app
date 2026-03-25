@@ -21,13 +21,11 @@ class AppState extends ChangeNotifier {
   List<Category> categories = [];
   List<Product> products = [];
   List<StockEntry> stockEntries = [];
-  List<User> users = [];
   List<Sale> sales = [];
   List<SaleReturn> returns = [];
   List<WriteOff> writeOffs = [];
   List<InventoryEntry> inventories = [];
   List<StockTransfer> stockTransfers = [];
-  User? currentUser;
   String? masterPassword;
 
   Register? currentRegister;
@@ -46,9 +44,6 @@ class AppState extends ChangeNotifier {
   String? deviceId;
   bool isInitialized = false;
   String? initializationError;
-  bool isActivated = false;
-  bool isBlocked = false;
-  String? activationCode;
   String? organizationName;
   String? organizationAddress;
   String? instagramUsername;
@@ -139,18 +134,9 @@ class AppState extends ChangeNotifier {
       categories.where((c) => !c.isDeleted).toList();
   List<Product> get activeProducts =>
       products.where((p) => !p.isDeleted).toList();
-  List<User> get activeUsers => users.where((u) => !u.isDeleted).toList();
-
   Warehouse? get mainWarehouse =>
       warehouses.where((w) => w.isMain).firstOrNull ??
       (warehouses.isNotEmpty ? warehouses.first : null);
-
-  // Deleted items (Trash)
-  List<Category> get deletedCategories =>
-      categories.where((c) => c.isDeleted).toList();
-  List<Product> get deletedProducts =>
-      products.where((p) => p.isDeleted).toList();
-  List<User> get deletedUsers => users.where((u) => u.isDeleted).toList();
 
   Future<String?> get localIp async {
     try {
@@ -206,9 +192,7 @@ class AppState extends ChangeNotifier {
       masterAddress = ip;
       deviceId = prefs.getString('deviceId') ?? Uuid().v4();
       await prefs.setString('deviceId', deviceId!);
-      isActivated = prefs.getBool('isActivated') ?? false;
-      isBlocked = prefs.getBool('isBlocked') ?? false;
-      activationCode = prefs.getString('activationCode');
+      // isActivated, isBlocked and activationCode are now managed by AuthProvider
       organizationName = prefs.getString('organizationName') ?? 'test';
       organizationAddress = prefs.getString('organizationAddress') ?? 'O\'zbekiston, Toshkent';
       instagramUsername = prefs.getString('instagramUsername') ?? '@simplesale';
@@ -260,14 +244,9 @@ class AppState extends ChangeNotifier {
       products = products.whereType<Product>().toList();
       warehouses = warehouses.whereType<Warehouse>().toList();
       registers = registers.whereType<Register>().toList();
-      users = users.whereType<User>().toList();
 
-      // If master and empty and NOT activated, add dummy data for trial demonstration
-      if (isMaster == true && products.isEmpty && categories.isEmpty && !isActivated) {
-        await _initializeDummyData();
-        await _loadFromDb();
-      }
-
+      // Users list is now managed by AuthProvider
+      
       final savedRegId = prefs.getString('currentRegisterId');
       if (savedRegId != null) {
         final matching = registers.where((r) => r.id == savedRegId).toList();
@@ -292,16 +271,7 @@ class AppState extends ChangeNotifier {
         }
       }
 
-      // License and remote logout check
-      if (isActivated && activationCode != null) {
-        checkBlockingStatus(); // Initial check
-        // Periodically check every 5 minutes (for both Master and Clients)
-        Timer.periodic(const Duration(minutes: 5), (timer) {
-          if (!isBlocked) {
-            checkBlockingStatus();
-          }
-        });
-      }
+      // License and remote logout check is now managed by AuthProvider
     } catch (e) {
       // Har qanday kutilmagan xato bo'lsa ham, dastur ishlashini davom ettiradi
       initializationError = e.toString();
@@ -337,37 +307,11 @@ class AppState extends ChangeNotifier {
     warehouses = await DatabaseService.getWarehouses();
     registers = await DatabaseService.getRegisters();
     stockEntries = await DatabaseService.getStockEntries();
-    users = await DatabaseService.getUsers();
     sales = await DatabaseService.getSales();
     returns = await DatabaseService.getReturns();
     writeOffs = await DatabaseService.getWriteOffs();
     inventories = await DatabaseService.getInventories();
     stockTransfers = await DatabaseService.getStockTransfers();
-
-    if (users.isEmpty && isMaster == true) {
-      final admin = User(
-        id: 'admin',
-        name: 'Admin',
-        pin: '1234',
-        role: UserRole.admin,
-      );
-      final seller1 = User(
-        id: 'seller1',
-        name: 'Sotuvchi 1',
-        pin: '1111',
-        role: UserRole.seller,
-      );
-      final seller2 = User(
-        id: 'seller2',
-        name: 'Sotuvchi 2',
-        pin: '2222',
-        role: UserRole.seller,
-      );
-      await DatabaseService.saveUser(admin);
-      await DatabaseService.saveUser(seller1);
-      await DatabaseService.saveUser(seller2);
-      users.addAll([admin, seller1, seller2]);
-    }
     notifyListeners();
   }
 
@@ -380,7 +324,6 @@ class AppState extends ChangeNotifier {
     warehouses = await DatabaseService.getWarehouses();
     stockEntries = await DatabaseService.getStockEntries();
     registers = await DatabaseService.getRegisters();
-    users = await DatabaseService.getUsers();
     sales = await DatabaseService.getSales();
     returns = await DatabaseService.getReturns();
     writeOffs = await DatabaseService.getWriteOffs();
@@ -762,11 +705,8 @@ class AppState extends ChangeNotifier {
         // If sync success, save everything
         await prefs.setBool('isMaster', false);
         await prefs.setString('masterAddress', ip);
-        await prefs.setBool(
-          'isActivated',
-          true,
-        ); // Secondary terminals follow Master activation
-        isActivated = true;
+        // Shared preferences are used by AuthProvider.loadsAuth()
+        await prefs.setBool('isActivated', true); // Secondary terminals follow Master activation
       } catch (e) {
         // Rollback
         masterAddress = oldIp;
@@ -781,8 +721,6 @@ class AppState extends ChangeNotifier {
         masterPassword = password;
       }
       isMaster = true;
-      isActivated = false; // Always require activation on Master setup
-      activationCode = null;
       _startServer();
     }
 
@@ -1063,6 +1001,23 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> clearAllData() async {
+    await DatabaseService.clearAllData();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
+    
+    isMaster = null;
+    initializationError = null;
+    currentRegister = null;
+    registers = [];
+    products = [];
+    categories = [];
+    sales = [];
+    cart = [];
+    
+    notifyListeners();
+  }
+
   Future<void> resetTerminalMode() async {
     await clearAllData();
     SyncService.stopServer();
@@ -1136,7 +1091,6 @@ class AppState extends ChangeNotifier {
           'products': products.map((p) => p.toJson()).toList(),
           'warehouses': warehouses.map((w) => w.toJson()).toList(),
           'registers': registers.map((r) => r.toJson()).toList(),
-          'users': users.map((u) => u.toJson()).toList(),
           'returns': returns.map((r) => r.toJson()).toList(),
           'writeOffs': writeOffs.map((w) => w.toJson()).toList(),
           'inventories': inventories.map((i) => i.toJson()).toList(),
@@ -1326,9 +1280,7 @@ class AppState extends ChangeNotifier {
   }
 
   // --- Register & Cart ---
-  Future<void> setRegister(Register register) async {
-    final isAdmin = currentUser?.role == UserRole.admin;
-
+  Future<void> setRegister(Register register, {bool isAdmin = false}) async {
     if (isMaster == true) {
       if (!isAdmin &&
           register.activeDeviceId != null &&
@@ -1618,62 +1570,6 @@ class AppState extends ChangeNotifier {
     } else {
       await prefs.setString('networkBarcodePrinterIp', ip);
     }
-    notifyListeners();
-  }
-
-  // --- User Management ---
-  Future<void> addUser(User user) async {
-    await DatabaseService.saveUser(user);
-    await _sendUpdate('user', user.toJson());
-    users.add(user);
-    notifyListeners();
-  }
-
-  Future<void> deleteUser(String id) async {
-    final index = users.indexWhere((u) => u.id == id);
-    if (index >= 0) {
-      final updated = User(
-        id: users[index].id,
-        name: users[index].name,
-        pin: users[index].pin,
-        role: users[index].role,
-        isDeleted: true,
-      );
-      await DatabaseService.saveUser(updated);
-      await _sendUpdate('user', updated.toJson());
-      users[index] = updated;
-      notifyListeners();
-    }
-  }
-
-  Future<void> restoreUser(String id) async {
-    final index = users.indexWhere((u) => u.id == id);
-    if (index >= 0) {
-      final updated = User(
-        id: users[index].id,
-        name: users[index].name,
-        pin: users[index].pin,
-        role: users[index].role,
-        isDeleted: false,
-      );
-      await DatabaseService.saveUser(updated);
-      await _sendUpdate('user', updated.toJson());
-      users[index] = updated;
-      notifyListeners();
-    }
-  }
-
-  void login(String pin) {
-    final user = users.firstWhere(
-      (u) => u.pin == pin,
-      orElse: () => throw Exception('PIN xato!'),
-    );
-    currentUser = user;
-    notifyListeners();
-  }
-
-  void logout() {
-    currentUser = null;
     notifyListeners();
   }
 
@@ -2072,361 +1968,5 @@ class AppState extends ChangeNotifier {
       inventories[index] = newInv;
       notifyListeners();
     }
-  }
-
-  // --- Activation System ---
-  String get activationRequestCode {
-    if (deviceId == null) return "Unknown";
-    // Generate a shorter, user-friendly request code from deviceId
-    return deviceId!.substring(0, 8).toUpperCase();
-  }
-
-  bool checkActivationCode(String code) {
-    if (deviceId == null) return false;
-    // Simple secret algorithm:
-    // Take first 8 chars of deviceId, reverse them, and add a secret suffix
-    final secret = deviceId!.substring(0, 8).split('').reversed.join('');
-    final expected = "SS-$secret-OK".toUpperCase();
-    return code.toUpperCase() == expected;
-  }
-
-  Future<void> activate(String code, {bool online = true}) async {
-    final prefs = await SharedPreferences.getInstance();
-
-    if (online) {
-      const backendUrl = "https://web-production-d2ed7.up.railway.app/verify";
-      try {
-        final response = await http
-            .post(
-              Uri.parse(backendUrl),
-              headers: {"Content-Type": "application/json"},
-              body: jsonEncode({
-                "device_id": deviceId,
-                "activation_code": code,
-              }),
-            )
-            .timeout(const Duration(seconds: 10));
-
-        if (response.statusCode == 200) {
-          final data = jsonDecode(response.body);
-          isActivated = true;
-          activationCode = code;
-          organizationName = data['organization_name'] ?? 'Simple Sale';
-          organizationAddress = data['organization_address'] ?? '';
-          instagramUsername = data['instagram'] ?? '';
-          isBlocked = false;
-          await prefs.setBool('isActivated', true);
-          await prefs.setString('activationCode', code);
-          await prefs.setString('organizationName', organizationName!);
-          await prefs.setString('organizationAddress', organizationAddress!);
-          await prefs.setString('instagramUsername', instagramUsername!);
-          
-          // Yangi tashkilotga o'tilganda eski ma'lumotlarni o'chirib tashlaymiz
-          await DatabaseService.clearAllData();
-          await _loadFromDb(); // Xotirani ham tozalaymiz
-
-          // Attempt cloud restore after activation (professional: don't fail if no backup exists yet)
-          try {
-            await restoreDatabaseFromCloud();
-          } catch (e) {
-            debugPrint("Initial cloud restore (no backup yet): $e");
-          }
-
-          notifyListeners();
-        } else if (response.statusCode == 403) {
-          final data = jsonDecode(response.body);
-          final detail = data['detail'] ?? "Aktivatsiya xatosi";
-          if (detail.toString().contains("bloklangan")) {
-            isBlocked = true;
-            notifyListeners();
-          }
-          throw Exception(detail);
-        } else {
-          throw Exception("Server xatosi: ${response.statusCode}");
-        }
-      } catch (e) {
-        if (e.toString().contains("bloklangan")) rethrow;
-        throw Exception("Internet ulanishini tekshiring: $e");
-      }
-    } else {
-      // Offline fallback
-      if (checkActivationCode(code)) {
-        isActivated = true;
-        activationCode = code;
-        await prefs.setBool('isActivated', true);
-        await prefs.setString('activationCode', code);
-        notifyListeners();
-      } else {
-        throw Exception("Noto'g'ri aktivatsiya kodi");
-      }
-    }
-  }
-
-  Future<void> checkBlockingStatus() async {
-    if (!isActivated || activationCode == null) return;
-
-    try {
-      const backendUrl = "https://web-production-d2ed7.up.railway.app/verify";
-      final response = await http
-          .post(
-            Uri.parse(backendUrl),
-            headers: {"Content-Type": "application/json"},
-            body: jsonEncode({
-              "device_id": deviceId,
-              "activation_code": activationCode,
-            }),
-          )
-          .timeout(const Duration(seconds: 5));
-
-      if (response.statusCode == 403) {
-        final data = jsonDecode(response.body);
-        if (data['detail']?.toString().contains("bloklangan") == true) {
-          isBlocked = true;
-          notifyListeners();
-        }
-      } else if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        // Update name if different
-        bool changed = false;
-        final prefs = await SharedPreferences.getInstance();
-        
-        if (data['organization_name'] != null && data['organization_name'] != organizationName) {
-          organizationName = data['organization_name'];
-          await prefs.setString('organizationName', organizationName!);
-          changed = true;
-        }
-        if (data['organization_address'] != null && data['organization_address'] != organizationAddress) {
-          organizationAddress = data['organization_address'];
-          await prefs.setString('organizationAddress', organizationAddress!);
-          changed = true;
-        }
-        if (data['instagram'] != null && data['instagram'] != instagramUsername) {
-          instagramUsername = data['instagram'];
-          await prefs.setString('instagramUsername', instagramUsername!);
-          changed = true;
-        }
-
-        if (changed) notifyListeners();
-
-        if (data['force_logout'] == true) {
-          debugPrint("Remote kick triggered. Backing up and clearing data...");
-          try {
-            // 1. Try to backup data first
-            await uploadDatabaseToCloud();
-          } catch (e) {
-            debugPrint("Backup before kick failed: $e");
-          }
-          // 2. Clear all local data and reset app state (fresh install state)
-          await clearAllData();
-          return; // No need to continue
-        }
-        if (isBlocked) {
-          isBlocked = false;
-          notifyListeners();
-        }
-      }
-    } catch (e) {
-      // Ignore network errors for background check, just keep current state
-      debugPrint("Blocking check failed: $e");
-    }
-  }
-
-  Future<void> uploadDatabaseToCloud() async {
-    if (!isActivated || activationCode == null) {
-      throw Exception('Dastur faollashtirilmagan');
-    }
-
-    final dbPath = await DatabaseService.getDatabasePath();
-    final file = File(dbPath);
-    if (!await file.exists()) throw Exception('Baza fayli topilmadi');
-
-    isSyncingCloud = true;
-    syncingStage = 'Terminalardan ma\'lumotlarni jamlash...';
-    notifyListeners();
-
-    // Professional consolidation: Ensure all terminals have pushed their data
-    if (isMaster == true) {
-      debugPrint("Consolidating data from terminals before cloud sync...");
-      SyncService.broadcast('force_sync_push', {'request': 'backup'});
-      // Wait a bit for any slow terminals to finish their last HTTP POSTs
-      await Future.delayed(const Duration(seconds: 2));
-    }
-
-    syncingStage = 'Bulutli serverga saqlash...';
-    notifyListeners();
-
-    const uploadUrl = "https://web-production-d2ed7.up.railway.app/backup";
-
-    try {
-      var request = http.MultipartRequest(
-        'POST',
-        Uri.parse('$uploadUrl?activation_code=$activationCode'),
-      );
-      request.files.add(await http.MultipartFile.fromPath('file', dbPath));
-
-      var response = await request.send().timeout(const Duration(seconds: 40));
-      if (response.statusCode == 200) {
-        lastCloudSync = DateTime.now();
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('lastCloudSync', lastCloudSync!.toIso8601String());
-        notifyListeners();
-      } else {
-        throw Exception('Zaxira yuklashda xatolik: ${response.statusCode}');
-      }
-    } catch (e) {
-      throw Exception('Serverga ulanib bo\'lmadi: $e');
-    } finally {
-      isSyncingCloud = false;
-      syncingStage = '';
-      notifyListeners();
-    }
-  }
-
-  Future<void> restoreDatabaseFromCloud() async {
-    if (!isActivated || activationCode == null) {
-      throw Exception('Dastur faollashtirilmagan');
-    }
-
-    final downloadUrl = "https://web-production-d2ed7.up.railway.app/backup/$activationCode";
-    debugPrint("Restoring from cloud: $downloadUrl");
-
-    try {
-      final response = await http
-          .get(Uri.parse(downloadUrl))
-          .timeout(const Duration(seconds: 45));
-
-      if (response.statusCode == 200) {
-        if (response.bodyBytes.isEmpty) {
-           throw Exception('Serverdan bo\'sh fayl keldi');
-        }
-        
-        final supportDir = await getApplicationSupportDirectory();
-        final tempFile = File(join(supportDir.path, 'cloud_restore_temp.db'));
-        
-        // Ensure directory exists
-        if (!await supportDir.exists()) {
-          await supportDir.create(recursive: true);
-        }
-        
-        await tempFile.writeAsBytes(response.bodyBytes);
-        debugPrint("Cloud backup downloaded, size: ${response.bodyBytes.length} bytes");
-        
-        await DatabaseService.replaceDatabase(tempFile);
-        
-        // Cleanup temp file
-        if (await tempFile.exists()) {
-          await tempFile.delete();
-        }
-        
-        await loadSettings();
-        notifyListeners();
-        debugPrint("Cloud restore successful");
-      } else if (response.statusCode == 404) {
-        debugPrint('Cloud backup not found for this account (ignore if brand new)');
-      } else {
-        throw Exception('Bulutdan zaxirani yuklab bo\'lmadi (Server xatosi: ${response.statusCode})');
-      }
-    } catch (e) {
-      debugPrint("Restore error detail: $e");
-      rethrow;
-    }
-  }
-
-  Future<void> updateOrganizationInfo({String? name, String? address, String? instagram}) async {
-    if (!isActivated || activationCode == null) {
-      throw Exception('Dastur faollashtirilmagan');
-    }
-
-    const url = "https://web-production-d2ed7.up.railway.app/update_org_info";
-    
-    Map<String, String> queryParams = {"activation_code": activationCode!};
-    if (name != null) queryParams["name"] = name;
-    if (address != null) queryParams["address"] = address;
-    if (instagram != null) queryParams["instagram"] = instagram;
-
-    final uri = Uri.parse(url).replace(queryParameters: queryParams);
-    
-    try {
-      final response = await http.post(uri).timeout(const Duration(seconds: 10));
-
-      if (response.statusCode == 200) {
-        final prefs = await SharedPreferences.getInstance();
-        if (name != null) {
-          organizationName = name;
-          await prefs.setString('organizationName', name);
-        }
-        if (address != null) {
-          organizationAddress = address;
-          await prefs.setString('organizationAddress', address);
-        }
-        if (instagram != null) {
-          instagramUsername = instagram;
-          await prefs.setString('instagramUsername', instagram);
-        }
-        notifyListeners();
-      } else {
-        throw Exception('Server xatosi: ${response.statusCode}');
-      }
-    } catch (e) {
-      throw Exception('Ma\'lumotlarni yangilab bo\'lmadi: $e');
-    }
-  }
-
-  String generateBarcode() {
-    // Generate a simple unique barcode (e.g. 13 digits starting with 200 for internal use)
-    final now = DateTime.now();
-    final timestamp = now.millisecondsSinceEpoch.toString();
-    // Use last 10 digits of timestamp + a random digit to make it 11, then add 200 at start
-    final core = timestamp.substring(timestamp.length - 10);
-    return '200$core';
-  }
-
-  Future<void> updateOrganizationLogo(String? path) async {
-    organizationLogoPath = path;
-    final prefs = await SharedPreferences.getInstance();
-    if (path == null) {
-      await prefs.remove('organizationLogoPath');
-    } else {
-      await prefs.setString('organizationLogoPath', path);
-    }
-    notifyListeners();
-  }
-
-  // Remove old updateOrganizationName as it's replaced by updateOrganizationInfo
-  @Deprecated('Use updateOrganizationInfo instead')
-  Future<void> updateOrganizationName(String newName) async {
-    await updateOrganizationInfo(name: newName);
-  }
-
-  Future<void> clearAllData() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.clear();
-
-      // Close DB properly before deleting (Critical for Windows)
-      await DatabaseService.closeDatabase();
-
-      final dbPath = await DatabaseService.getDatabasePath();
-      final file = File(dbPath);
-
-      if (await file.exists()) {
-        await file.delete();
-      }
-    } catch (e) {
-      debugPrint('Data clear error: $e');
-    }
-
-    // Reset local state regardless of file deletion success
-    isMaster = null;
-    isActivated = false;
-    isBlocked = false;
-    activationCode = null;
-    currentRegister = null;
-    registers = [];
-    products = [];
-    categories = [];
-    sales = [];
-
-    notifyListeners();
   }
 }

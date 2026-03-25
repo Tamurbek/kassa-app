@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../providers/app_state.dart';
+import '../../providers/features/auth_provider.dart';
 import '../../models/models.dart';
 import 'package:uuid/uuid.dart';
 
@@ -10,20 +10,20 @@ class EmployeeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final state = context.watch<AppState>();
+    final auth = context.watch<AuthProvider>();
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Column(
         children: [
-          _buildHeader(context, state),
+          _buildHeader(context, auth),
           Expanded(
             child: ListView.builder(
               padding: const EdgeInsets.all(24),
-              itemCount: state.activeUsers.length,
+              itemCount: auth.activeUsers.length,
               itemBuilder: (context, index) {
-                final user = state.activeUsers[index];
-                return _buildUserCard(context, state, user);
+                final user = auth.activeUsers[index];
+                return _buildUserCard(context, auth, user);
               },
             ),
           ),
@@ -32,7 +32,7 @@ class EmployeeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader(BuildContext context, AppState state) {
+  Widget _buildHeader(BuildContext context, AuthProvider auth) {
     return Container(
       padding: const EdgeInsets.all(24),
       color: Theme.of(context).cardColor,
@@ -41,7 +41,6 @@ class EmployeeScreen extends StatelessWidget {
         children: [
           Row(
             children: [
-
               ClipRRect(
                 borderRadius: BorderRadius.circular(12),
                 child: Image.asset(
@@ -77,7 +76,7 @@ class EmployeeScreen extends StatelessWidget {
           Row(
             children: [
               ElevatedButton.icon(
-                onPressed: () => _showAddUserDialog(context, state),
+                onPressed: () => _showAddUserDialog(context, auth),
                 icon: Icon(Icons.person_add_alt_1_rounded),
                 label: Text('Yangi hodim'),
                 style: ElevatedButton.styleFrom(
@@ -118,7 +117,7 @@ class EmployeeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildUserCard(BuildContext context, AppState state, User user) {
+  Widget _buildUserCard(BuildContext context, AuthProvider auth, User user) {
     final isAdmin = user.role == UserRole.admin;
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -177,7 +176,7 @@ class EmployeeScreen extends StatelessWidget {
               ),
               if (user.id != 'admin')
                 TextButton(
-                  onPressed: () => state.deleteUser(user.id),
+                  onPressed: () => auth.deleteUser(user.id),
                   child: Text(
                     'O\'chirish',
                     style: TextStyle(color: Colors.red, fontSize: 12),
@@ -190,7 +189,7 @@ class EmployeeScreen extends StatelessWidget {
     );
   }
 
-  void _showAddUserDialog(BuildContext context, AppState state) {
+  void _showAddUserDialog(BuildContext context, AuthProvider auth) {
     final nameCtrl = TextEditingController();
     final pinCtrl = TextEditingController();
     UserRole selectedRole = UserRole.seller;
@@ -236,9 +235,9 @@ class EmployeeScreen extends StatelessWidget {
             ElevatedButton(
               onPressed: () {
                 if (nameCtrl.text.isNotEmpty && pinCtrl.text.length == 4) {
-                  state.addUser(
+                  auth.addUser(
                     User(
-                      id: Uuid().v4(),
+                      id: const Uuid().v4(),
                       name: nameCtrl.text,
                       pin: pinCtrl.text,
                       role: selectedRole,

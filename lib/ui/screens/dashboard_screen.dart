@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
-import '../../providers/app_state.dart';
+import '../../providers/features/sales_provider.dart';
+import '../../providers/features/inventory_provider.dart';
+import '../../providers/features/settings_provider.dart';
 import '../../models/models.dart';
 import '../../services/update_service.dart';
 import '../../services/print_service.dart';
@@ -40,12 +42,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final state = context.watch<AppState>();
+    final sales = context.watch<SalesProvider>();
+    final inventory = context.watch<InventoryProvider>();
+    final settings = context.watch<SettingsProvider>();
 
     // Filter sales by register if selected
     final filteredSales = selectedRegisterId == null
-        ? state.sales
-        : state.sales.where((s) => s.registerId == selectedRegisterId).toList();
+        ? sales.sales
+        : sales.sales.where((s) => s.registerId == selectedRegisterId).toList();
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -54,29 +58,29 @@ class _DashboardScreenState extends State<DashboardScreen> {
           backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           body: Column(
             children: [
-              _buildHeader(context, state, constraints.maxWidth, filteredSales),
+              _buildHeader(context, settings, sales, inventory, constraints.maxWidth, filteredSales),
               Expanded(
                 child: ListView(
                   padding: const EdgeInsets.all(24),
                   children: [
-                    _buildStatsSummary(context, state, filteredSales, constraints.maxWidth),
-                    SizedBox(height: 24),
+                    _buildStatsSummary(context, sales, inventory, filteredSales, constraints.maxWidth),
+                    const SizedBox(height: 24),
                     if (isNarrow) ...[
-                      _buildRecentSales(context, state, filteredSales),
-                      SizedBox(height: 24),
-                      _buildTopProducts(context, state, filteredSales),
+                      _buildRecentSales(context, filteredSales),
+                      const SizedBox(height: 24),
+                      _buildTopProducts(context, filteredSales),
                     ] else
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Expanded(
                             flex: 2,
-                            child: _buildRecentSales(context, state, filteredSales),
+                            child: _buildRecentSales(context, filteredSales),
                           ),
-                          SizedBox(width: 24),
+                          const SizedBox(width: 24),
                           Expanded(
                             flex: 1,
-                            child: _buildTopProducts(context, state, filteredSales),
+                            child: _buildTopProducts(context, filteredSales),
                           ),
                         ],
                       ),
@@ -90,7 +94,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildHeader(BuildContext context, AppState state, double width, List<Sale> filteredSales) {
+  Widget _buildHeader(BuildContext context, SettingsProvider settings, SalesProvider sales, InventoryProvider inventory, double width, List<Sale> filteredSales) {
     return Container(
       padding: const EdgeInsets.all(24),
       color: Theme.of(context).cardColor,
@@ -112,8 +116,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    state.organizationName ?? 'Dashboard',
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900),
+                    settings.organizationName ?? 'Dashboard',
+                    style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900),
                   ),
                   Text(
                     'Savdo va ko\'rsatkichlar tahlili',
@@ -145,7 +149,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         value: null,
                         child: Text('Barcha kassalar'),
                       ),
-                      ...state.registers.map((r) {
+                      ...settings.registers.map((r) {
                         return DropdownMenuItem<String?>(
                           value: r.id,
                           child: Text(r.name),
@@ -180,7 +184,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
               const SizedBox(width: 12),
               IconButton(
-                onPressed: () => _showReportsMenu(context, state, filteredSales),
+                onPressed: () => _showReportsMenu(context, settings, sales, inventory),
                 icon: const Icon(Icons.print_outlined),
                 tooltip: 'Hisobotlarni chop etish',
                 style: IconButton.styleFrom(
@@ -234,7 +238,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildStatsSummary(
     BuildContext context,
-    AppState state,
+    SalesProvider sales,
+    InventoryProvider inventory,
     List<Sale> filteredSales,
     double width,
   ) {
@@ -304,7 +309,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         _buildStatCard(
           context,
           'Mahsulotlar',
-          '${state.products.length} turda',
+          '${inventory.products.length} turda',
           Icons.inventory_2_outlined,
           Colors.purple,
           'Baza',
@@ -397,7 +402,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildRecentSales(
     BuildContext context,
-    AppState state,
     List<Sale> filteredSales,
   ) {
     final recentSales = filteredSales.take(10).toList();
@@ -499,7 +503,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildTopProducts(
     BuildContext context,
-    AppState state,
     List<Sale> filteredSales,
   ) {
     final now = DateTime.now();
@@ -595,7 +598,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  void _showReportsMenu(BuildContext context, AppState state, List<Sale> sales) {
+  void _showReportsMenu(BuildContext context, SettingsProvider settings, SalesProvider sales, InventoryProvider inventory) {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -618,7 +621,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               subtitle: const Text('Bugungi savdo va cheklar xulosasi'),
               onTap: () {
                 Navigator.pop(context);
-                _printDailyReport(state, sales);
+                _printDailyReport(settings, sales);
               },
             ),
             ListTile(
@@ -627,7 +630,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               subtitle: const Text('Ombordagi kam qolgan va umumiy mahsulotlar'),
               onTap: () {
                 Navigator.pop(context);
-                _printInventoryReport(state);
+                _printInventoryReport(settings, inventory);
               },
             ),
             ListTile(
@@ -636,7 +639,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               subtitle: const Text('Eng ko\'p sotilgan mahsulotlar reytingi'),
               onTap: () {
                 Navigator.pop(context);
-                _printTopProductsReport(state, sales);
+                _printTopProductsReport(settings, sales);
               },
             ),
           ],
@@ -645,9 +648,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  void _printDailyReport(AppState state, List<Sale> sales) {
+  void _printDailyReport(SettingsProvider settings, SalesProvider sales) {
     final now = DateTime.now();
-    final todaySales = sales.where((s) {
+    final todaySales = sales.sales.where((s) {
       return s.date.year == now.year &&
           s.date.month == now.month &&
           s.date.day == now.day;
@@ -662,10 +665,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     PrintService.printReport(
       reportTitle: 'Kunlik Savdo Hisoboti',
-      orgName: state.organizationName,
-      printerName: state.selectedPrinterName,
-      ipAddress: state.networkPrinterIp,
-      width: state.receiptWidth,
+      orgName: settings.organizationName,
+      printerName: settings.selectedPrinterName,
+      ipAddress: settings.networkPrinterIp,
+      width: settings.receiptWidth,
       sections: [
         {
           'title': 'Umumiy Ko\'rsatkichlar',
@@ -678,7 +681,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         },
         {
           'title': 'Kassalar bo\'yicha',
-          'rows': state.registers.map((r) {
+          'rows': settings.registers.map((r) {
             final regSales = todaySales.where((s) => s.registerId == r.id);
             final regTotal = regSales.fold(0.0, (sum, s) => sum + s.total);
             return {'label': r.name, 'value': '${fmt.format(regTotal)} s'};
@@ -688,23 +691,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  void _printInventoryReport(AppState state) {
-    final lowStock = state.activeProducts.where((p) => p.stock <= 5).take(10).toList();
-    final totalInventoryValue = state.activeProducts.fold(0.0, (sum, p) => sum + (p.stock * p.price));
+  void _printInventoryReport(SettingsProvider settings, InventoryProvider inventory) {
+    final lowStock = inventory.activeProducts.where((p) => (p.stocks[settings.currentRegister?.warehouseId] ?? 0) <= 5).take(10).toList();
+    final totalInventoryValue = inventory.activeProducts.fold(0.0, (sum, p) => sum + ((p.stocks[settings.currentRegister?.warehouseId] ?? 0) * p.price));
     
     final fmt = NumberFormat.currency(locale: 'uz_UZ', symbol: '', decimalDigits: 0);
 
     PrintService.printReport(
       reportTitle: 'Ombor Qoldig\'i Hisoboti',
-      orgName: state.organizationName,
-      printerName: state.selectedPrinterName,
-      ipAddress: state.networkPrinterIp,
-      width: state.receiptWidth,
+      orgName: settings.organizationName,
+      printerName: settings.selectedPrinterName,
+      ipAddress: settings.networkPrinterIp,
+      width: settings.receiptWidth,
       sections: [
         {
           'title': 'Umumiy Holat',
           'rows': [
-            {'label': 'Mahsulot turlari:', 'value': '${state.activeProducts.length} ta'},
+            {'label': 'Mahsulot turlari:', 'value': '${inventory.activeProducts.length} ta'},
             {'label': 'Umumiy qiymat:', 'value': '${fmt.format(totalInventoryValue)} so\'m'},
           ],
         },
@@ -712,16 +715,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
           'title': 'Kam qolgan mahsulotlar',
           'rows': lowStock.map((p) => {
             'label': p.name,
-            'value': '${p.stock.toStringAsFixed(1)} ${p.unit ?? 'ta'}'
+            'value': '${(p.stocks[settings.currentRegister?.warehouseId] ?? 0).toStringAsFixed(1)} ${p.unit ?? 'ta'}'
           }).toList(),
         }
       ],
     );
   }
 
-  void _printTopProductsReport(AppState state, List<Sale> sales) {
+  void _printTopProductsReport(SettingsProvider settings, SalesProvider sales) {
     final now = DateTime.now();
-    final todaySales = sales.where((s) => 
+    final todaySales = sales.sales.where((s) => 
       s.date.year == now.year && s.date.month == now.month && s.date.day == now.day
     );
 
@@ -737,10 +740,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     PrintService.printReport(
       reportTitle: 'Top Mahsulotlar (Bugun)',
-      orgName: state.organizationName,
-      printerName: state.selectedPrinterName,
-      ipAddress: state.networkPrinterIp,
-      width: state.receiptWidth,
+      orgName: settings.organizationName,
+      printerName: settings.selectedPrinterName,
+      ipAddress: settings.networkPrinterIp,
+      width: settings.receiptWidth,
       sections: [
         {
           'title': 'Eng ko\'p sotilganlar',

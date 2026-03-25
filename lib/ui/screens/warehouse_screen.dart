@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
-import 'package:uuid/uuid.dart';
 import 'dart:io';
-import '../../providers/app_state.dart';
+import '../../providers/features/inventory_provider.dart';
+import '../../providers/features/sales_provider.dart';
 import '../../models/models.dart';
 import 'stock_entry_screen.dart';
 import 'return_screen.dart';
@@ -11,7 +11,6 @@ import 'write_off_screen.dart';
 import 'inventory_screen.dart';
 import 'barcode_print_screen.dart';
 import 'stock_transfer_screen.dart';
-import '../../services/print_service.dart';
 
 class WarehouseScreen extends StatefulWidget {
   final VoidCallback? onMenuPressed;
@@ -28,9 +27,9 @@ class _WarehouseScreenState extends State<WarehouseScreen> {
   @override
   void initState() {
     super.initState();
-    final state = context.read<AppState>();
-    if (state.warehouses.isNotEmpty) {
-      selectedWarehouseId = state.mainWarehouse?.id;
+    final inventory = context.read<InventoryProvider>();
+    if (inventory.warehouses.isNotEmpty) {
+      selectedWarehouseId = inventory.mainWarehouse?.id;
     }
   }
 
@@ -42,15 +41,15 @@ class _WarehouseScreenState extends State<WarehouseScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final state = context.watch<AppState>();
+    final inventory = context.watch<InventoryProvider>();
+    final sales = context.watch<SalesProvider>();
     final searchQuery = _searchController.text.toLowerCase();
     
-    // Auto-select if currently null
-    if (selectedWarehouseId == null && state.warehouses.isNotEmpty) {
-      selectedWarehouseId = state.mainWarehouse?.id;
+    if (selectedWarehouseId == null && inventory.warehouses.isNotEmpty) {
+      selectedWarehouseId = inventory.mainWarehouse?.id;
     }
 
-    final filteredProducts = state.activeProducts.where((p) {
+    final filteredProducts = inventory.activeProducts.where((p) {
       final matchesSearch =
           p.name.toLowerCase().contains(searchQuery) ||
           p.barcode.contains(searchQuery);
@@ -58,7 +57,7 @@ class _WarehouseScreenState extends State<WarehouseScreen> {
     }).toList();
 
     return DefaultTabController(
-      length: 5,
+      length: 6,
       child: LayoutBuilder(
         builder: (context, constraints) {
           final isNarrow = constraints.maxWidth < 800;
@@ -69,14 +68,16 @@ class _WarehouseScreenState extends State<WarehouseScreen> {
                 constraints: const BoxConstraints(maxWidth: 1400),
                 child: Column(
                   children: [
-                    _buildHeader(state, isNarrow),
+                    _buildHeader(inventory, isNarrow),
                     TabBar(
+                      isScrollable: true,
                       labelColor: Theme.of(context).colorScheme.primary,
                       unselectedLabelColor: Colors.grey.shade400,
                       indicatorColor: Theme.of(context).colorScheme.primary,
-                      tabs: [
+                      tabs: const [
                         Tab(text: 'Qoldiqlar'),
                         Tab(text: 'Kirimlar'),
+                        Tab(text: 'O\'tkazmalar'),
                         Tab(text: 'Vazvratlar'),
                         Tab(text: 'Hisobdan chiqarish'),
                         Tab(text: 'Inventarizatsiya'),
@@ -90,8 +91,8 @@ class _WarehouseScreenState extends State<WarehouseScreen> {
                             padding: const EdgeInsets.all(24.0),
                             child: Column(
                               children: [
-                                _buildStatsRow(state, constraints.maxWidth),
-                                SizedBox(height: 24),
+                                _buildStatsRow(inventory, constraints.maxWidth),
+                                const SizedBox(height: 24),
                                 Expanded(
                                   child: Container(
                                     decoration: BoxDecoration(
@@ -100,13 +101,6 @@ class _WarehouseScreenState extends State<WarehouseScreen> {
                                       border: Border.all(
                                         color: Theme.of(context).dividerColor,
                                       ),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black.withOpacity(0.03),
-                                          blurRadius: 15,
-                                          offset: const Offset(0, 5),
-                                        ),
-                                      ],
                                     ),
                                     child: Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -114,17 +108,16 @@ class _WarehouseScreenState extends State<WarehouseScreen> {
                                         Padding(
                                           padding: const EdgeInsets.all(24),
                                           child: Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceBetween,
+                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                             children: [
-                                              Text(
+                                              const Text(
                                                 'Mahsulotlar Qoldig\'i',
                                                 style: TextStyle(
                                                   fontSize: 18,
                                                   fontWeight: FontWeight.bold,
                                                 ),
                                               ),
-                                              _buildWarehouseSelector(state),
+                                              _buildWarehouseSelector(inventory),
                                             ],
                                           ),
                                         ),
@@ -133,7 +126,7 @@ class _WarehouseScreenState extends State<WarehouseScreen> {
                                           child: filteredProducts.isEmpty
                                               ? _buildEmptySearch()
                                               : _buildProductsList(
-                                                  state,
+                                                  inventory,
                                                   filteredProducts,
                                                   isNarrow,
                                                 ),
@@ -145,14 +138,11 @@ class _WarehouseScreenState extends State<WarehouseScreen> {
                               ],
                             ),
                           ),
-                          // TAB 2: Stock History (Inputs)
-                          _buildHistoryList(state),
-                          // TAB 3: Returns History
-                          _buildReturnsList(state),
-                          // TAB 4: Write-offs History
-                          _buildWriteOffsList(state),
-                          // TAB 5: Inventory History
-                          _buildInventoriesList(state),
+                          _buildHistoryList(inventory),
+                          _buildTransferList(inventory),
+                          _buildReturnsList(sales, inventory),
+                          _buildWriteOffsList(sales),
+                          _buildInventoriesList(inventory),
                         ],
                       ),
                     ),
@@ -166,7 +156,7 @@ class _WarehouseScreenState extends State<WarehouseScreen> {
     );
   }
 
-  Widget _buildWarehouseSelector(AppState state) {
+  Widget _buildWarehouseSelector(InventoryProvider inventory) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
@@ -179,13 +169,13 @@ class _WarehouseScreenState extends State<WarehouseScreen> {
         underline: const SizedBox(),
         hint: const Text('Omborni tanlang'),
         icon: Icon(Icons.keyboard_arrow_down_rounded, color: Theme.of(context).colorScheme.primary),
-        items: state.warehouses.map((w) => DropdownMenuItem(value: w.id, child: Text(w.name))).toList(),
+        items: inventory.warehouses.map((w) => DropdownMenuItem(value: w.id, child: Text(w.name))).toList(),
         onChanged: (val) => setState(() => selectedWarehouseId = val),
       ),
     );
   }
 
-  Widget _buildHeader(AppState state, bool isNarrow) {
+  Widget _buildHeader(InventoryProvider inventory, bool isNarrow) {
     return Container(
       padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
       decoration: BoxDecoration(
@@ -194,158 +184,96 @@ class _WarehouseScreenState extends State<WarehouseScreen> {
           bottom: BorderSide(color: Theme.of(context).dividerColor),
         ),
       ),
-      child: Column(
+      child: Row(
         children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      Theme.of(context).colorScheme.primary,
-                      Theme.of(context).colorScheme.secondary,
-                    ],
-                  ),
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: const Icon(Icons.inventory_2_rounded, color: Colors.white, size: 28),
-              ),
-              const SizedBox(width: 20),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Ombor Boshqaruvi',
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: -0.5,
-                        color: Theme.of(context).colorScheme.onSurface,
-                      ),
-                    ),
-                    Row(
-                      children: [
-                        Container(
-                          width: 8,
-                          height: 8,
-                          decoration: const BoxDecoration(
-                            color: Colors.green,
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Tizim faol: ${DateFormat('HH:mm').format(DateTime.now())}',
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w500,
-                            color: Theme.of(context).textTheme.bodySmall?.color?.withOpacity(0.7),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              if (!isNarrow) ...[
-                _buildModernAction(
-                  icon: Icons.add_rounded,
-                  label: 'Kirim',
-                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (c) => const StockEntryScreen())),
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-                const SizedBox(width: 8),
-                _buildModernAction(
-                  icon: Icons.undo_rounded,
-                  label: 'Vazvrat',
-                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (c) => const ReturnScreen())),
-                  color: Colors.orange,
-                ),
-                const SizedBox(width: 8),
-                _buildModernAction(
-                  icon: Icons.remove_circle_rounded,
-                  label: 'Chiqit',
-                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (c) => const WriteOffScreen())),
-                  color: Colors.red,
-                ),
-                const SizedBox(width: 8),
-                _buildModernAction(
-                  icon: Icons.fact_check_rounded,
-                  label: 'Inventar',
-                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (c) => const InventoryScreen())),
-                  color: Colors.teal,
-                ),
-                const SizedBox(width: 8),
-                _buildModernAction(
-                  icon: Icons.swap_horiz_rounded,
-                  label: 'O\'tkazma',
-                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (c) => const StockTransferScreen())),
-                  color: Colors.indigo,
-                ),
-                const SizedBox(width: 8),
-                _buildModernAction(
-                  icon: Icons.qr_code_2_rounded,
-                  label: 'Shtrix-kod',
-                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (c) => const BarcodePrintScreen())),
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-                const SizedBox(width: 12),
-                _buildModernAction(
-                  icon: Icons.refresh_rounded,
-                  onTap: () => state.reloadData(),
-                  color: Theme.of(context).dividerColor.withOpacity(0.05),
-                  iconColor: Theme.of(context).colorScheme.primary,
-                ),
-                if (widget.onMenuPressed != null) ...[
-                  const SizedBox(width: 8),
-                  _buildModernAction(
-                    icon: Icons.menu_rounded,
-                    onTap: widget.onMenuPressed!,
-                    color: Theme.of(context).dividerColor.withOpacity(0.05),
-                    iconColor: Theme.of(context).colorScheme.primary,
-                  ),
-                ],
-              ],
-            ],
-          ),
-          if (isNarrow) ...[
-            const SizedBox(height: 24),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: [
-                  _buildModernAction(
-                    icon: Icons.add_rounded,
-                    label: 'Kirim',
-                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (c) => const StockEntryScreen())),
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                  const SizedBox(width: 12),
-                  _buildModernAction(
-                    icon: Icons.undo_rounded,
-                    label: 'Vazvrat',
-                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (c) => const ReturnScreen())),
-                    color: Colors.orange,
-                  ),
-                  const SizedBox(width: 12),
-                  _buildModernAction(
-                    icon: Icons.remove_circle_rounded,
-                    label: 'Chiqarish',
-                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (c) => const WriteOffScreen())),
-                    color: Colors.red,
-                  ),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  Theme.of(context).colorScheme.primary,
+                  Theme.of(context).colorScheme.secondary,
                 ],
               ),
+              borderRadius: BorderRadius.circular(16),
             ),
+            child: const Icon(Icons.inventory_2_rounded, color: Colors.white, size: 28),
+          ),
+          const SizedBox(width: 20),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Ombor Boshqaruvi',
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: -0.5,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                ),
+                Text(
+                   'Tizim faol: ${DateFormat('HH:mm').format(DateTime.now())}',
+                   style: TextStyle(fontSize: 13, color: Colors.grey.shade500),
+                ),
+              ],
+            ),
+          ),
+          if (!isNarrow) ...[
+            _buildModernAction(
+              icon: Icons.add_rounded,
+              label: 'Kirim',
+              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (c) => const StockEntryScreen())),
+              color: Theme.of(context).colorScheme.primary,
+            ),
+            const SizedBox(width: 8),
+            _buildModernAction(
+              icon: Icons.swap_horiz_rounded,
+              label: 'O\'tkazma',
+              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (c) => const StockTransferScreen())),
+              color: Colors.indigo,
+            ),
+            const SizedBox(width: 8),
+            _buildModernAction(
+              icon: Icons.undo_rounded,
+              label: 'Vazvrat',
+              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (c) => const ReturnScreen())),
+              color: Colors.orange,
+            ),
+            const SizedBox(width: 8),
+            _buildModernAction(
+              icon: Icons.remove_circle_rounded,
+              label: 'Chiqit',
+              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (c) => const WriteOffScreen())),
+              color: Colors.red,
+            ),
+            const SizedBox(width: 8),
+            _buildModernAction(
+              icon: Icons.fact_check_rounded,
+              label: 'Inventar',
+              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (c) => const InventoryScreen())),
+              color: Colors.teal,
+            ),
+            const SizedBox(width: 8),
+            _buildModernAction(
+              icon: Icons.qr_code_2_rounded,
+              label: 'Printer',
+              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (c) => const BarcodePrintScreen())),
+              color: Colors.blueGrey,
+            ),
+            const SizedBox(width: 12),
+            IconButton(
+              icon: Icon(Icons.refresh_rounded, color: Theme.of(context).colorScheme.primary),
+              onPressed: () => inventory.reloadData(),
+            ),
+            if (widget.onMenuPressed != null) ...[
+              const SizedBox(width: 8),
+              IconButton(
+                icon: Icon(Icons.menu_rounded, color: Theme.of(context).colorScheme.primary),
+                onPressed: widget.onMenuPressed,
+              ),
+            ],
           ],
         ],
       ),
@@ -357,39 +285,26 @@ class _WarehouseScreenState extends State<WarehouseScreen> {
     String? label,
     required VoidCallback onTap,
     required Color color,
-    Color? iconColor,
   }) {
-    final bool isDark = color.computeLuminance() < 0.5;
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(14),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: EdgeInsets.symmetric(horizontal: label != null ? 18 : 14, vertical: 12),
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
-          color: color,
-          borderRadius: BorderRadius.circular(14),
-          boxShadow: isDark ? [
-            BoxShadow(
-              color: color.withOpacity(0.3),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ] : null,
+          color: color.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: color.withOpacity(0.2)),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, color: iconColor ?? (isDark ? Colors.white : Theme.of(context).colorScheme.onSurface), size: 22),
+            Icon(icon, color: color, size: 20),
             if (label != null) ...[
-              const SizedBox(width: 10),
+              const SizedBox(width: 8),
               Text(
                 label,
-                style: TextStyle(
-                  color: isDark ? Colors.white : Theme.of(context).colorScheme.onSurface,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 14,
-                ),
+                style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 13),
               ),
             ],
           ],
@@ -398,185 +313,191 @@ class _WarehouseScreenState extends State<WarehouseScreen> {
     );
   }
 
-  Widget _buildStatsRow(AppState state, double width) {
-    final totalProducts = state.activeProducts.length;
-    final lowStockCount = state.activeProducts.where((p) {
+  Widget _buildStatsRow(InventoryProvider inventory, double width) {
+    final totalProducts = inventory.activeProducts.length;
+    final lowStockCount = inventory.activeProducts.where((p) {
       final stock = p.stocks[selectedWarehouseId] ?? 0;
       return stock <= 5;
     }).length;
 
     double totalSaleValue = 0;
-    double totalCostValue = 0;
-
-    for (var p in state.activeProducts) {
+    for (var p in inventory.activeProducts) {
       final stock = p.stocks[selectedWarehouseId] ?? 0;
-      if (stock > 0) {
-        totalSaleValue += (stock * p.price);
-        totalCostValue += (stock * (p.costPrice));
-      }
+      totalSaleValue += (stock * p.price);
     }
 
     int crossAxisCount = width < 600 ? 1 : width < 1200 ? 2 : 4;
-
     return GridView.count(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       crossAxisCount: crossAxisCount,
       crossAxisSpacing: 24,
       mainAxisSpacing: 24,
-      childAspectRatio: 2.2,
+      childAspectRatio: 3,
       children: [
-        _buildStatCard(
-          'Jami Mahsulotlar',
-          totalProducts.toString(),
-          Icons.inventory_2_rounded,
-          const [Color(0xFF6366F1), Color(0xFF4338CA)],
-        ),
-        _buildStatCard(
-          'Kam qolganlar',
-          lowStockCount.toString(),
-          Icons.warning_amber_rounded,
-          const [Color(0xFFF59E0B), Color(0xFFD97706)],
-        ),
-        _buildStatCard(
-          'Zaxira (Sotuv)',
-          '${NumberFormat.compact(locale: 'uz_UZ').format(totalSaleValue)} so\'m',
-          Icons.payments_rounded,
-          const [Color(0xFF10B981), Color(0xFF059669)],
-          subtitle: 'Sotuv narxi bo\'yicha',
-        ),
-        _buildStatCard(
-          'Zaxira (Tannarx)',
-          '${NumberFormat.compact(locale: 'uz_UZ').format(totalCostValue)} so\'m',
-          Icons.account_balance_rounded,
-          const [Color(0xFF8B5CF6), Color(0xFF6D28D9)],
-          subtitle: 'Tannarx bo\'yicha',
-        ),
+        _buildStatCard('Jami Mahsulotlar', totalProducts.toString(), Icons.inventory_2_rounded, Colors.indigo),
+        _buildStatCard('Kam qolganlar', lowStockCount.toString(), Icons.warning_amber_rounded, Colors.orange),
+        _buildStatCard('Zaxira qiymati', '${NumberFormat.compact(locale: 'uz_UZ').format(totalSaleValue)} so\'m', Icons.payments_rounded, Colors.green),
+        _buildStatCard('Kirimlar (Bugun)', inventory.stockEntries.length.toString(), Icons.add_circle_outline_rounded, Colors.blue),
       ],
     );
   }
 
-  Widget _buildStatCard(String title, String value, IconData icon, List<Color> gradient, {String? subtitle}) {
+  Widget _buildStatCard(String title, String value, IconData icon, Color color) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: LinearGradient(colors: gradient, begin: Alignment.topLeft, end: Alignment.bottomRight),
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: gradient[0].withOpacity(0.3),
-            blurRadius: 15,
-            offset: const Offset(0, 6),
-          ),
-        ],
+        border: Border.all(color: Theme.of(context).dividerColor),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
+      child: Row(
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Icon(icon, color: Colors.white.withOpacity(0.9), size: 24),
-              if (subtitle != null)
-                Text(
-                  subtitle,
-                  style: TextStyle(color: Colors.white.withOpacity(0.6), fontSize: 10, fontWeight: FontWeight.bold),
-                ),
-            ],
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(color: color.withOpacity(0.1), shape: BoxShape.circle),
+            child: Icon(icon, color: color, size: 24),
           ),
-          const SizedBox(height: 12),
-          Text(
-            title,
-            style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 12, fontWeight: FontWeight.w600),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            value,
-            style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w900, letterSpacing: -0.5),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(title, style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
+                Text(value, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18)),
+              ],
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildProductsList(AppState state, List<Product> products, bool isNarrow) {
-    return ListView.separated(
-      padding: const EdgeInsets.all(20),
+  Widget _buildProductsList(InventoryProvider inventory, List<Product> products, bool isNarrow) {
+     return ListView.separated(
+      padding: const EdgeInsets.all(24),
       itemCount: products.length,
-      separatorBuilder: (context, index) => const SizedBox(height: 12),
-      itemBuilder: (context, index) {
-        final product = products[index];
+      separatorBuilder: (c, i) => const Divider(),
+      itemBuilder: (c, i) {
+        final product = products[i];
         final stock = product.stocks[selectedWarehouseId] ?? 0;
         final isLow = stock <= 5;
+        return ListTile(
+          leading: Icon(Icons.shopping_bag_outlined, color: isLow ? Colors.orange : Colors.grey),
+          title: Text(product.name, style: const TextStyle(fontWeight: FontWeight.bold)),
+          subtitle: Text(product.barcode),
+          trailing: Text(
+            '${stock.toStringAsFixed(0)} ${product.unit}',
+            style: TextStyle(
+              fontWeight: FontWeight.w900,
+              color: isLow ? Colors.orange : Theme.of(context).colorScheme.primary,
+            ),
+          ),
+        );
+      },
+     );
+  }
 
+  Widget _buildEmptySearch() => const Center(child: Text('Mahsulot topilmadi'));
+
+  Widget _buildHistoryList(InventoryProvider inventory) {
+    return _buildMovementList(
+      'Kirim',
+      inventory.stockEntries.cast<dynamic>(),
+      inventory,
+      (entry) => 'Kirim #${entry.id.substring(0, 8)}',
+      (entry) => entry.date.toString().substring(0, 16),
+      Colors.blue,
+      (entry) => inventory.deleteStockEntry(entry.id),
+      (entry) { Navigator.push(context, MaterialPageRoute(builder: (_) => StockEntryScreen(entry: entry))); },
+    );
+  }
+
+  Widget _buildTransferList(InventoryProvider inventory) {
+    return _buildMovementList(
+      'O\'tkazma',
+      inventory.transfers.cast<dynamic>(),
+      inventory,
+      (entry) => 'O\'tkazma #${entry.id.substring(0, 8)}',
+      (entry) => '${entry.fromWarehouseId} -> ${entry.toWarehouseId}',
+      Colors.indigo,
+      (entry) => inventory.deleteStockTransfer(entry.id),
+      (entry) { Navigator.push(context, MaterialPageRoute(builder: (_) => StockTransferScreen(transfer: entry))); },
+    );
+  }
+
+  Widget _buildReturnsList(SalesProvider sales, InventoryProvider inventory) {
+    return _buildMovementList(
+      'Vazvrat',
+      sales.returns.cast<dynamic>(),
+      inventory,
+      (entry) => 'Vazvrat #${entry.id.substring(0, 8)}',
+      (entry) => 'Sotuv #${entry.saleId.substring(0, 8)}',
+      Colors.orange,
+      (entry) => sales.deleteReturn(entry.id),
+      (entry) { Navigator.push(context, MaterialPageRoute(builder: (_) => ReturnScreen(saleReturn: entry))); },
+    );
+  }
+
+  Widget _buildWriteOffsList(SalesProvider sales) {
+    return _buildMovementList(
+      'Chiqit',
+      sales.writeOffs.cast<dynamic>(),
+      null,
+      (entry) => 'Chiqit #${entry.id.substring(0, 8)}',
+      (entry) => entry.date.toString().substring(0, 16),
+      Colors.red,
+      (entry) => sales.deleteWriteOff(entry.id),
+      (entry) { Navigator.push(context, MaterialPageRoute(builder: (_) => WriteOffScreen(writeOff: entry))); },
+    );
+  }
+
+  Widget _buildInventoriesList(InventoryProvider inventory) {
+    return _buildMovementList(
+      'Inventar',
+      inventory.inventories.cast<dynamic>(),
+      inventory,
+      (entry) => 'Inventar #${entry.id.substring(0, 8)}',
+      (entry) => entry.date.toString().substring(0, 16),
+      Colors.teal,
+      (entry) => inventory.deleteInventory(entry.id),
+      (entry) { Navigator.push(context, MaterialPageRoute(builder: (_) => InventoryScreen(inventory: entry))); },
+    );
+  }
+
+  Widget _buildMovementList(
+    String type,
+    List<dynamic> list,
+    InventoryProvider? inventory,
+    String Function(dynamic) title,
+    String Function(dynamic) subtitle,
+    Color color,
+    Future<void> Function(dynamic) onDelete,
+    void Function(dynamic) onEdit,
+  ) {
+    if (list.isEmpty) return Center(child: Text('$type ma\'lumotlari mavjud emas'));
+    return ListView.builder(
+      padding: const EdgeInsets.all(24),
+      itemCount: list.length,
+      itemBuilder: (context, index) {
+        final entry = list[index];
         return Container(
+          margin: const EdgeInsets.only(bottom: 12),
           decoration: BoxDecoration(
             color: Theme.of(context).cardColor,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Theme.of(context).dividerColor.withOpacity(0.5)),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.02),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
+            border: Border.all(color: Theme.of(context).dividerColor),
           ),
           child: ListTile(
-            contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-            leading: Container(
-              width: 50,
-              height: 50,
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary.withOpacity(0.05),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: product.imagePath != null
-                  ? ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: Image.file(File(product.imagePath!), fit: BoxFit.cover),
-                    )
-                  : Icon(Icons.shopping_bag_outlined, color: Theme.of(context).colorScheme.primary),
-            ),
-            title: Text(
-              product.name,
-              style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
-            ),
-            subtitle: Text(
-              product.barcode,
-              style: TextStyle(color: Theme.of(context).textTheme.bodySmall?.color, fontSize: 12),
-            ),
-            trailing: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.end,
+            leading: CircleAvatar(backgroundColor: color.withOpacity(0.1), child: Icon(Icons.history, color: color, size: 20)),
+            title: Text(title(entry), style: const TextStyle(fontWeight: FontWeight.bold)),
+            subtitle: Text(subtitle(entry)),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: isLow ? Colors.red.withOpacity(0.1) : Colors.green.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    '${stock.toStringAsFixed(0)} ${product.unit}',
-                    style: TextStyle(
-                      color: isLow ? Colors.red : Colors.green[700],
-                      fontWeight: FontWeight.w900,
-                      fontSize: 13,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '${NumberFormat.currency(locale: 'uz_UZ', symbol: '', decimalDigits: 0).format(product.price)} so\'m',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 12,
-                    color: Theme.of(context).textTheme.bodySmall?.color,
-                  ),
-                ),
+                IconButton(icon: const Icon(Icons.edit_rounded, size: 20), onPressed: () => onEdit(entry)),
+                IconButton(icon: const Icon(Icons.delete_rounded, color: Colors.grey, size: 20), onPressed: () => _confirmDelete(context, 'O\'chirishni tasdiqlaysizmi?', () => onDelete(entry))),
               ],
             ),
           ),
@@ -585,375 +506,23 @@ class _WarehouseScreenState extends State<WarehouseScreen> {
     );
   }
 
-  Widget _buildEmptySearch() => Center(
-    child: Text('Mahsulot topilmadi', style: TextStyle(color: Colors.grey)),
-  );
-
-  Widget _buildHistoryList(AppState state) {
-    if (state.stockEntries.isEmpty) {
-      return Center(
-        child: Text(
-          'Kirim hujjatlari mavjud emas',
-          style: TextStyle(color: Colors.grey),
-        ),
-      );
-    }
-
-    return ListView.builder(
-      padding: const EdgeInsets.all(24),
-      itemCount: state.stockEntries.length,
-      itemBuilder: (context, index) {
-        final entry = state.stockEntries[index];
-        final warehouse = state.warehouses.firstWhere(
-          (w) => w.id == entry.warehouseId,
-          orElse: () => Warehouse(id: '', name: 'Noma\'lum'),
-        );
-
-        return _buildLogCard(
-          'Kirim #${entry.id.substring(0, 8)}',
-          '${warehouse.name} • ${entry.date.toString().substring(0, 16)}',
-          entry.items.length.toString(),
-          Theme.of(context).colorScheme.primary,
-          [
-            if (entry.description.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.info_outline, size: 14, color: Colors.grey),
-                    SizedBox(width: 8),
-                    Text(
-                      entry.description,
-                      style: TextStyle(color: Colors.grey, fontSize: 13),
-                    ),
-                  ],
-                ),
-              ),
-            const Divider(),
-            ...entry.items.map(
-              (item) => ListTile(
-                title: Text(item.productName),
-                trailing: Text(
-                  '+${item.quantity}',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w900,
-                    color: Colors.green,
-                  ),
-                ),
-              ),
-            ),
-          ],
-          onDelete: () => _confirmDelete(
-            context,
-            'Kirimni bekor qilmoqchimisiz?',
-            () => state.deleteStockEntry(entry.id),
-          ),
-          onEdit: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => StockEntryScreen(entry: entry)),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildReturnsList(AppState state) {
-    if (state.returns.isEmpty) {
-      return Center(
-        child: Text(
-          'Vazvratlar mavjud emas',
-          style: TextStyle(color: Colors.grey),
-        ),
-      );
-    }
-    return ListView.builder(
-      padding: const EdgeInsets.all(24),
-      itemCount: state.returns.length,
-      itemBuilder: (context, index) {
-        final ret = state.returns[index];
-        return _buildLogCard(
-          'Vazvrat #${ret.id.substring(0, 8)}',
-          'Sotuv #${ret.saleId.substring(0, 8)} • ${ret.date.toString().substring(0, 16)}',
-          ret.items.length.toString(),
-          Colors.orange,
-          ret.items
-              .map(
-                (i) => ListTile(
-                  title: Text(i.productName),
-                  trailing: Text('${i.quantity} x ${i.price}'),
-                ),
-              )
-              .toList(),
-          onDelete: () => _confirmDelete(
-            context,
-            'Vazvratni bekor qilmoqchimisiz?',
-            () => state.deleteReturn(ret.id),
-          ),
-          onEdit: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => ReturnScreen(saleReturn: ret)),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildWriteOffsList(AppState state) {
-    if (state.writeOffs.isEmpty) {
-      return Center(
-        child: Text(
-          'Hisobdan chiqarishlar mavjud emas',
-          style: TextStyle(color: Colors.grey),
-        ),
-      );
-    }
-    return ListView.builder(
-      padding: const EdgeInsets.all(24),
-      itemCount: state.writeOffs.length,
-      itemBuilder: (context, index) {
-        final wo = state.writeOffs[index];
-        return _buildLogCard(
-          'Hisobdan chiqarish #${wo.id.substring(0, 8)}',
-          wo.date.toString().substring(0, 16),
-          wo.items.length.toString(),
-          Colors.redAccent,
-          wo.items
-              .map(
-                (i) => ListTile(
-                  title: Text(i.productName),
-                  trailing: Text('-${i.quantity}'),
-                ),
-              )
-              .toList(),
-          onDelete: () => _confirmDelete(
-            context,
-            'Hisobdan chiqarishni bekor qilmoqchimisiz?',
-            () => state.deleteWriteOff(wo.id),
-          ),
-          onEdit: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => WriteOffScreen(writeOff: wo)),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildInventoriesList(AppState state) {
-    if (state.inventories.isEmpty) {
-      return Center(
-        child: Text(
-          'Inventarizatsiyalar mavjud emas',
-          style: TextStyle(color: Colors.grey),
-        ),
-      );
-    }
-    return ListView.builder(
-      padding: const EdgeInsets.all(24),
-      itemCount: state.inventories.length,
-      itemBuilder: (context, index) {
-        final inv = state.inventories[index];
-        return _buildLogCard(
-          'Inventarizatsiya #${inv.id.substring(0, 8)}',
-          inv.date.toString().substring(0, 16),
-          inv.items.length.toString(),
-          Colors.teal,
-          inv.items
-              .map(
-                (i) => ListTile(
-                  title: Text(i.productName),
-                  subtitle: Text('Kutilgan: ${i.expectedQuantity}'),
-                  trailing: Text(
-                    'Haqiqiy: ${i.actualQuantity}',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                ),
-              )
-              .toList(),
-          onDelete: () => _confirmDelete(
-            context,
-            'Inventarizatsiyani bekor qilmoqchimisiz?',
-            () => state.deleteInventory(inv.id),
-          ),
-          onEdit: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => InventoryScreen(inventory: inv)),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildLogCard(
-    String title,
-    String subtitle,
-    String count,
-    Color color,
-    List<Widget> items, {
-    VoidCallback? onDelete,
-    VoidCallback? onEdit,
-  }) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Theme.of(context).dividerColor),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(
-              Theme.of(context).brightness == Brightness.dark ? 0.3 : 0.02,
-            ),
-            blurRadius: 10,
-          ),
-        ],
-      ),
-      child: ExpansionTile(
-        leading: CircleAvatar(
-          backgroundColor: color.withOpacity(0.1),
-          child: Icon(Icons.description, color: color, size: 20),
-        ),
-        title: Text(title, style: TextStyle(fontWeight: FontWeight.bold)),
-        subtitle: Text(subtitle),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              '$count ta tur',
-              style: TextStyle(fontWeight: FontWeight.bold, color: color),
-            ),
-            const SizedBox(width: 8),
-            if (onEdit != null)
-              IconButton(
-                icon: Icon(Icons.edit_note_rounded, color: Colors.blue.shade700, size: 22),
-                onPressed: onEdit,
-                tooltip: 'Tahrirlash',
-              ),
-            if (onDelete != null)
-              IconButton(
-                icon: Icon(Icons.delete_sweep_rounded, color: Colors.red.shade400, size: 22),
-                onPressed: onDelete,
-                tooltip: 'O\'chirish',
-              ),
-          ],
-        ),
-        children: items,
-      ),
-    );
-  }
-
-  void _confirmDelete(
-    BuildContext context,
-    String message,
-    Future<void> Function() action,
-  ) {
+  void _confirmDelete(BuildContext context, String message, Future<void> Function() action) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Tasdiqlash'),
+      builder: (ctx) => AlertDialog(
+        title: const Text('Tasdiqlash'),
         content: Text(message),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('Yo\'q'),
-          ),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Bekor')),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.redAccent,
-              foregroundColor: Colors.white,
-            ),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
             onPressed: () async {
               await action();
-              if (mounted) Navigator.pop(context);
+              if (mounted) Navigator.pop(ctx);
             },
-            child: Text('Ha, bekor qilinsin'),
+            child: const Text('O\'chirish'),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildActionButtons(AppState state) {
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      children: [
-        _buildActionButton(
-          'Kirim',
-          Icons.add,
-          Theme.of(context).colorScheme.primary,
-          () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const StockEntryScreen()),
-          ),
-        ),
-        _buildActionButton(
-          'Vazvrat',
-          Icons.settings_backup_restore_rounded,
-          Colors.orange,
-          () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const ReturnScreen()),
-          ),
-        ),
-        _buildActionButton(
-          'Chiqarish',
-          Icons.remove_circle_outline,
-          Colors.redAccent,
-          () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const WriteOffScreen()),
-          ),
-        ),
-        _buildActionButton(
-          'Inventar',
-          Icons.fact_check_outlined,
-          Colors.teal,
-          () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const InventoryScreen()),
-          ),
-        ),
-        _buildActionButton(
-          'O\'tkazma',
-          Icons.swap_horiz_rounded,
-          Colors.indigo,
-          () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const StockTransferScreen()),
-          ),
-        ),
-        _buildActionButton(
-          'Shtrix-kod',
-          Icons.qr_code_2_rounded,
-          Theme.of(context).colorScheme.primary,
-          () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => BarcodePrintScreen()),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildActionButton(
-    String label,
-    IconData icon,
-    Color color,
-    VoidCallback onTap,
-  ) {
-    return ElevatedButton.icon(
-      onPressed: onTap,
-      icon: Icon(icon, size: 18),
-      label: Text(label, style: TextStyle(fontSize: 12)),
-      style: ElevatedButton.styleFrom(
-        backgroundColor: color,
-        foregroundColor: Colors.white,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
     );
   }

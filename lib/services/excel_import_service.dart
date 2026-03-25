@@ -4,14 +4,13 @@ import 'package:excel/excel.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:path_provider/path_provider.dart';
 import '../models/models.dart';
-import '../providers/app_state.dart';
+import '../providers/features/inventory_provider.dart';
 import 'database_service.dart';
 
 class ExcelImportService {
-  static Future<void> importProducts(BuildContext context) async {
-    final state = Provider.of<AppState>(context, listen: false);
+  static Future<void> importFromExcel(BuildContext context) async {
+    final inventory = Provider.of<InventoryProvider>(context, listen: false);
 
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
@@ -20,7 +19,7 @@ class ExcelImportService {
 
     if (result == null || result.files.single.path == null) return;
 
-    // Show loading indicator during parse
+    // Show loading indicator
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -32,7 +31,7 @@ class ExcelImportService {
       var bytes = file.readAsBytesSync();
       var excel = Excel.decodeBytes(bytes);
 
-      Navigator.pop(context); // Close parsing indicator
+      Navigator.pop(context); // Close indicator
 
       if (excel.tables.isEmpty) {
         _showError(context, 'Excel fayli bo\'sh yoki noto\'g\'ri');
@@ -50,7 +49,7 @@ class ExcelImportService {
       
       var headerRow = sheet.rows[0];
       for (int i = 0; i < headerRow.length; i++) {
-          String val = headerRow[i]?.value?.toString().toLowerCase() ?? '';
+          String val = _getCellValue(headerRow[i]).toLowerCase();
           if (val.contains('nom') || val.contains('name')) nameIdx = i;
           else if (val.contains('tur') || val.contains('categor') || val.contains('kat')) catIdx = i;
           else if (val.contains('sotish') || val.contains('price') || val.contains('narx')) priceIdx = i;
@@ -66,17 +65,18 @@ class ExcelImportService {
         var row = sheet.rows[i];
         if (row.length <= nameIdx || row[nameIdx]?.value == null) continue;
 
-        String name = row[nameIdx]?.value?.toString() ?? '';
-        String categoryName = (row.length > catIdx ? row[catIdx]?.value?.toString() : null) ?? 'Boshqa';
+        String name = _getCellValue(row[nameIdx]);
+        String categoryName = (row.length > catIdx ? _getCellValue(row[catIdx]) : '') ;
+        if (categoryName.isEmpty) categoryName = 'Boshqa';
         
-        dynamic priceVal = row.length > priceIdx ? row[priceIdx]?.value : 0;
-        double price = double.tryParse(priceVal?.toString() ?? '0') ?? 0.0;
+        String priceStr = row.length > priceIdx ? _getCellValue(row[priceIdx]) : '0';
+        double price = _parseRobustDouble(priceStr);
         
-        dynamic costVal = row.length > costIdx ? row[costIdx]?.value : 0;
-        double costPrice = double.tryParse(costVal?.toString() ?? '0') ?? 0.0;
+        String costStr = row.length > costIdx ? _getCellValue(row[costIdx]) : '0';
+        double costPrice = _parseRobustDouble(costStr);
         
-        String barcode = (row.length > barcodeIdx ? row[barcodeIdx]?.value?.toString() : null) ?? '';
-        String unit = (row.length > unitIdx ? row[unitIdx]?.value?.toString() : null) ?? 'dona';
+        String barcode = (row.length > barcodeIdx ? _getCellValue(row[barcodeIdx]) : '');
+        String unit = (row.length > unitIdx ? _getCellValue(row[unitIdx]) : 'dona');
 
         excelCategories.add(categoryName);
         rawRows.add({
@@ -95,7 +95,7 @@ class ExcelImportService {
       }
 
       // Category mapping
-      Map<String, String>? mapping = await _showMappingDialog(context, excelCategories.toList(), state);
+      Map<String, String>? mapping = await _showMappingDialog(context, excelCategories.toList(), inventory);
       if (mapping == null) return;
 
       // Final Import
@@ -108,7 +108,7 @@ class ExcelImportService {
       int count = 0;
       for (var r in rawRows) {
         String catId = mapping[r['categoryName']]!;
-        await state.addProduct(Product.create(
+        await inventory.saveProduct(Product.create(
           r['name'],
           r['price'],
           catId,
@@ -119,7 +119,7 @@ class ExcelImportService {
         count++;
       }
 
-      Navigator.pop(context); // Close import indicator
+      Navigator.pop(context); // Close indicator
       _showSuccess(context, '$count ta mahsulot muvaffaqiyatli qo\'shildi');
 
     } catch (e) {
@@ -129,11 +129,11 @@ class ExcelImportService {
   }
 
   static Future<Map<String, String>?> _showMappingDialog(
-      BuildContext context, List<String> excelCats, AppState state) async {
+      BuildContext context, List<String> excelCats, InventoryProvider inventory) async {
     
     Map<String, String> mapping = {};
     for (var cat in excelCats) {
-      final match = state.activeCategories.firstWhere(
+      final match = inventory.activeCategories.firstWhere(
         (c) => c.name.toLowerCase() == cat.toLowerCase(),
         orElse: () => Category(id: '', name: ''),
       );
@@ -171,7 +171,7 @@ class ExcelImportService {
                             hint: const Text('Tanlang...'),
                             items: [
                               const DropdownMenuItem(value: '__new__', child: Text('+ Yangi yaratish', style: TextStyle(color: Colors.green))),
-                              ...state.activeCategories.map((c) => DropdownMenuItem(value: c.id, child: Text(c.name))),
+                              ...inventory.activeCategories.map((c) => DropdownMenuItem(value: c.id, child: Text(c.name))),
                             ],
                             onChanged: (val) => setState(() => mapping[cat] = val!),
                           ),
@@ -179,18 +179,6 @@ class ExcelImportService {
                       ],
                     ),
                   )),
-                  if (remaining.length > 2) ...[
-                    const Divider(),
-                    TextButton.icon(
-                      icon: const Icon(Icons.auto_awesome),
-                      label: const Text('Mavjud bo\'lmaganlarni hammasini yangi yaratish'),
-                      onPressed: () {
-                        setState(() {
-                          for (var r in remaining) mapping[r] = '__new__';
-                        });
-                      },
-                    ),
-                  ],
                 ],
               ),
             ),
@@ -201,7 +189,11 @@ class ExcelImportService {
               onPressed: mapping.length == excelCats.length ? () async {
                 for (var key in mapping.keys.toList()) {
                   if (mapping[key] == '__new__') {
-                    final newCat = await state.addCategory(key);
+                    final newCat = Category(
+                      id: DateTime.now().millisecondsSinceEpoch.toString(),
+                      name: key,
+                    );
+                    await inventory.saveCategory(newCat);
                     mapping[key] = newCat.id;
                   }
                 }
@@ -215,53 +207,14 @@ class ExcelImportService {
     );
   }
 
-  static String _getCellValue(Data? data) {
-    if (data == null || data.value == null) return '';
-    var v = data.value;
-    if (v is TextCellValue) return v.value.toString().trim();
-    if (v is IntCellValue) return v.value.toString();
-    if (v is DoubleCellValue) {
-      String s = v.value.toString();
-      if (s.endsWith('.0')) return s.substring(0, s.length - 2);
-      return s;
-    }
-    if (v is BoolCellValue) return v.value.toString();
-    return v.toString().trim();
-  }
-
-  static double _parseRobustDouble(String val) {
-    if (val.isEmpty) return 0.0;
-    // Remove everything except numbers, decimal points, commas, and minus signs
-    String clean = val.replaceAll(RegExp(r'[^0-9.,-]'), '').trim();
-    if (clean.isEmpty) return 0.0;
-    
-    // Handle European format (1.234,56 -> 1234.56)
-    if (clean.contains(',') && clean.contains('.')) {
-      if (clean.indexOf('.') < clean.indexOf(',')) {
-        // Point is thousand separator
-        clean = clean.replaceAll('.', '').replaceAll(',', '.');
-      } else {
-        // Comma is thousand separator
-        clean = clean.replaceAll(',', '');
-      }
-    } else {
-      // Just one separator
-      clean = clean.replaceAll(',', '.');
-    }
-    
-    return double.tryParse(clean) ?? 0.0;
-  }
-
   static Future<List<StockEntryItem>?> parseStockEntryFile(BuildContext context) async {
-    final state = Provider.of<AppState>(context, listen: false);
+    final inventory = Provider.of<InventoryProvider>(context, listen: false);
     
     try {
       final file = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['xlsx'],
       );
-
-      if (file == null || file.files.isEmpty) return null;
 
       if (file == null || file.files.isEmpty) return null;
 
@@ -279,21 +232,14 @@ class ExcelImportService {
         return null;
       }
 
-      // 1. Identify headers
-      int barcodeIdx = -1;
-      int nameIdx = -1;
-      int qtyIdx = -1;
-      int costIdx = -1;
-
+      int barcodeIdx = -1, nameIdx = -1, qtyIdx = -1, costIdx = -1;
       var headerRow = sheet.rows[0];
-      List<String> foundHeaders = [];
       for (int i = 0; i < headerRow.length; i++) {
         String h = _getCellValue(headerRow[i]).toLowerCase().trim();
-        foundHeaders.add(h);
-        if (h.contains('shtrix') || h.contains('barcode') || h.contains('barkod')) barcodeIdx = i;
-        if (h.contains('nomi') || h.contains('mahsulot') || h.contains('name')) nameIdx = i;
-        if (h.contains('soni') || h.contains('miqdor') || h.contains('qty') || h.contains('son')) qtyIdx = i;
-        if (h.contains('tannarx') || h.contains('cost') || h.contains('narxi')) costIdx = i;
+        if (h.contains('shtrix') || h.contains('barcode')) barcodeIdx = i;
+        if (h.contains('nomi') || h.contains('mahsulot')) nameIdx = i;
+        if (h.contains('soni') || h.contains('miqdor')) qtyIdx = i;
+        if (h.contains('tan') || h.contains('cost')) costIdx = i;
       }
 
       if (qtyIdx == -1 || (barcodeIdx == -1 && nameIdx == -1)) {
@@ -302,8 +248,6 @@ class ExcelImportService {
       }
 
       List<StockEntryItem> items = [];
-      int skipCount = 0;
-
       for (int i = 1; i < sheet.maxRows; i++) {
         var row = sheet.rows[i];
         if (row.isEmpty) continue;
@@ -321,10 +265,10 @@ class ExcelImportService {
 
         Product? product;
         if (barcode.isNotEmpty) {
-           product = state.activeProducts.where((p) => p.barcode == barcode || p.additionalBarcodes.contains(barcode)).firstOrNull;
+           product = inventory.activeProducts.where((p) => p.barcode == barcode || p.additionalBarcodes.contains(barcode)).firstOrNull;
         }
         if (product == null && name.isNotEmpty) {
-           product = state.activeProducts.where((p) => p.name.toLowerCase() == name.toLowerCase()).firstOrNull;
+           product = inventory.activeProducts.where((p) => p.name.toLowerCase() == name.toLowerCase()).firstOrNull;
         }
 
         if (product != null) {
@@ -334,27 +278,8 @@ class ExcelImportService {
             quantity: qty,
             costPrice: cost > 0 ? cost : product.costPrice,
           ));
-          if (cost > 0) {
-             await DatabaseService.updateProductCostPrice(product.id, cost);
-          }
-        } else {
-          skipCount++;
         }
       }
-
-      if (items.isEmpty) {
-        String msg = 'Exceldan mos mahsulotlar topilmadi.\n'
-                    'Tizim aniqlagan ustunlar: $foundHeaders\n'
-                    'Tekshiring:\n'
-                    '- Mahsulotlar bazada bormi? ($skipCount ta topilmadi)';
-        _showError(context, msg);
-        return null;
-      }
-
-      if (skipCount > 0) {
-        _showSuccess(context, '${items.length} ta mahsulot yuklandi. $skipCount ta mahsulot bazadan topilmadi.');
-      }
-
       return items;
     } catch (e) {
       _showError(context, 'Excel o\'qishda xato: $e');
@@ -363,8 +288,7 @@ class ExcelImportService {
   }
 
   static Future<void> importStockEntry(BuildContext context, String warehouseId) async {
-    final state = Provider.of<AppState>(context, listen: false);
-
+    final inventory = Provider.of<InventoryProvider>(context, listen: false);
     List<StockEntryItem>? items = await parseStockEntryFile(context);
     if (items == null || items.isEmpty) return;
 
@@ -377,113 +301,29 @@ class ExcelImportService {
         description: 'Exceldan import qilindi',
       );
 
-      await state.addStockEntry(entry);
-      await state.reloadData();
-      if (Navigator.canPop(context)) Navigator.pop(context); // Close loading indicator
+      await inventory.addStockEntry(entry);
       _showSuccess(context, '${items.length} ta mahsulot muvaffaqiyatli kirim qilindi.');
     } catch (e) {
-      if (Navigator.canPop(context)) Navigator.pop(context);
       _showError(context, 'Kirim qilishda xatolik: $e');
     }
   }
 
   static Future<void> downloadStockEntryTemplate(BuildContext context, List<Product> products) async {
-    final state = Provider.of<AppState>(context, listen: false);
-    final allCategories = state.activeCategories;
-    
-    List<String>? selectedCategoryIds = await showDialog<List<String>>(
-      context: context,
-      builder: (context) {
-        List<String> selected = allCategories.map((c) => c.id).toList();
-        return StatefulBuilder(
-          builder: (context, setDialogState) => AlertDialog(
-            title: const Text('Kategoriyalarni tanlang'),
-            content: SizedBox(
-              width: 400,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text('Shablonda qaysi turdagi mahsulotlar bo\'lishini xohlaysiz?'),
-                  const SizedBox(height: 12),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      TextButton.icon(
-                        onPressed: () => setDialogState(() => selected = allCategories.map((c) => c.id).toList()),
-                        icon: const Icon(Icons.select_all_rounded, size: 18),
-                        label: const Text('Hammasini tanlash', style: TextStyle(fontSize: 12)),
-                      ),
-                      TextButton.icon(
-                        onPressed: () => setDialogState(() => selected = []),
-                        icon: const Icon(Icons.deselect_rounded, size: 18),
-                        label: const Text('Hammasini o\'chirish', style: TextStyle(fontSize: 12)),
-                      ),
-                    ],
-                  ),
-                  const Divider(),
-                  Flexible(
-                    child: SingleChildScrollView(
-                      child: Column(
-                        children: allCategories.map((cat) => CheckboxListTile(
-                          title: Text(cat.name),
-                          value: selected.contains(cat.id),
-                          onChanged: (val) {
-                            setDialogState(() {
-                              if (val == true) selected.add(cat.id);
-                              else selected.remove(cat.id);
-                            });
-                          },
-                        )).toList(),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            actions: [
-              TextButton(onPressed: () => Navigator.pop(context), child: const Text('Bekor qilish')),
-              ElevatedButton(
-                onPressed: selected.isNotEmpty ? () => Navigator.pop(context, selected) : null,
-                child: const Text('Yuklab olish'),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-
-    if (selectedCategoryIds == null) return;
-
-    // Use activeProducts and deduplicate by id to avoid any duplicates
-    final seen = <String>{};
-    final filteredProducts = state.activeProducts
-        .where((p) => selectedCategoryIds.contains(p.categoryId) && seen.add(p.id))
-        .toList();
-    if (filteredProducts.isEmpty) {
-      _showError(context, 'Tanlangan kategoriyalar bo\'yicha mahsulotlar topilmadi');
-      return;
-    }
-
-    try {
+     final inventory = Provider.of<InventoryProvider>(context, listen: false);
+     try {
       var excel = Excel.createExcel();
       Sheet sheetObject = excel['Sheet1'];
 
-      // Headers
       sheetObject.cell(CellIndex.indexByString("A1")).value = TextCellValue("Shtrix kod");
       sheetObject.cell(CellIndex.indexByString("B1")).value = TextCellValue("Mahsulot nomi");
-      sheetObject.cell(CellIndex.indexByString("C1")).value = TextCellValue("Kategoriya");
-      sheetObject.cell(CellIndex.indexByString("D1")).value = TextCellValue("Soni");
-      sheetObject.cell(CellIndex.indexByString("E1")).value = TextCellValue("Tan narxi (ixtiyoriy)");
+      sheetObject.cell(CellIndex.indexByString("C1")).value = TextCellValue("Soni");
+      sheetObject.cell(CellIndex.indexByString("D1")).value = TextCellValue("Tan narxi (ixtiyoriy)");
 
-      // Fill products
-      for (int i = 0; i < filteredProducts.length; i++) {
-        final p = filteredProducts[i];
+      for (int i = 0; i < products.length; i++) {
+        final p = products[i];
         int row = i + 1;
         sheetObject.cell(CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: row)).value = TextCellValue(p.barcode);
         sheetObject.cell(CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: row)).value = TextCellValue(p.name);
-        
-        final cat = state.categories.where((c) => c.id == p.categoryId).firstOrNull;
-        sheetObject.cell(CellIndex.indexByColumnRow(columnIndex: 2, rowIndex: row)).value = TextCellValue(cat?.name ?? 'Boshqa');
       }
 
       var fileBytes = excel.save();
@@ -507,7 +347,6 @@ class ExcelImportService {
       var excel = Excel.createExcel();
       Sheet sheetObject = excel['Sheet1'];
 
-      // Headers
       sheetObject.cell(CellIndex.indexByString("A1")).value = TextCellValue("Mahsulot nomi");
       sheetObject.cell(CellIndex.indexByString("B1")).value = TextCellValue("Kategoriya");
       sheetObject.cell(CellIndex.indexByString("C1")).value = TextCellValue("Tan narxi");
@@ -515,23 +354,7 @@ class ExcelImportService {
       sheetObject.cell(CellIndex.indexByString("E1")).value = TextCellValue("Shtrix kod");
       sheetObject.cell(CellIndex.indexByString("F1")).value = TextCellValue("O'lchov birligi");
 
-      // Sample Data
-      sheetObject.cell(CellIndex.indexByString("A2")).value = TextCellValue("Olma (Qizil)");
-      sheetObject.cell(CellIndex.indexByString("B2")).value = TextCellValue("Mevalar");
-      sheetObject.cell(CellIndex.indexByString("C2")).value = IntCellValue(12000);
-      sheetObject.cell(CellIndex.indexByString("D2")).value = IntCellValue(15000);
-      sheetObject.cell(CellIndex.indexByString("E2")).value = TextCellValue("12345678");
-      sheetObject.cell(CellIndex.indexByString("F2")).value = TextCellValue("kg");
-
-      sheetObject.cell(CellIndex.indexByString("A3")).value = TextCellValue("Coca-Cola 1.5L");
-      sheetObject.cell(CellIndex.indexByString("B3")).value = TextCellValue("Ichimliklar");
-      sheetObject.cell(CellIndex.indexByString("C3")).value = IntCellValue(10000);
-      sheetObject.cell(CellIndex.indexByString("D3")).value = IntCellValue(12000);
-      sheetObject.cell(CellIndex.indexByString("E3")).value = TextCellValue("87654321");
-      sheetObject.cell(CellIndex.indexByString("F3")).value = TextCellValue("dona");
-
       var fileBytes = excel.save();
-      
       String? outputPath = await FilePicker.platform.saveFile(
         fileName: "shablon_mahsulotlar.xlsx",
         allowedExtensions: ['xlsx'],
@@ -539,14 +362,44 @@ class ExcelImportService {
       );
 
       if (outputPath != null) {
-        File(outputPath)
-          ..createSync(recursive: true)
-          ..writeAsBytesSync(fileBytes!);
-        _showSuccess(context, "Shablon saqlandi: $outputPath");
+        File(outputPath)..createSync(recursive: true)..writeAsBytesSync(fileBytes!);
+        _showSuccess(context, "Shablon saqlandi");
       }
     } catch (e) {
-      _showError(context, "Shablonni saqlashda xatolik: $e");
+      _showError(context, "Xatolik: $e");
     }
+  }
+
+  static String _getCellValue(Data? data) {
+    if (data == null || data.value == null) return '';
+    var v = data.value;
+    if (v is TextCellValue) return v.value.toString().trim();
+    if (v is IntCellValue) return v.value.toString();
+    if (v is DoubleCellValue) {
+      String s = v.value.toString();
+      if (s.endsWith('.0')) return s.substring(0, s.length - 2);
+      return s;
+    }
+    if (v is BoolCellValue) return v.value.toString();
+    return v.toString().trim();
+  }
+
+  static double _parseRobustDouble(String val) {
+    if (val.isEmpty) return 0.0;
+    String clean = val.replaceAll(RegExp(r'[^0-9.,-]'), '').trim();
+    if (clean.isEmpty) return 0.0;
+    
+    if (clean.contains(',') && clean.contains('.')) {
+      if (clean.indexOf('.') < clean.indexOf(',')) {
+        clean = clean.replaceAll('.', '').replaceAll(',', '.');
+      } else {
+        clean = clean.replaceAll(',', '');
+      }
+    } else {
+      clean = clean.replaceAll(',', '.');
+    }
+    
+    return double.tryParse(clean) ?? 0.0;
   }
 
   static void _showError(BuildContext context, String msg) {
@@ -555,21 +408,5 @@ class ExcelImportService {
 
   static void _showSuccess(BuildContext context, String msg) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg), backgroundColor: Colors.green));
-  }
-
-  static void _showLoading(BuildContext context, String msg) {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        content: Row(
-          children: [
-            const CircularProgressIndicator(),
-            const SizedBox(width: 20),
-            Text(msg),
-          ],
-        ),
-      ),
-    );
   }
 }

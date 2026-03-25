@@ -3,7 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
-import '../../providers/app_state.dart';
+import '../../providers/features/inventory_provider.dart';
+import '../../providers/features/sales_provider.dart';
+import '../../providers/features/settings_provider.dart';
+import '../../providers/features/auth_provider.dart';
 import '../../models/models.dart';
 import 'checkout_screen.dart';
 
@@ -34,12 +37,11 @@ class _POSScreenState extends State<POSScreen> {
 
     _searchFocusNode.addListener(() {
       if (!mounted) return;
-      final isScanMode = context.read<AppState>().isBarcodeScanMode;
-      if (isScanMode && !_searchFocusNode.hasFocus) {
-        // Use a longer delay to win against other widgets stealing focus
+      final settings = context.read<SettingsProvider>();
+      if (settings.isBarcodeScanMode && !_searchFocusNode.hasFocus) {
         Future.delayed(const Duration(milliseconds: 200), () {
           if (!mounted) return;
-          if (context.read<AppState>().isBarcodeScanMode) {
+          if (context.read<SettingsProvider>().isBarcodeScanMode) {
             _searchFocusNode.requestFocus();
           }
         });
@@ -57,10 +59,11 @@ class _POSScreenState extends State<POSScreen> {
 
   void _showQuantityDialog(
     BuildContext context,
-    AppState state,
+    InventoryProvider inventory,
+    SalesProvider sales,
     SaleItem item,
   ) {
-    final product = state.products
+    final product = inventory.products
         .where((p) => p.id == item.productId)
         .firstOrNull;
     final unit = product?.unit ?? 'dona';
@@ -73,7 +76,7 @@ class _POSScreenState extends State<POSScreen> {
       final text = controller.text.replaceAll(',', '.');
       final newQty = double.tryParse(text) ?? 0;
       try {
-        state.updateCartQuantity(item.productId, newQty);
+        sales.updateCartQuantity(item.productId, newQty);
         Navigator.pop(context);
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -221,10 +224,13 @@ class _POSScreenState extends State<POSScreen> {
     _lastBarcodeTime = now;
 
     try {
-      final state = context.read<AppState>();
-      state.addToCartByBarcode(barcode);
+      final inventory = context.read<InventoryProvider>();
+      final sales = context.read<SalesProvider>();
+      final settings = context.read<SettingsProvider>();
+      
+      sales.addToCartByBarcode(barcode, inventory.products);
 
-      final product = state.products.firstWhere(
+      final product = inventory.products.firstWhere(
         (p) => p.barcode == barcode || p.additionalBarcodes.contains(barcode),
         orElse: () => throw Exception('Mahsulot topilmadi'),
       );
@@ -254,12 +260,16 @@ class _POSScreenState extends State<POSScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final state = context.watch<AppState>();
-    final activeCategories = state.activeCategories;
+    final inventory = context.watch<InventoryProvider>();
+    final sales = context.watch<SalesProvider>();
+    final settings = context.watch<SettingsProvider>();
+    final auth = context.watch<AuthProvider>();
+
+    final activeCategories = inventory.activeCategories;
     final categories = ['Barchasi', ...activeCategories.map((c) => c.name)];
 
     final searchQuery = _normalize(_searchController.text);
-    final filteredProducts = state.activeProducts.where((p) {
+    final filteredProducts = inventory.activeProducts.where((p) {
       final category = activeCategories.any((c) => c.id == p.categoryId)
           ? activeCategories.firstWhere((c) => c.id == p.categoryId)
           : null;
@@ -295,11 +305,11 @@ class _POSScreenState extends State<POSScreen> {
             backgroundColor: Theme.of(context).scaffoldBackgroundColor,
             body: Row(
               children: [
-                if (!isMobile) _buildCartSidebar(state, 400),
+                if (!isMobile) _buildCartSidebar(sales, inventory, settings, auth, 400),
                 Expanded(
                   child: Column(
                     children: [
-                      _buildTopBar(state, isMobile),
+                      _buildTopBar(settings, inventory, isMobile),
                       _buildCategoryChips(categories),
                       Expanded(
                         child: Column(
@@ -310,7 +320,9 @@ class _POSScreenState extends State<POSScreen> {
                                   Expanded(
                                     child: _buildProductGrid(
                                       paginatedProducts,
-                                      state,
+                                      inventory,
+                                      sales,
+                                      settings,
                                       constraints.maxWidth,
                                     ),
                                   ),
@@ -347,13 +359,13 @@ class _POSScreenState extends State<POSScreen> {
                 ),
               ],
             ),
-            floatingActionButton: isMobile && state.cart.isNotEmpty
+            floatingActionButton: isMobile && sales.cart.isNotEmpty
                 ? FloatingActionButton.extended(
-                    onPressed: () => _showMobileCart(context, state),
+                    onPressed: () => _showMobileCart(context, sales, inventory, settings, auth),
                     backgroundColor: Theme.of(context).colorScheme.primary,
-                    icon: Icon(Icons.shopping_cart, color: Colors.white),
+                    icon: const Icon(Icons.shopping_cart, color: Colors.white),
                     label: Text(
-                      'Savat (${state.cart.length})',
+                      'Savat (${sales.cart.length})',
                       style: TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
@@ -367,7 +379,7 @@ class _POSScreenState extends State<POSScreen> {
     );
   }
 
-  Widget _buildTopBar(AppState state, bool isMobile) {
+  Widget _buildTopBar(SettingsProvider settings, InventoryProvider inventory, bool isMobile) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
       decoration: BoxDecoration(
@@ -415,7 +427,7 @@ class _POSScreenState extends State<POSScreen> {
                 onSubmitted: (v) {
                   _processBarcode(v);
                   _searchController.clear();
-                  if (state.isBarcodeScanMode) _searchFocusNode.requestFocus();
+                  if (settings.isBarcodeScanMode) _searchFocusNode.requestFocus();
                 },
                 style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
                 decoration: InputDecoration(
@@ -439,13 +451,13 @@ class _POSScreenState extends State<POSScreen> {
                         tooltip: 'Virtual klaviatura',
                       ),
                       _buildTopBarAction(
-                        icon: state.isBarcodeScanMode
+                        icon: settings.isBarcodeScanMode
                             ? Icons.qr_code_scanner_rounded
                             : Icons.barcode_reader,
-                        isActive: state.isBarcodeScanMode,
+                        isActive: settings.isBarcodeScanMode,
                         onTap: () {
-                          state.toggleBarcodeScanMode();
-                           final nowScanMode = context.read<AppState>().isBarcodeScanMode;
+                          settings.toggleBarcodeScanMode();
+                           final nowScanMode = context.read<SettingsProvider>().isBarcodeScanMode;
                           if (nowScanMode) {
                             setState(() => _showKeyboard = false);
                             Future.delayed(const Duration(milliseconds: 100), () {
@@ -458,12 +470,12 @@ class _POSScreenState extends State<POSScreen> {
                         tooltip: 'Scan rejimi',
                       ),
                       _buildTopBarAction(
-                        icon: state.showProductImages
+                        icon: settings.showProductImages
                             ? Icons.image_outlined
                             : Icons.image_not_supported_outlined,
-                        isActive: state.showProductImages,
-                        onTap: () => state.toggleShowProductImages(),
-                        tooltip: state.showProductImages ? 'Rasmlarni yashirish' : 'Rasmlarni ko\'rsatish',
+                        isActive: settings.showProductImages,
+                        onTap: () => settings.toggleShowProductImages(),
+                        tooltip: settings.showProductImages ? 'Rasmlarni yashirish' : 'Rasmlarni ko\'rsatish',
                       ),
                       const SizedBox(width: 4),
                     ],
@@ -475,7 +487,7 @@ class _POSScreenState extends State<POSScreen> {
             ),
           ),
           if (!isMobile) const SizedBox(width: 16),
-          if (!isMobile) _buildKassaInfo(state),
+          if (!isMobile) _buildKassaInfo(settings, inventory),
           if (widget.onMenuPressed != null)
             Padding(
               padding: const EdgeInsets.only(left: 12),
@@ -545,7 +557,7 @@ class _POSScreenState extends State<POSScreen> {
     );
   }
 
-  Widget _buildKassaInfo(AppState state) {
+  Widget _buildKassaInfo(SettingsProvider settings, InventoryProvider inventory) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       decoration: BoxDecoration(
@@ -573,11 +585,11 @@ class _POSScreenState extends State<POSScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                state.currentRegister?.name ?? 'Kassa tanlanmagan',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                settings.currentRegister?.name ?? 'Kassa tanlanmagan',
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
               ),
               Text(
-                'Ombor: ${state.currentRegister == null ? "Tanlanmagan" : (state.warehouses.any((w) => w.id == state.currentRegister?.warehouseId) ? state.warehouses.firstWhere((w) => w.id == state.currentRegister?.warehouseId).name : (state.warehouses.isNotEmpty ? state.warehouses.first.name : "Noma'lum"))}',
+                'Ombor: ${settings.currentRegister == null ? "Tanlanmagan" : (inventory.warehouses.any((w) => w.id == settings.currentRegister?.warehouseId) ? inventory.warehouses.firstWhere((w) => w.id == settings.currentRegister?.warehouseId).name : (inventory.warehouses.isNotEmpty ? inventory.warehouses.first.name : "Noma'lum"))}',
                 style: TextStyle(
                   fontSize: 11,
                   color: Theme.of(context).textTheme.bodySmall?.color,
@@ -641,7 +653,9 @@ class _POSScreenState extends State<POSScreen> {
 
   Widget _buildProductGrid(
     List<Product> products,
-    AppState state,
+    InventoryProvider inventory,
+    SalesProvider sales,
+    SettingsProvider settings,
     double width,
   ) {
     if (products.isEmpty) return _buildEmptyState();
@@ -652,22 +666,22 @@ class _POSScreenState extends State<POSScreen> {
         maxCrossAxisExtent: width < 600 ? 180 : 220,
         crossAxisSpacing: 16,
         mainAxisSpacing: 16,
-        mainAxisExtent: state.showProductImages ? 260 : 100,
+        mainAxisExtent: settings.showProductImages ? 260 : 100,
       ),
       itemCount: products.length,
       itemBuilder: (context, index) =>
-          _buildProductCard(products[index], state),
+          _buildProductCard(products[index], inventory, sales, settings),
     );
   }
 
-  Widget _buildProductCard(Product product, AppState state) {
-    final stock = product.stocks[state.currentRegister?.warehouseId] ?? 0;
+  Widget _buildProductCard(Product product, InventoryProvider inventory, SalesProvider sales, SettingsProvider settings) {
+    final stock = product.stocks[settings.currentRegister?.warehouseId] ?? 0;
     final isLowStock = stock <= 0;
 
     return InkWell(
       onTap: () {
         try {
-          state.addToCart(product);
+          sales.addToCart(product);
         } catch (e) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -681,7 +695,7 @@ class _POSScreenState extends State<POSScreen> {
       child: Container(
         decoration: BoxDecoration(
           color: Theme.of(context).cardColor,
-          borderRadius: BorderRadius.circular(state.showProductImages ? 20 : 16),
+          borderRadius: BorderRadius.circular(settings.showProductImages ? 20 : 16),
           border: Border.all(
             color: Theme.of(context).dividerColor.withOpacity(0.5),
             width: 1,
@@ -695,11 +709,11 @@ class _POSScreenState extends State<POSScreen> {
           ],
         ),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(state.showProductImages ? 20 : 16),
+          borderRadius: BorderRadius.circular(settings.showProductImages ? 20 : 16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (state.showProductImages)
+              if (settings.showProductImages)
                 Expanded(
                   child: Stack(
                     children: [
@@ -717,7 +731,7 @@ class _POSScreenState extends State<POSScreen> {
                         child: product.imagePath == null
                             ? Center(
                                 child: Icon(
-                                  state.categories.any(
+                                  inventory.categories.any(
                                             (c) =>
                                                 c.id == product.categoryId &&
                                                 c.name == 'Ichimliklar',
@@ -764,7 +778,7 @@ class _POSScreenState extends State<POSScreen> {
                             fontSize: 15,
                           ),
                         ),
-                        if (!state.showProductImages)
+                        if (!settings.showProductImages)
                           Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 8,
@@ -897,7 +911,7 @@ class _POSScreenState extends State<POSScreen> {
     );
   }
 
-  Widget _buildCartSidebar(AppState state, double width) {
+  Widget _buildCartSidebar(SalesProvider sales, InventoryProvider inventory, SettingsProvider settings, AuthProvider auth, double width) {
     return Container(
       width: width,
       decoration: BoxDecoration(
@@ -915,46 +929,46 @@ class _POSScreenState extends State<POSScreen> {
       ),
       child: Column(
         children: [
-          _buildCartHeader(state),
+          _buildCartHeader(sales),
           Expanded(
-            child: state.cart.isEmpty
+            child: sales.cart.isEmpty
                 ? _buildEmptyCart()
                 : ListView.builder(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
-                    itemCount: state.cart.length,
+                    itemCount: sales.cart.length,
                     itemBuilder: (context, index) =>
-                        _buildCartItem(state.cart[index], state),
+                        _buildCartItem(sales.cart[index], inventory, sales),
                   ),
           ),
-          _buildCartFooter(state),
+          _buildCartFooter(sales),
         ],
       ),
     );
   }
 
-  Widget _buildCartHeader(AppState state) {
+  Widget _buildCartHeader(SalesProvider sales) {
     return Padding(
       padding: const EdgeInsets.all(24),
       child: Row(
         children: [
-          Expanded(
+          const Expanded(
             child: Text(
               'Savat',
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
             ),
           ),
-          if (state.cart.isNotEmpty)
+          if (sales.cart.isNotEmpty)
             IconButton(
-              icon: Icon(Icons.delete_sweep_outlined, color: Colors.redAccent),
-              onPressed: () => state.clearCart(),
+              icon: const Icon(Icons.delete_sweep_outlined, color: Colors.redAccent),
+              onPressed: () => sales.clearCart(),
             ),
         ],
       ),
     );
   }
 
-  Widget _buildCartItem(SaleItem item, AppState state) {
-    final product = state.products
+  Widget _buildCartItem(SaleItem item, InventoryProvider inventory, SalesProvider sales) {
+    final product = inventory.products
         .where((p) => p.id == item.productId)
         .firstOrNull;
 
@@ -992,14 +1006,14 @@ class _POSScreenState extends State<POSScreen> {
                       )
                     : null,
               ),
-              SizedBox(width: 14),
+              const SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       item.productName,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 14,
                       ),
@@ -1015,18 +1029,18 @@ class _POSScreenState extends State<POSScreen> {
                 ),
               ),
               Text(
-                '${item.subtotal.toStringAsFixed(0)} so\'m',
-                style: TextStyle(fontWeight: FontWeight.w900, fontSize: 14),
+                '${(item.price * item.quantity).toStringAsFixed(0)} so\'m',
+                style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14),
               ),
             ],
           ),
-          SizedBox(height: 12),
+          const SizedBox(height: 12),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               IconButton(
-                onPressed: () => state.removeFromCart(item.productId),
-                icon: Icon(
+                onPressed: () => sales.removeFromCart(item.productId),
+                icon: const Icon(
                   Icons.delete_outline_rounded,
                   color: Colors.redAccent,
                   size: 22,
@@ -1039,24 +1053,13 @@ class _POSScreenState extends State<POSScreen> {
                   _buildQtyBtn(
                     Icons.remove,
                     () {
-                      try {
-                        state.decrementInCart(item.productId);
-                      } catch (e) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              e.toString().replaceAll('Exception: ', ''),
-                            ),
-                            backgroundColor: Colors.red,
-                          ),
-                        );
-                      }
+                      sales.updateCartQuantity(item.productId, item.quantity - 1);
                     },
                     color: Colors.red.withOpacity(0.1),
                     iconColor: Colors.redAccent,
                   ),
                   InkWell(
-                    onTap: () => _showQuantityDialog(context, state, item),
+                    onTap: () => _showQuantityDialog(context, inventory, sales, item),
                     borderRadius: BorderRadius.circular(8),
                     child: Container(
                       width: 60,
@@ -1072,7 +1075,7 @@ class _POSScreenState extends State<POSScreen> {
                         item.quantity % 1 == 0
                             ? item.quantity.toInt().toString()
                             : item.quantity.toStringAsFixed(3),
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 14,
                         ),
@@ -1084,7 +1087,7 @@ class _POSScreenState extends State<POSScreen> {
                     () {
                       if (product != null) {
                         try {
-                          state.addToCart(product);
+                          sales.addToCart(product);
                         } catch (e) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
@@ -1133,7 +1136,7 @@ class _POSScreenState extends State<POSScreen> {
     );
   }
 
-  Widget _buildCartFooter(AppState state) {
+  Widget _buildCartFooter(SalesProvider sales) {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -1154,7 +1157,7 @@ class _POSScreenState extends State<POSScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
+              const Text(
                 'Jami:',
                 style: TextStyle(
                   fontSize: 16,
@@ -1163,12 +1166,12 @@ class _POSScreenState extends State<POSScreen> {
                 ),
               ),
               Text(
-                '${NumberFormat.currency(locale: 'uz_UZ', symbol: '', decimalDigits: 0).format(state.cartTotal)} so\'m',
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900),
+                '${NumberFormat.currency(locale: 'uz_UZ', symbol: '', decimalDigits: 0).format(sales.cartTotal)} so\'m',
+                style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900),
               ),
             ],
           ),
-          SizedBox(height: 20),
+          const SizedBox(height: 20),
           SizedBox(
             width: double.infinity,
             height: 55,
@@ -1181,11 +1184,11 @@ class _POSScreenState extends State<POSScreen> {
                 ),
                 elevation: 0,
               ),
-              onPressed: state.cart.isEmpty
+              onPressed: sales.cart.isEmpty
                   ? null
-                  : () => _handlePayment(state),
-              child: Text(
-                'TOLOVNI YAKUNLASH',
+                  : () => _handlePayment(sales),
+              child: const Text(
+                'TO\'LOVNI YAKUNLASH',
                 style: TextStyle(
                   fontWeight: FontWeight.w900,
                   letterSpacing: 0.5,
@@ -1198,7 +1201,7 @@ class _POSScreenState extends State<POSScreen> {
     );
   }
 
-  void _showMobileCart(BuildContext context, AppState state) {
+  void _showMobileCart(BuildContext context, SalesProvider sales, InventoryProvider inventory, SettingsProvider settings, AuthProvider auth) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -1220,14 +1223,14 @@ class _POSScreenState extends State<POSScreen> {
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
-            Expanded(child: _buildCartSidebar(state, double.infinity)),
+            Expanded(child: _buildCartSidebar(sales, inventory, settings, auth, double.infinity)),
           ],
         ),
       ),
     );
   }
 
-  void _handlePayment(AppState state) {
+  void _handlePayment(SalesProvider sales) {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const CheckoutScreen()),
