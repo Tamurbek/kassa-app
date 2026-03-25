@@ -66,7 +66,7 @@ class AppState extends ChangeNotifier {
   bool get isBarcodeScanMode => _isBarcodeScanMode;
   bool _showProductImages = true;
   bool get showProductImages => _showProductImages;
-  String appVersion = '1.10.0';
+  String appVersion = '1.13.1';
 
   double get todaySalesTotal {
     final now = DateTime.now();
