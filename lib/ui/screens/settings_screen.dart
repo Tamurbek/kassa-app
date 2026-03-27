@@ -323,14 +323,8 @@ class SettingsScreen extends StatelessWidget {
         ],
       ),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          if (onMenuPressed != null) ...[
-            IconButton(
-              icon: const Icon(Icons.menu_rounded),
-              onPressed: onMenuPressed,
-            ),
-            const SizedBox(width: 8),
-          ],
           const Text(
             'Sozlamalar',
             style: TextStyle(
@@ -338,6 +332,11 @@ class SettingsScreen extends StatelessWidget {
               fontWeight: FontWeight.w900,
             ),
           ),
+          if (onMenuPressed != null)
+            IconButton(
+              icon: const Icon(Icons.menu_rounded),
+              onPressed: onMenuPressed,
+            ),
         ],
       ),
     );
