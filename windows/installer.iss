@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "Simple Sale POS"
-#define MyAppVersion "1.9.8"
+#define MyAppVersion "1.22.17"
 #define MyAppPublisher "SimpleSale Team"
 #define MyAppURL "https://simplesale.uz"
 #define MyAppExeName "simple_sale.exe"
@@ -57,12 +57,22 @@ Type: files; Name: "{commonprograms}\{#MyAppName}.lnk"
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
 
 [UninstallDelete]
-; Delete the database file from AppData (Current location)
-Type: filesandordirs; Name: "{userappdata}\com.example\{#MyAppName}"
-Type: filesandordirs; Name: "{localappdata}\com.example\{#MyAppName}"
 ; Delete the database file from Documents (Old location)
 Type: files; Name: "{userdocs}\simple_sale.db"
+; Delete the backup folder if exists
+Type: filesandordirs; Name: "{userdocs}\SimpleSaleBackups"
+
+; Delete Application Data folders (Shared Preferences, Cache, etc.)
+; Using both organization names to be absolutely sure
+Type: filesandordirs; Name: "{userappdata}\Simple Sale Solutions\{#MyAppName}"
+Type: filesandordirs; Name: "{localappdata}\Simple Sale Solutions\{#MyAppName}"
+Type: filesandordirs; Name: "{userappdata}\com.example\{#MyAppName}"
+Type: filesandordirs; Name: "{localappdata}\com.example\{#MyAppName}"
+Type: filesandordirs; Name: "{userappdata}\SimpleSale"
+Type: filesandordirs; Name: "{localappdata}\SimpleSale"
 
 [Registry]
-; Clean up registry settings on uninstall (Shared Preferences)
-Root: HKCU; Subkey: "Software\com.example\{#MyAppName}"; Flags: uninsdeletekey
+; Clean up registry settings on uninstall (Shared Preferences and App configs)
+Root: HKCU; Subkey: "Software\Simple Sale Solutions\{#MyAppName}"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\com.example\simple_sale"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\simple_sale"; Flags: uninsdeletekey
