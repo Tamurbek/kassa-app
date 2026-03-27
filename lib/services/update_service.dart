@@ -40,10 +40,22 @@ class UpdateService {
     return false;
   }
 
+  static String _getFinalUrl(String url) {
+    String finalUrl = url.startsWith('http') ? url : "$_activationServerUrl$url";
+    if (finalUrl.contains('drive.google.com/file/d/')) {
+      final idMatch = RegExp(r'/file/d/([a-zA-Z0-9_-]+)').firstMatch(finalUrl);
+      if (idMatch != null) {
+        final fileId = idMatch.group(1);
+        return 'https://drive.google.com/uc?export=download&id=$fileId&confirm=t';
+      }
+    }
+    return finalUrl;
+  }
+
   static Future<void> downloadAndInstall(String downloadUrl, Function(double) onProgress) async {
     final client = http.Client();
     try {
-      final fullUrl = downloadUrl.startsWith('http') ? downloadUrl : "$_activationServerUrl$downloadUrl";
+      final fullUrl = _getFinalUrl(downloadUrl);
       final request = http.Request('GET', Uri.parse(fullUrl));
       final response = await client.send(request);
 
@@ -53,7 +65,11 @@ class UpdateService {
 
       final contentLength = response.contentLength ?? 0;
       final tempDir = await getTemporaryDirectory();
-      final fileName = downloadUrl.split('/').last;
+      final uri = Uri.parse(fullUrl);
+      String fileName = uri.pathSegments.isNotEmpty ? uri.pathSegments.last : 'update';
+      if (Platform.isWindows && !fileName.toLowerCase().endsWith('.exe')) {
+        fileName = '$fileName.exe';
+      }
       final file = File('${tempDir.path}/$fileName');
       
       // Agar eski fayl bo'lsa o'chirib tashlaymiz
@@ -93,7 +109,7 @@ class UpdateService {
   }
 
   static Future<void> openDownloadPage(String url) async {
-    final fullUrl = url.startsWith('http') ? url : "$_activationServerUrl$url";
+    final fullUrl = _getFinalUrl(url);
     if (await canLaunchUrl(Uri.parse(fullUrl))) {
       await launchUrl(Uri.parse(fullUrl), mode: LaunchMode.externalApplication);
     }

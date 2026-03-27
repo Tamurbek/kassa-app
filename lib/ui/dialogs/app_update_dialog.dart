@@ -45,7 +45,17 @@ class _AppUpdateDialogState extends State<AppUpdateDialog> {
 
   String _getDownloadUrl() {
     const activationServerUrl = "https://web-production-d2ed7.up.railway.app";
-    return widget.url.startsWith('http') ? widget.url : "$activationServerUrl${widget.url}";
+    String url = widget.url.startsWith('http') ? widget.url : "$activationServerUrl${widget.url}";
+    
+    // Google Drive URL transformation
+    if (url.contains('drive.google.com/file/d/')) {
+      final idMatch = RegExp(r'/file/d/([a-zA-Z0-9_-]+)').firstMatch(url);
+      if (idMatch != null) {
+        final fileId = idMatch.group(1);
+        return 'https://drive.google.com/uc?export=download&id=$fileId&confirm=t';
+      }
+    }
+    return url;
   }
 
   Future<void> _startUpdate(BuildContext context) async {
@@ -138,7 +148,13 @@ class _AppUpdateDialogState extends State<AppUpdateDialog> {
     try {
       final dio = Dio();
       final tempDir = await getTemporaryDirectory();
-      final fileName = widget.url.split('/').last;
+      final downloadUrl = _getDownloadUrl();
+      final uri = Uri.parse(downloadUrl);
+      String fileName = uri.pathSegments.isNotEmpty ? uri.pathSegments.last : 'update';
+      
+      if (Platform.isWindows && !fileName.toLowerCase().endsWith('.exe')) {
+        fileName = '$fileName.exe';
+      }
       final filePath = '${tempDir.path}/$fileName';
 
       final file = File(filePath);
