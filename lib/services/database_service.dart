@@ -66,13 +66,15 @@ class DatabaseService {
 
     return await openDatabase(
       newPath,
-      version: 15,
+      version: 16,
       onCreate: (db, version) async {
         await db.execute('''
           CREATE TABLE categories (
             id TEXT PRIMARY KEY,
             name TEXT NOT NULL,
-            isDeleted INTEGER NOT NULL DEFAULT 0
+            isDeleted INTEGER NOT NULL DEFAULT 0,
+            updatedAt TEXT,
+            isSynced INTEGER NOT NULL DEFAULT 0
           )
         ''');
         await db.execute('''
@@ -101,7 +103,9 @@ class DatabaseService {
             imagePath TEXT,
             isDeleted INTEGER NOT NULL DEFAULT 0,
             unit TEXT NOT NULL DEFAULT 'dona',
-            trackStock INTEGER NOT NULL DEFAULT 1
+            trackStock INTEGER NOT NULL DEFAULT 1,
+            updatedAt TEXT,
+            isSynced INTEGER NOT NULL DEFAULT 0
           )
         ''');
         await db.execute('''
@@ -125,7 +129,9 @@ class DatabaseService {
             date TEXT NOT NULL,
             total REAL NOT NULL,
             registerId TEXT NOT NULL,
-            warehouseId TEXT NOT NULL
+            warehouseId TEXT NOT NULL,
+            updatedAt TEXT,
+            isSynced INTEGER NOT NULL DEFAULT 0
           )
         ''');
         await db.execute('''
@@ -411,6 +417,21 @@ class DatabaseService {
             print("Migration 15 error: $e");
           }
         }
+        if (oldVersion < 16) {
+          final tables = [
+            'categories', 'products', 'warehouses', 'registers', 
+            'sales', 'returns', 'write_offs', 'inventories', 
+            'stock_entries', 'users', 'stock_transfers'
+          ];
+          for (var table in tables) {
+            try {
+              await db.execute('ALTER TABLE $table ADD COLUMN updatedAt TEXT');
+              await db.execute('ALTER TABLE $table ADD COLUMN isSynced INTEGER NOT NULL DEFAULT 0');
+            } catch (e) {
+              print("Migration 16 error ($table): $e");
+            }
+          }
+        }
       },
     );
   }
@@ -420,6 +441,8 @@ class DatabaseService {
     final db = await database;
     final json = category.toJson();
     json['isDeleted'] = category.isDeleted ? 1 : 0;
+    json['updatedAt'] = DateTime.now().toIso8601String();
+    json['isSynced'] = 0;
     await db.insert(
       'categories',
       json,
@@ -449,13 +472,13 @@ class DatabaseService {
   // --- Warehouses ---
   static Future<void> saveWarehouse(Warehouse warehouse) async {
     final db = await database;
-    final json = warehouse.toJson();
-    json['isMain'] = warehouse.isMain ? 1 : 0;
-    await db.insert(
-      'warehouses',
-      json,
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
+    await db.insert('warehouses', {
+      'id': warehouse.id,
+      'name': warehouse.name,
+      'isMain': warehouse.isMain ? 1 : 0,
+      'updatedAt': DateTime.now().toIso8601String(),
+      'isSynced': 0,
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   static Future<List<Warehouse>> getWarehouses() async {
@@ -480,11 +503,14 @@ class DatabaseService {
   // --- Registers ---
   static Future<void> saveRegister(Register register) async {
     final db = await database;
-    await db.insert(
-      'registers',
-      register.toJson(),
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
+    await db.insert('registers', {
+      'id': register.id,
+      'name': register.name,
+      'warehouseId': register.warehouseId,
+      'activeDeviceId': register.activeDeviceId,
+      'updatedAt': DateTime.now().toIso8601String(),
+      'isSynced': 0,
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   static Future<List<Register>> getRegisters() async {
@@ -526,6 +552,8 @@ class DatabaseService {
       'isDeleted': product.isDeleted ? 1 : 0,
       'unit': product.unit,
       'trackStock': product.trackStock ? 1 : 0,
+      'updatedAt': DateTime.now().toIso8601String(),
+      'isSynced': 0,
     }, conflictAlgorithm: ConflictAlgorithm.replace);
 
     // Save additional barcodes
@@ -751,7 +779,9 @@ class DatabaseService {
         'warehouseId': entry.warehouseId,
         'date': entry.date.toIso8601String(),
         'description': entry.description,
-      });
+        'updatedAt': DateTime.now().toIso8601String(),
+        'isSynced': 0,
+      }, conflictAlgorithm: ConflictAlgorithm.replace);
 
       for (var item in entry.items) {
         await txn.insert('stock_entry_items', {
@@ -835,7 +865,9 @@ class DatabaseService {
         'total': sale.total,
         'registerId': sale.registerId,
         'warehouseId': sale.warehouseId,
-      });
+        'updatedAt': DateTime.now().toIso8601String(),
+        'isSynced': 0,
+      }, conflictAlgorithm: ConflictAlgorithm.replace);
 
       for (var item in sale.items) {
         await txn.insert('sale_items', {
@@ -892,13 +924,15 @@ class DatabaseService {
   // --- Users ---
   static Future<void> saveUser(User user) async {
     final db = await database;
-    final json = user.toJson();
-    json['isDeleted'] = user.isDeleted ? 1 : 0;
-    await db.insert(
-      'users',
-      json,
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
+    await db.insert('users', {
+      'id': user.id,
+      'name': user.name,
+      'pin': user.pin,
+      'role': user.role.index,
+      'isDeleted': user.isDeleted ? 1 : 0,
+      'updatedAt': DateTime.now().toIso8601String(),
+      'isSynced': 0,
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   static Future<List<User>> getUsers() async {
@@ -932,7 +966,9 @@ class DatabaseService {
         'date': ret.date.toIso8601String(),
         'total': ret.total,
         'warehouseId': ret.warehouseId,
-      });
+        'updatedAt': DateTime.now().toIso8601String(),
+        'isSynced': 0,
+      }, conflictAlgorithm: ConflictAlgorithm.replace);
       for (var item in ret.items) {
         await txn.insert('return_items', {
           'returnId': ret.id,
@@ -988,7 +1024,9 @@ class DatabaseService {
         'date': wo.date.toIso8601String(),
         'warehouseId': wo.warehouseId,
         'description': wo.description,
-      });
+        'updatedAt': DateTime.now().toIso8601String(),
+        'isSynced': 0,
+      }, conflictAlgorithm: ConflictAlgorithm.replace);
       for (var item in wo.items) {
         await txn.insert('write_off_items', {
           'writeOffId': wo.id,
@@ -1041,7 +1079,9 @@ class DatabaseService {
         'date': inv.date.toIso8601String(),
         'warehouseId': inv.warehouseId,
         'description': inv.description,
-      });
+        'updatedAt': DateTime.now().toIso8601String(),
+        'isSynced': 0,
+      }, conflictAlgorithm: ConflictAlgorithm.replace);
       for (var item in inv.items) {
         await txn.insert('inventory_items', {
           'inventoryId': inv.id,
@@ -1200,7 +1240,9 @@ class DatabaseService {
         'toWarehouseId': transfer.toWarehouseId,
         'date': transfer.date.toIso8601String(),
         'description': transfer.description,
-      });
+        'updatedAt': DateTime.now().toIso8601String(),
+        'isSynced': 0,
+      }, conflictAlgorithm: ConflictAlgorithm.replace);
 
       for (var item in transfer.items) {
         await txn.insert('stock_transfer_items', {
@@ -1383,5 +1425,59 @@ class DatabaseService {
   static Future<void> deleteSetting(String key) async {
     final db = await DatabaseService.database;
     await db.delete('settings', where: 'key = ?', whereArgs: [key]);
+  }
+
+  static Future<void> markAsSynced(String table, String id) async {
+    final db = await database;
+    await db.update(
+      table,
+      {'isSynced': 1},
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
+  static Future<Map<String, List<Map<String, dynamic>>>> getUnsyncedRecords() async {
+    final db = await database;
+    final tables = [
+      'categories', 'products', 'warehouses', 'registers', 
+      'sales', 'returns', 'write_offs', 'inventories', 
+      'stock_entries', 'users', 'stock_transfers'
+    ];
+    
+    final Map<String, List<Map<String, dynamic>>> result = {};
+    for (var table in tables) {
+      try {
+        final records = await db.query(table, where: 'isSynced = 0');
+        if (records.isNotEmpty) {
+          final List<Map<String, dynamic>> enriched = [];
+          for (var record in records) {
+            final Map<String, dynamic> mutable = Map.from(record);
+            final id = record['id'];
+
+            // Enrich with child items if needed
+            if (table == 'sales') {
+              mutable['items'] = await db.query('sale_items', where: 'saleId = ?', whereArgs: [id]);
+            } else if (table == 'returns') {
+              mutable['items'] = await db.query('return_items', where: 'returnId = ?', whereArgs: [id]);
+            } else if (table == 'write_offs') {
+              mutable['items'] = await db.query('write_off_items', where: 'writeOffId = ?', whereArgs: [id]);
+            } else if (table == 'inventories') {
+              mutable['items'] = await db.query('inventory_items', where: 'inventoryId = ?', whereArgs: [id]);
+            } else if (table == 'stock_entries') {
+              mutable['items'] = await db.query('stock_entry_items', where: 'entryId = ?', whereArgs: [id]);
+            } else if (table == 'stock_transfers') {
+              mutable['items'] = await db.query('stock_transfer_items', where: 'transferId = ?', whereArgs: [id]);
+            }
+
+            enriched.add(mutable);
+          }
+          result[table] = enriched;
+        }
+      } catch (e) {
+        debugPrint('Sync query failed enriched for table $table: $e');
+      }
+    }
+    return result;
   }
 }

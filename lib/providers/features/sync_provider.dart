@@ -39,11 +39,23 @@ class SyncProvider extends ChangeNotifier {
       _connectRealtime();
     }
     
-    // Professional auto-sync: Start background backup for Master terminal
+    // Professional auto-sync: Start background backup/sync
     if (isMaster == true) {
       startAutoCloudBackup();
+      startAutoIncrementalSync();
+    } else if (isMaster == false && masterAddress != null) {
+      startAutoIncrementalSync(); // Slaves also push their data incrementally
     }
     notifyListeners();
+  }
+
+  Timer? _incrementalSyncTimer;
+  void startAutoIncrementalSync() {
+    _incrementalSyncTimer?.cancel();
+    // Professional sync interval: Every 30 seconds check for new data to push
+    _incrementalSyncTimer = Timer.periodic(const Duration(seconds: 30), (timer) async {
+       await syncIncremental();
+    });
   }
 
   void startAutoCloudBackup() {
@@ -63,7 +75,79 @@ class SyncProvider extends ChangeNotifier {
   @override
   void dispose() {
     _cloudBackupTimer?.cancel();
+    _incrementalSyncTimer?.cancel();
+    _wsChannel?.sink.close();
     super.dispose();
+  }
+
+  Future<void> syncIncremental() async {
+    // Get all records that haven't been synced yet
+    final unsynced = await DatabaseService.getUnsyncedRecords();
+    if (unsynced.isEmpty) return;
+
+    debugPrint("Professional Sync: Found ${unsynced.length} tables with unsynced data");
+
+    if (isMaster == true) {
+      // MASTER: Push to Cloud Incremental API
+      await _pushToCloudIncremental(unsynced);
+    } else if (isMaster == false && masterAddress != null) {
+      // SLAVE: Push to Master via Local Network
+      await _pushToMasterIncremental(unsynced);
+    }
+  }
+
+  Future<void> _pushToCloudIncremental(Map<String, List<Map<String, dynamic>>> data) async {
+    final prefs = await SharedPreferences.getInstance();
+    final activationCode = prefs.getString('activationCode')?.trim().toUpperCase();
+    if (activationCode == null) return;
+
+    try {
+      // Professional Incremental Endpoint
+      final syncUrl = "https://web-production-d2ed7.up.railway.app/sync-incremental?activation_code=$activationCode";
+      final response = await http.post(
+        Uri.parse(syncUrl),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(data),
+      ).timeout(const Duration(seconds: 15));
+
+      if (response.statusCode == 200) {
+        // Success! Mark everything as synced
+        for (var entry in data.entries) {
+          final table = entry.key;
+          for (var record in entry.value) {
+            await DatabaseService.markAsSynced(table, record['id']);
+          }
+        }
+        debugPrint("Professional Sync: Cloud incremental sync successful");
+      }
+    } catch (e) {
+      debugPrint("Professional Sync: Cloud incremental sync failed: $e");
+    }
+  }
+
+  Future<void> _pushToMasterIncremental(Map<String, List<Map<String, dynamic>>> data) async {
+    if (masterAddress == null) return;
+    
+    try {
+      final syncUrl = "http://$masterAddress:8080/sync-batch";
+      final response = await http.post(
+        Uri.parse(syncUrl),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(data),
+      ).timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        for (var entry in data.entries) {
+          final table = entry.key;
+          for (var record in entry.value) {
+            await DatabaseService.markAsSynced(table, record['id']);
+          }
+        }
+        debugPrint("Professional Sync: Master incremental sync successful");
+      }
+    } catch (e) {
+      debugPrint("Professional Sync: Master incremental sync failed: $e");
+    }
   }
 
   void _connectRealtime() {

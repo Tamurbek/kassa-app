@@ -65,7 +65,7 @@ class AppState extends ChangeNotifier {
   bool get isBarcodeScanMode => _isBarcodeScanMode;
   bool _showProductImages = true;
   bool get showProductImages => _showProductImages;
-  String appVersion = '1.22.14';
+  String appVersion = '1.22.15';
 
   double get todaySalesTotal {
     final now = DateTime.now();
@@ -1106,6 +1106,33 @@ class AppState extends ChangeNotifier {
       onUpdateReceived: (type, data) async {
         await _applyRemoteUpdate(type, data);
         SyncService.broadcast(type, data);
+      },
+      onBatchUpdateReceived: (batch) async {
+        debugPrint('AppState: Received batch update with ${batch.keys.length} tables');
+        for (var table in batch.keys) {
+          final List records = batch[table];
+          for (var record in records) {
+            // Map table names to update types
+            String type = table;
+            if (table == 'write_offs') type = 'write_off';
+            if (table == 'inventories') type = 'inventory';
+            if (table == 'stock_entries') type = 'stock_entry';
+            if (table == 'stock_transfers') type = 'stock_transfer';
+            // Remove 's' from plural names for consistency if needed, 
+            // but _applyRemoteUpdate usually expects the singular or specific name.
+            if (table == 'categories') type = 'category';
+            if (table == 'products') type = 'product';
+            if (table == 'warehouses') type = 'warehouse';
+            if (table == 'registers') type = 'register';
+            if (table == 'sales') type = 'sale';
+            if (table == 'returns') type = 'return';
+            if (table == 'users') type = 'user';
+
+            await _applyRemoteUpdate(type, record);
+            SyncService.broadcast(type, record);
+          }
+        }
+        notifyListeners();
       },
       onSyncRequested: () async {
         final syncedUsers = await DatabaseService.getUsers();

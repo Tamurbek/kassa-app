@@ -35,6 +35,7 @@ class SyncService {
   static Future<void> startServer({
     required Function(Map<String, dynamic>) onSaleReceived,
     required Function(String type, Map<String, dynamic> data) onUpdateReceived,
+    required Future<void> Function(Map<String, dynamic> batch) onBatchUpdateReceived,
     required Future<Map<String, dynamic>> Function() onSyncRequested,
     required Future<Map<String, dynamic>> Function(
       String? registerId,
@@ -108,6 +109,20 @@ class SyncService {
         );
         return Response.ok(jsonEncode(result));
       } catch (e) {
+        return Response.internalServerError(body: e.toString());
+      }
+    });
+
+    // Endpoint for batch incremental sync
+    router.post('/sync-batch', (Request request) async {
+      try {
+        final payload = await request.readAsString();
+        final data = jsonDecode(payload);
+        print('Batch update received from client...');
+        await onBatchUpdateReceived(data);
+        return Response.ok(jsonEncode({'status': 'success'}));
+      } catch (e) {
+        print('Error handling /sync-batch: $e');
         return Response.internalServerError(body: e.toString());
       }
     });
