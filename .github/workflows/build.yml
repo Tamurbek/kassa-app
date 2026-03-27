@@ -131,3 +131,14 @@ jobs:
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Notify Railway Server
+        run: |
+          VERSION="${{ github.ref_name }}"
+          # Strip 'v' prefix for the backend
+          VERSION_CLEAN="${VERSION#v}"
+          # The download link for the Windows Setup
+          FILE_URL="https://github.com/${{ github.repository }}/releases/download/${VERSION}/SimpleSale_Setup.exe"
+          
+          echo "Notifying Railway about version $VERSION_CLEAN..."
+          curl -X POST "https://web-production-d2ed7.up.railway.app/update/remote?version=${VERSION_CLEAN}&url=${FILE_URL}" 
