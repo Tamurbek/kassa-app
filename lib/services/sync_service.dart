@@ -35,7 +35,7 @@ class SyncService {
   static Future<void> startServer({
     required Function(Map<String, dynamic>) onSaleReceived,
     required Function(String type, Map<String, dynamic> data) onUpdateReceived,
-    required Map<String, dynamic> Function() onSyncRequested,
+    required Future<Map<String, dynamic>> Function() onSyncRequested,
     required Future<Map<String, dynamic>> Function(
       String? registerId,
       String? deviceId,
@@ -113,9 +113,9 @@ class SyncService {
     });
 
     // Endpoint for clients to pull full database state
-    router.get('/sync', (Request request) {
+    router.get('/sync', (Request request) async {
       try {
-        final data = onSyncRequested();
+        final data = await onSyncRequested();
         return Response.ok(
           jsonEncode(data),
           headers: {'Content-Type': 'application/json'},
@@ -137,7 +137,8 @@ class SyncService {
 
     // Endpoint to serve Logo file
     router.get('/logo', (Request request) async {
-      final logoPath = onSyncRequested()['logoPath'];
+      final stateData = await onSyncRequested();
+      final logoPath = stateData['logoPath'];
       if (logoPath != null && File(logoPath).existsSync()) {
         final file = File(logoPath);
         return Response.ok(
@@ -153,7 +154,7 @@ class SyncService {
 
     // Endpoint to serve Product Image
     router.get('/product-image/<id>', (Request request, String id) async {
-      final stateData = onSyncRequested();
+      final stateData = await onSyncRequested();
       final products = stateData['products'] as List;
       final product = products.firstWhere(
         (p) => p['id'] == id,
