@@ -181,7 +181,11 @@ class _AppUpdateDialogState extends State<AppUpdateDialog> {
       });
 
       // Windows uchun avtomatik (silent) o'rnatish
-      await Process.start(filePath, ['/VERYSILENT', '/SUPPRESSMSGBOXES', '/SP-', '/NOCANCEL', '/NORESTART']);
+      if (filePath.toLowerCase().endsWith('.msi')) {
+        await Process.start('msiexec.exe', ['/i', filePath, '/qn', '/norestart'], mode: ProcessStartMode.detached);
+      } else {
+        await Process.start(filePath, ['/VERYSILENT', '/SUPPRESSMSGBOXES', '/SP-', '/NOCANCEL', '/NORESTART'], mode: ProcessStartMode.detached);
+      }
       
       await Future.delayed(const Duration(seconds: 1));
       exit(0); 

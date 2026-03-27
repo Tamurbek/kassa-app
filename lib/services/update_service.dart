@@ -93,7 +93,11 @@ class UpdateService {
 
       if (Platform.isWindows) {
         // Windows uchun avtomatik (silent) o'rnatish
-        await Process.start(file.path, ['/VERYSILENT', '/SUPPRESSMSGBOXES', '/SP-', '/NOCANCEL', '/NORESTART']);
+        if (file.path.toLowerCase().endsWith('.msi')) {
+          await Process.start('msiexec.exe', ['/i', file.path, '/qn', '/norestart'], mode: ProcessStartMode.detached);
+        } else {
+          await Process.start(file.path, ['/VERYSILENT', '/SUPPRESSMSGBOXES', '/SP-', '/NOCANCEL', '/NORESTART'], mode: ProcessStartMode.detached);
+        }
         
         await Future.delayed(const Duration(seconds: 1));
         exit(0); 
