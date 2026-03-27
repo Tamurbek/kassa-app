@@ -5,6 +5,8 @@ import '../../providers/app_state.dart';
 import '../../providers/features/auth_provider.dart';
 import '../../providers/features/settings_provider.dart';
 import '../../providers/features/sync_provider.dart';
+import '../../providers/features/inventory_provider.dart';
+import '../../providers/features/sales_provider.dart';
 import '../../models/models.dart';
 
 class LoginScreen extends StatefulWidget {
