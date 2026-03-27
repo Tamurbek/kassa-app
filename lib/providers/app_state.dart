@@ -622,9 +622,21 @@ class AppState extends ChangeNotifier {
           }
         }
 
-        if (data['organizationName'] != null) organizationName = data['organizationName'];
-        if (data['organizationAddress'] != null) organizationAddress = data['organizationAddress'];
-        if (data['instagramUsername'] != null) instagramUsername = data['instagramUsername'];
+        if (data['organizationName'] != null) {
+          organizationName = data['organizationName'];
+          await prefs.setString('organizationName', organizationName!);
+          await DatabaseService.saveSetting('organizationName', organizationName!);
+        }
+        if (data['organizationAddress'] != null) {
+          organizationAddress = data['organizationAddress'];
+          await prefs.setString('organizationAddress', organizationAddress!);
+          await DatabaseService.saveSetting('organizationAddress', organizationAddress!);
+        }
+        if (data['instagramUsername'] != null) {
+          instagramUsername = data['instagramUsername'];
+          await prefs.setString('instagramUsername', instagramUsername!);
+          await DatabaseService.saveSetting('instagramUsername', instagramUsername!);
+        }
         
         // Logo sync
         if (data['logoPath'] != null) {
@@ -635,12 +647,7 @@ class AppState extends ChangeNotifier {
               final localLogoFile = File('${appDir.path}/master_logo.png');
               await localLogoFile.writeAsBytes(logoResponse.bodyBytes);
               organizationLogoPath = localLogoFile.path;
-              
-              final prefs = await SharedPreferences.getInstance();
               await prefs.setString('organizationLogoPath', organizationLogoPath!);
-              await prefs.setString('organizationName', organizationName!);
-              await prefs.setString('organizationAddress', organizationAddress!);
-              await prefs.setString('instagramUsername', instagramUsername!);
             }
           } catch (e) {
             print('Logo sync error: $e');
