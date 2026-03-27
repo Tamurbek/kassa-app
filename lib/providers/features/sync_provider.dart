@@ -15,6 +15,7 @@ import '../../services/sync_service.dart';
 
 class SyncProvider extends ChangeNotifier {
   bool? isMaster;
+  bool isCloudMode = false;
   String? masterAddress;
   DateTime? lastCloudSync;
   bool isSyncingCloud = false;
@@ -29,6 +30,7 @@ class SyncProvider extends ChangeNotifier {
   Future<void> loadSync() async {
     final prefs = await SharedPreferences.getInstance();
     isMaster = prefs.getBool('isMaster');
+    isCloudMode = prefs.getBool('isCloudMode') ?? false;
     masterAddress = prefs.getString('masterAddress');
     final lastSyncStr = prefs.getString('lastCloudSync');
     if (lastSyncStr != null) lastCloudSync = DateTime.parse(lastSyncStr);

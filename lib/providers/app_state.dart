@@ -40,6 +40,7 @@ class AppState extends ChangeNotifier {
   bool showInstagramOnReceipt = true;
 
   bool? isMaster;
+  bool isCloudMode = false;
   String? masterAddress;
   String? deviceId;
   bool isInitialized = false;
@@ -189,6 +190,7 @@ class AppState extends ChangeNotifier {
       masterPassword = prefs.getString('masterPassword');
 
       isMaster = master;
+      isCloudMode = prefs.getBool('isCloudMode') ?? false;
       masterAddress = ip;
       deviceId = prefs.getString('deviceId') ?? Uuid().v4();
       await prefs.setString('deviceId', deviceId!);
@@ -687,10 +689,22 @@ class AppState extends ChangeNotifier {
     bool master, {
     String? ip,
     String? password,
+    bool isCloud = false,
   }) async {
     final prefs = await SharedPreferences.getInstance();
+    isCloudMode = isCloud;
+    await prefs.setBool('isCloudMode', isCloud);
 
-    if (master == false) {
+    if (isCloud) {
+       // Standalone Cloud mode: Works like a Master but with cloud sync focus
+       await prefs.setBool('isMaster', true);
+       if (password != null && password.isNotEmpty) {
+          await prefs.setString('masterPassword', password);
+          masterPassword = password;
+       }
+       isMaster = true;
+       _startServer(); // Still starts server for others if needed but primary is cloud
+    } else if (master == false) {
       // For secondary, try to sync first
       if (ip == null || ip.isEmpty) throw Exception('IP manzilni kiriting');
 
@@ -1083,11 +1097,8 @@ class AppState extends ChangeNotifier {
         await _applyRemoteUpdate(type, data);
         SyncService.broadcast(type, data);
       },
-      onSyncRequested: () {
-        // Run synchronously but we need a way to get settings
-        // Since onSyncRequested is currently synchronous in the SinkService call,
-        // we might have some trouble getting settings if we don't cache them.
-        // But AppState usually has them in memory.
+      onSyncRequested: () async {
+        final syncedUsers = await DatabaseService.getUsers();
         return {
           'categories': categories.map((c) => c.toJson()).toList(),
           'products': products.map((p) => p.toJson()).toList(),
@@ -1096,6 +1107,7 @@ class AppState extends ChangeNotifier {
           'returns': returns.map((r) => r.toJson()).toList(),
           'writeOffs': writeOffs.map((w) => w.toJson()).toList(),
           'inventories': inventories.map((i) => i.toJson()).toList(),
+          'users': syncedUsers.map((u) => u.toJson()).toList(),
           'organizationName': organizationName,
           'organizationAddress': organizationAddress,
           'instagramUsername': instagramUsername,
