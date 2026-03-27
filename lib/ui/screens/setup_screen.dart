@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/app_state.dart';
 import '../../providers/features/auth_provider.dart';
+import '../../services/sync_service.dart';
 
 class SetupScreen extends StatefulWidget {
   const SetupScreen({super.key});
@@ -17,6 +18,38 @@ class _SetupScreenState extends State<SetupScreen> {
   bool isCloudMode = false;
   bool isMasterChoice = true;
   bool isLoading = false;
+  bool isDiscovering = false;
+
+  Future<void> _discoverMaster() async {
+    setState(() => isDiscovering = true);
+    try {
+      final foundIp = await SyncService.autoDiscoverMaster();
+      if (foundIp != null) {
+        _ipController.text = foundIp;
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text("Asosiy terminal topildi: $foundIp"),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Asosiy terminal topilmadi. Iltimos, IP-ni qo'lda kiriting."),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+       // Ignore
+    } finally {
+      if (mounted) setState(() => isDiscovering = false);
+    }
+  }
 
   @override
   void dispose() {
@@ -387,14 +420,43 @@ class _SetupScreenState extends State<SetupScreen> {
   }
 
   Widget _buildIpField() {
-    return TextField(
-      controller: _ipController,
-      decoration: InputDecoration(
-        labelText: 'Asosiy kompyuter IP manzili',
-        hintText: 'Masalan: 192.168.1.10',
-        prefixIcon: const Icon(Icons.lan_outlined),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-      ),
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        Expanded(
+          child: TextField(
+            controller: _ipController,
+            decoration: InputDecoration(
+              labelText: 'Asosiy kompyuter IP manzili',
+              hintText: 'Masalan: 192.168.1.10',
+              prefixIcon: const Icon(Icons.lan_outlined),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        SizedBox(
+          height: 56,
+          child: IconButton.filledTonal(
+            onPressed: isDiscovering ? null : _discoverMaster,
+            style: IconButton.styleFrom(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            icon: isDiscovering
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                    ),
+                  )
+                : const Icon(Icons.search_rounded),
+            tooltip: "Avtomatik qidirish",
+          ),
+        ),
+      ],
     );
   }
 }

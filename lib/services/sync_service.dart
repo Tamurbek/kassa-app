@@ -274,6 +274,73 @@ class SyncService {
     }
   }
 
+  static Future<String?> autoDiscoverMaster() async {
+    try {
+      final interfaces = await NetworkInterface.list();
+      Set<String> subnets = {};
+
+      for (var interface in interfaces) {
+        for (var addr in interface.addresses) {
+          if (addr.type == InternetAddressType.IPv4 && !addr.isLoopback) {
+            final parts = addr.address.split('.');
+            if (parts.length == 4) {
+              subnets.add("${parts[0]}.${parts[1]}.${parts[2]}");
+            }
+          }
+        }
+      }
+
+      // Professional: Add common subnets as fallback for MikroTik/VLAN setups
+      final commonSubnets = ['192.168.1', '192.168.0', '192.168.3', '192.168.8', '192.168.100', '10.0.0'];
+      for (var s in commonSubnets) {
+        subnets.add(s);
+      }
+
+      print('Skanerlanayotgan subnetlar: $subnets');
+
+      for (var subnet in subnets) {
+        final found = await _scanSubnet(subnet);
+        if (found != null) return found;
+      }
+    } catch (e) {
+      print('Discovery error: $e');
+    }
+    return null;
+  }
+
+  static Future<String?> _scanSubnet(String subnet) async {
+    // Parallel scanning of 254 IPs
+    final List<Future<String?>> tasks = [];
+    for (int i = 1; i < 255; i++) {
+      tasks.add(_checkIp("$subnet.$i"));
+    }
+
+    final results = await Future.wait(tasks);
+    for (var res in results) {
+      if (res != null) return res;
+    }
+    return null;
+  }
+
+  static Future<String?> _checkIp(String ip) async {
+    try {
+      final response = await http
+          .get(Uri.parse('http://$ip:8080/status'))
+          .timeout(const Duration(milliseconds: 800)); // Optimal timeout for local network
+      
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['status'] == 'active') {
+          print('Master topildi: $ip');
+          return ip;
+        }
+      }
+    } catch (_) {
+      // Ignore errors for non-existent IPs or closed ports
+    }
+    return null;
+  }
+
   static void stopServer() {
     _server?.close();
   }

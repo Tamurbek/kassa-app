@@ -564,25 +564,27 @@ class AppState extends ChangeNotifier {
   Future<void> syncWithMaster() async {
     if (isMaster != false || masterAddress == null) return;
 
+    print('Sinxronizatsiya boshlandi: $masterAddress');
     try {
       final data = await SyncService.fetchFullState(masterAddress!);
       if (data != null) {
-        final newCategories = (data['categories'] as List)
-            .map((c) => Category.fromJson(c))
-            .toList();
-        final newProducts = (data['products'] as List)
-            .map((p) => Product.fromJson(p))
-            .toList();
-        final newWarehouses = (data['warehouses'] as List)
-            .map((w) => Warehouse.fromJson(w))
-            .toList();
-        final newRegisters = (data['registers'] as List)
-            .map((r) => Register.fromJson(r))
-            .toList();
-        final newUsers = data['users'] != null
-            ? (data['users'] as List).map((u) => User.fromJson(u)).toList()
-            : <User>[];
+        print('Ma\'lumotlar Masterdan qabul qilindi.');
+        
+        final cats = (data['categories'] as List?) ?? [];
+        final prods = (data['products'] as List?) ?? [];
+        final whs = (data['warehouses'] as List?) ?? [];
+        final regs = (data['registers'] as List?) ?? [];
+        final users = (data['users'] as List?) ?? [];
 
+        print('Sinxronizatsiya: ${cats.length} kateg, ${prods.length} mahs, ${whs.length} ombor, ${regs.length} kassa, ${users.length} foydalanuvchi');
+
+        final newCategories = cats.map((c) => Category.fromJson(c)).toList();
+        final newProducts = prods.map((p) => Product.fromJson(p)).toList();
+        final newWarehouses = whs.map((w) => Warehouse.fromJson(w)).toList();
+        final newRegisters = regs.map((r) => Register.fromJson(r)).toList();
+        final newUsers = users.map((u) => User.fromJson(u)).toList();
+
+        print('Bazaga yozilmoqda...');
         await DatabaseService.clearAllAndReplace(
           categories: newCategories.whereType<Category>().toList(),
           products: newProducts.whereType<Product>().toList(),
@@ -590,6 +592,7 @@ class AppState extends ChangeNotifier {
           registers: newRegisters.whereType<Register>().toList(),
           users: newUsers.whereType<User>().toList(),
         );
+        print('Sinxronizatsiya muvaffaqiyatli yakunlandi.');
 
         // Sync settings
         if (data['settings'] != null) {
@@ -621,9 +624,21 @@ class AppState extends ChangeNotifier {
           }
         }
 
-        if (data['organizationName'] != null) organizationName = data['organizationName'];
-        if (data['organizationAddress'] != null) organizationAddress = data['organizationAddress'];
-        if (data['instagramUsername'] != null) instagramUsername = data['instagramUsername'];
+        if (data['organizationName'] != null) {
+          organizationName = data['organizationName'];
+          await prefs.setString('organizationName', organizationName!);
+          await DatabaseService.saveSetting('organizationName', organizationName!);
+        }
+        if (data['organizationAddress'] != null) {
+          organizationAddress = data['organizationAddress'];
+          await prefs.setString('organizationAddress', organizationAddress!);
+          await DatabaseService.saveSetting('organizationAddress', organizationAddress!);
+        }
+        if (data['instagramUsername'] != null) {
+          instagramUsername = data['instagramUsername'];
+          await prefs.setString('instagramUsername', instagramUsername!);
+          await DatabaseService.saveSetting('instagramUsername', instagramUsername!);
+        }
         
         // Logo sync
         if (data['logoPath'] != null) {
@@ -634,12 +649,7 @@ class AppState extends ChangeNotifier {
               final localLogoFile = File('${appDir.path}/master_logo.png');
               await localLogoFile.writeAsBytes(logoResponse.bodyBytes);
               organizationLogoPath = localLogoFile.path;
-              
-              final prefs = await SharedPreferences.getInstance();
               await prefs.setString('organizationLogoPath', organizationLogoPath!);
-              await prefs.setString('organizationName', organizationName!);
-              await prefs.setString('organizationAddress', organizationAddress!);
-              await prefs.setString('instagramUsername', instagramUsername!);
             }
           } catch (e) {
             print('Logo sync error: $e');
