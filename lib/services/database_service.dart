@@ -66,7 +66,7 @@ class DatabaseService {
 
     return await openDatabase(
       newPath,
-      version: 16,
+      version: 17,
       onCreate: (db, version) async {
         await db.execute('''
           CREATE TABLE categories (
@@ -81,7 +81,9 @@ class DatabaseService {
           CREATE TABLE warehouses (
             id TEXT PRIMARY KEY,
             name TEXT NOT NULL,
-            isMain INTEGER NOT NULL DEFAULT 0
+            isMain INTEGER NOT NULL DEFAULT 0,
+            updatedAt TEXT,
+            isSynced INTEGER NOT NULL DEFAULT 0
           )
         ''');
         await db.execute('''
@@ -89,7 +91,9 @@ class DatabaseService {
             id TEXT PRIMARY KEY,
             name TEXT NOT NULL,
             warehouseId TEXT NOT NULL,
-            activeDeviceId TEXT
+            activeDeviceId TEXT,
+            updatedAt TEXT,
+            isSynced INTEGER NOT NULL DEFAULT 0
           )
         ''');
         await db.execute('''
@@ -150,7 +154,9 @@ class DatabaseService {
             saleId TEXT NOT NULL,
             date TEXT NOT NULL,
             total REAL NOT NULL,
-            warehouseId TEXT NOT NULL
+            warehouseId TEXT NOT NULL,
+            updatedAt TEXT,
+            isSynced INTEGER NOT NULL DEFAULT 0
           )
         ''');
         await db.execute('''
@@ -167,7 +173,9 @@ class DatabaseService {
             id TEXT PRIMARY KEY,
             date TEXT NOT NULL,
             warehouseId TEXT NOT NULL,
-            description TEXT
+            description TEXT,
+            updatedAt TEXT,
+            isSynced INTEGER NOT NULL DEFAULT 0
           )
         ''');
         await db.execute('''
@@ -183,7 +191,9 @@ class DatabaseService {
             id TEXT PRIMARY KEY,
             date TEXT NOT NULL,
             warehouseId TEXT NOT NULL,
-            description TEXT
+            description TEXT,
+            updatedAt TEXT,
+            isSynced INTEGER NOT NULL DEFAULT 0
           )
         ''');
         await db.execute('''
@@ -200,7 +210,9 @@ class DatabaseService {
             id TEXT PRIMARY KEY,
             warehouseId TEXT NOT NULL,
             date TEXT NOT NULL,
-            description TEXT
+            description TEXT,
+            updatedAt TEXT,
+            isSynced INTEGER NOT NULL DEFAULT 0
           )
         ''');
         await db.execute('''
@@ -218,7 +230,9 @@ class DatabaseService {
             name TEXT NOT NULL,
             pin TEXT NOT NULL,
             role INTEGER NOT NULL,
-            isDeleted INTEGER NOT NULL DEFAULT 0
+            isDeleted INTEGER NOT NULL DEFAULT 0,
+            updatedAt TEXT,
+            isSynced INTEGER NOT NULL DEFAULT 0
           )
         ''');
         await db.execute('''
@@ -233,7 +247,9 @@ class DatabaseService {
             fromWarehouseId TEXT NOT NULL,
             toWarehouseId TEXT NOT NULL,
             date TEXT NOT NULL,
-            description TEXT
+            description TEXT,
+            updatedAt TEXT,
+            isSynced INTEGER NOT NULL DEFAULT 0
           )
         ''');
         await db.execute('''
@@ -429,6 +445,31 @@ class DatabaseService {
               await db.execute('ALTER TABLE $table ADD COLUMN isSynced INTEGER NOT NULL DEFAULT 0');
             } catch (e) {
               print("Migration 16 error ($table): $e");
+            }
+          }
+        }
+        if (oldVersion < 17) {
+          final tables = [
+            'categories', 'products', 'warehouses', 'registers', 
+            'sales', 'returns', 'write_offs', 'inventories', 
+            'stock_entries', 'users', 'stock_transfers'
+          ];
+          for (var table in tables) {
+            try {
+              // We check if column exists by trying to add it and catching error, 
+              // but a better way is to check pragma table_info
+              var columns = await db.rawQuery('PRAGMA table_info($table)');
+              bool hasUpdatedAt = columns.any((c) => c['name'] == 'updatedAt');
+              bool hasIsSynced = columns.any((c) => c['name'] == 'isSynced');
+              
+              if (!hasUpdatedAt) {
+                 await db.execute('ALTER TABLE $table ADD COLUMN updatedAt TEXT');
+              }
+              if (!hasIsSynced) {
+                 await db.execute('ALTER TABLE $table ADD COLUMN isSynced INTEGER NOT NULL DEFAULT 0');
+              }
+            } catch (e) {
+              print("Migration 17 error ($table): $e");
             }
           }
         }
@@ -698,19 +739,28 @@ class DatabaseService {
       for (var c in categories) {
         final json = c.toJson();
         json['isDeleted'] = c.isDeleted ? 1 : 0;
+        json['updatedAt'] = DateTime.now().toIso8601String();
+        json['isSynced'] = 1; // Already from server
         await txn.insert('categories', json);
       }
       for (var w in warehouses) {
         final json = w.toJson();
         json['isMain'] = w.isMain ? 1 : 0;
+        json['updatedAt'] = DateTime.now().toIso8601String();
+        json['isSynced'] = 1;
         await txn.insert('warehouses', json);
       }
       for (var r in registers) {
-        await txn.insert('registers', r.toJson());
+        final json = r.toJson();
+        json['updatedAt'] = DateTime.now().toIso8601String();
+        json['isSynced'] = 1;
+        await txn.insert('registers', json);
       }
       for (var u in users) {
         final json = u.toJson();
         json['isDeleted'] = u.isDeleted ? 1 : 0;
+        json['updatedAt'] = DateTime.now().toIso8601String();
+        json['isSynced'] = 1;
         await txn.insert(
           'users',
           json,
@@ -730,6 +780,8 @@ class DatabaseService {
           'isDeleted': p.isDeleted ? 1 : 0,
           'unit': p.unit,
           'trackStock': p.trackStock ? 1 : 0,
+          'updatedAt': DateTime.now().toIso8601String(),
+          'isSynced': 1,
         });
         for (var entry in p.stocks.entries) {
           await txn.insert('stocks', {
