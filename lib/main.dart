@@ -49,12 +49,12 @@ class SimpleSaleApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final state = context.watch<AppState>();
+    final settings = context.watch<SettingsProvider>();
 
     return MaterialApp(
       title: 'Simple Sale POS',
       debugShowCheckedModeBanner: false,
-      themeMode: state.themeMode,
+      themeMode: settings.themeMode,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       home: const InitializationWrapper(),

@@ -266,6 +266,20 @@ class _MainLayoutState extends State<MainLayout> {
                 ],
               ),
             ),
+            IconButton(
+              icon: Icon(
+                settings.themeMode == ThemeMode.dark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
+                size: 20,
+              ),
+              onPressed: () {
+                if (settings.themeMode == ThemeMode.dark) {
+                  settings.setThemeMode(ThemeMode.light);
+                } else {
+                  settings.setThemeMode(ThemeMode.dark);
+                }
+              },
+              tooltip: 'Mavzuni almashtirish',
+            ),
           ],
         ],
       ),
