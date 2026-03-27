@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 import '../../services/database_service.dart';
@@ -76,6 +77,14 @@ class SettingsProvider extends ChangeNotifier {
         if (matching.isNotEmpty && matching.first.activeDeviceId == deviceId) {
           currentRegister = matching.first;
         }
+      }
+
+      // 5. Load App Version from pubspec.yaml
+      try {
+        final packageInfo = await PackageInfo.fromPlatform();
+        appVersion = packageInfo.version;
+      } catch (e) {
+        debugPrint('Error loading package info: $e');
       }
 
       notifyListeners();
