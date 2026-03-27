@@ -183,27 +183,35 @@ class _ActivationScreenState extends State<ActivationScreen> {
                       _error = null;
                     });
                     
-                    try {
-                      final code = _codeController.text.trim();
-                      
-                      // 1. Try restore from cloud FIRST (with override)
                       try {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Row(
-                              children: [
-                                SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)),
-                                SizedBox(width: 12),
-                                Text('Ma\'lumotlar yuklanmoqda...'),
-                              ],
+                        final code = _codeController.text.trim();
+                        
+                        // 1. Try restore from cloud FIRST (with override)
+                        try {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Row(
+                                children: [
+                                  SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)),
+                                  SizedBox(width: 12),
+                                  Text('Ma\'lumotlar yuklanmoqda...'),
+                                ],
+                              ),
+                              duration: Duration(minutes: 1),
                             ),
-                            duration: Duration(minutes: 1),
-                          ),
-                        );
+                          );
+                          
+                          await sync.restoreDatabaseFromCloud(activationCodeOverride: code);
+                        } catch (backupError) {
+                          debugPrint('Auto-restore skipped or failed: $backupError');
+                        }
                         
-                        await sync.restoreDatabaseFromCloud(activationCodeOverride: code);
-                        
-                        // 2. Refresh providers (Reload data BEFORE nav)
+                        // 2. Commit Activation
+                        if (mounted) {
+                          await auth.activate(code);
+                        }
+
+                        // 3. Refresh ALL providers (Crucial for memory management)
                         if (mounted) {
                           final mainContext = context;
                           await mainContext.read<AppState>().loadSettings();
@@ -211,20 +219,14 @@ class _ActivationScreenState extends State<ActivationScreen> {
                           await mainContext.read<AuthProvider>().reloadUsers();
                           await mainContext.read<InventoryProvider>().reloadData();
                           await mainContext.read<SalesProvider>().reloadSalesData();
+                          await mainContext.read<SyncProvider>().loadSync();
+                          
+                          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('✅ Faollashtirildi!'), backgroundColor: Colors.green),
+                          );
                         }
-                      } catch (backupError) {
-                        debugPrint('Auto-restore skipped or failed: $backupError');
-                      }
-                      
-                      // 3. Commit Activation (this triggers nav to LoginScreen)
-                      if (mounted) {
-                        await auth.activate(code);
-                        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('✅ Faollashtirildi!'), backgroundColor: Colors.green),
-                        );
-                      }
-                    } catch (e) {
+                      } catch (e) {
                       setState(() {
                          _error = e.toString().replaceAll('Exception: ', '');
                          _isRestoring = false;

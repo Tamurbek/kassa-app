@@ -432,6 +432,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 // Also reload other providers to clear their memory state
                 await context.read<AuthProvider>().loadAuth();
                 await context.read<SettingsProvider>().loadSettings();
+                await context.read<InventoryProvider>().reloadData();
+                await context.read<SalesProvider>().reloadSalesData();
+                await context.read<SyncProvider>().loadSync();
               }
             },
             child: const Text('Qayta sozlash'),
