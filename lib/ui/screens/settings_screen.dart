@@ -610,82 +610,44 @@ class SettingsScreen extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.only(bottom: 16),
                   child: Text(
-                    'Oxirgi bulutli sinxronizatsiya: ${sync.lastCloudSync!.toString().substring(0, 16)}',
+                    'Oxirgi sinxronizatsiya: ${sync.lastCloudSync!.toString().substring(0, 16)}',
                     style: const TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.bold),
                   ),
                 ),
-              if (sync.isSyncingCloud) ...[
-                const CircularProgressIndicator(),
-                const SizedBox(height: 16),
-                Text(sync.syncingStage, textAlign: TextAlign.center),
-              ] else ...[
-                // Section: Cloud
+              if (sync.isSyncingCloud)
+                 Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 20),
+                  child: Column(
+                    children: [
+                      const CircularProgressIndicator(),
+                      const SizedBox(height: 16),
+                      Text(sync.syncingStage.isNotEmpty ? sync.syncingStage : 'Sinxronizatsiya kutilmoqda...', style: const TextStyle(fontSize: 12)),
+                    ],
+                  ),
+                )
+              else ...[
                 const Text('🔥 Bulutli xizmat (Cloud)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.blue)),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        icon: const Icon(Icons.cloud_download_rounded, size: 18),
-                        label: const Text('Yuklab olish', style: TextStyle(fontSize: 12)),
-                        onPressed: () async {
-                          final confirm = await _showConfirmDialog(parentContext, 'Bulutdan yuklash oldingi ma\'lumotlarni butunlay O\'CHIRIB yuborada. Davom etasizmi?');
-                          if (confirm == true) {
-                            try {
-                               await sync.restoreDatabaseFromCloud();
-                               if (parentContext.mounted) {
-                                  ScaffoldMessenger.of(parentContext).showSnackBar(
-                                    const SnackBar(
-                                      content: Row(children: [
-                                        SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)),
-                                        SizedBox(width: 12),
-                                        Text('Ma\'lumotlar yangilanmoqda...'),
-                                      ]),
-                                      duration: Duration(seconds: 3),
-                                    ),
-                                  );
-                                  await parentContext.read<AppState>().loadSettings();
-                                  await parentContext.read<AuthProvider>().loadAuth();
-                                  await parentContext.read<SettingsProvider>().loadSettings();
-                                  await parentContext.read<InventoryProvider>().reloadData();
-                                  await parentContext.read<SalesProvider>().reloadSalesData();
-                                  ScaffoldMessenger.of(parentContext).hideCurrentSnackBar();
-                                  ScaffoldMessenger.of(parentContext).showSnackBar(const SnackBar(content: Text('✅ Ma\'lumotlar bulutdan tiklandi!'), backgroundColor: Colors.green));
-                               }
-                            } catch (e) {
-                               if (parentContext.mounted) ScaffoldMessenger.of(parentContext).showSnackBar(SnackBar(content: Text(e.toString()), backgroundColor: Colors.red));
-                            }
-                          }
-                        },
-                      ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 18),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      elevation: 4,
+                      shadowColor: Colors.blue.withOpacity(0.3),
                     ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue.shade50,
-                          foregroundColor: Colors.blue.shade900,
-                          elevation: 0,
-                        ),
-                        icon: const Icon(Icons.cloud_upload_rounded, size: 18),
-                        label: const Text('Bulutga saqlash', style: TextStyle(fontSize: 12)),
-                        onPressed: () async {
-                          try {
-                             await sync.uploadDatabaseToCloud();
-                             if (parentContext.mounted) ScaffoldMessenger.of(parentContext).showSnackBar(const SnackBar(content: Text('✅ Ma\'lumotlar bulutga saqlandi!'), backgroundColor: Colors.green));
-                          } catch (e) {
-                             if (parentContext.mounted) ScaffoldMessenger.of(parentContext).showSnackBar(SnackBar(content: Text(e.toString()), backgroundColor: Colors.red));
-                          }
-                        },
-                      ),
+                    icon: const Icon(Icons.sync_rounded, size: 24),
+                    label: const Text(
+                      'Sinxronizatsiya qilish', 
+                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, letterSpacing: 0.5)
                     ),
-                  ],
+                    onPressed: () => sync.performFullSync(parentContext),
+                  ),
                 ),
-                
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 16.0),
-                  child: Divider(),
-                ),
+                const SizedBox(height: 24),
 
                 // Section: Local File
                 const Text('📁 Lokal fayl (Excel emas, Baza)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.orange)),

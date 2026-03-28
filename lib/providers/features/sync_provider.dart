@@ -428,7 +428,6 @@ class SyncProvider extends ChangeNotifier {
     } catch (e) {
       debugPrint("Restore error detail: $e");
       rethrow;
-  }
     } finally {
       isSyncingCloud = false;
       syncingStage = '';
