@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 import '../../models/models.dart';
 import '../../providers/features/inventory_provider.dart';
+import '../../providers/app_state.dart';
 import 'package:intl/intl.dart';
 import '../../services/excel_import_service.dart';
 
@@ -280,7 +281,9 @@ class _StockEntryScreenState extends State<StockEntryScreen> {
 
     final entry = StockEntry(id: widget.entry?.id ?? const Uuid().v4(), warehouseId: entryWarehouseId!, date: selectedDate, description: descriptionCtrl.text, items: finalItems);
     try {
+      final appState = context.read<AppState>();
       await inventory.addStockEntry(entry);
+      await appState.reloadData();
       if (mounted) Navigator.pop(context);
     } catch (e) {
        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Xatolik: $e')));

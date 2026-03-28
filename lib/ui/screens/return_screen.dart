@@ -5,6 +5,7 @@ import 'package:uuid/uuid.dart';
 import '../../models/models.dart';
 import '../../providers/features/inventory_provider.dart';
 import '../../providers/features/sales_provider.dart';
+import '../../providers/app_state.dart';
 
 class ReturnScreen extends StatefulWidget {
   final SaleReturn? saleReturn;
@@ -222,7 +223,15 @@ class _ReturnScreenState extends State<ReturnScreen> {
     );
 
     try {
+      final inventory = context.read<InventoryProvider>();
+      final appState = context.read<AppState>();
+      
       await sales.saveReturn(entry);
+      
+      // Force UI update for stock levels
+      await inventory.reloadData();
+      await appState.reloadData();
+      
       if (mounted) Navigator.pop(context);
     } catch (e) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Xatolik: $e')));

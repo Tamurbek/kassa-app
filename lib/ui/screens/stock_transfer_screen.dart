@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 import '../../models/models.dart';
 import '../../providers/features/inventory_provider.dart';
+import '../../providers/app_state.dart';
 
 class StockTransferScreen extends StatefulWidget {
   final StockTransfer? transfer;
@@ -389,7 +390,9 @@ class _StockTransferScreenState extends State<StockTransferScreen> {
     );
 
     try {
+      final appState = context.read<AppState>();
       await inventory.saveStockTransfer(transfer);
+      await appState.reloadData();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Mahsulotlar muvaffaqiyatli ko\'chirildi'), backgroundColor: Colors.green));
         Navigator.pop(context);

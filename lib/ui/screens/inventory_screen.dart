@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 import '../../models/models.dart';
 import '../../providers/features/inventory_provider.dart';
+import '../../providers/app_state.dart';
 
 class InventoryScreen extends StatefulWidget {
   final InventoryEntry? inventory;
@@ -396,18 +397,16 @@ class _InventoryScreenState extends State<InventoryScreen> {
       items: finalItems,
     );
 
+    final appState = context.read<AppState>();
     if (widget.inventory == null) {
-      inventoryProv.addInventory(entry);
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Inventarizatsiya saqlandi')));
+      await inventoryProv.addInventory(entry);
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Inventarizatsiya saqlandi')));
     } else {
-      inventoryProv.updateInventory(entry);
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Inventarizatsiya tahrirlandi')));
+      await inventoryProv.updateInventory(entry);
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Inventarizatsiya tahrirlandi')));
     }
-
-    Navigator.pop(context);
+    
+    await appState.reloadData();
+    if (mounted) Navigator.pop(context);
   }
 }
