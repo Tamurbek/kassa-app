@@ -178,6 +178,14 @@ class _ActivationScreenState extends State<ActivationScreen> {
                       return;
                     }
                     
+                    // Capture providers before any async work
+                    final appState = context.read<AppState>();
+                    final auth = context.read<AuthProvider>();
+                    final settings = context.read<SettingsProvider>();
+                    final inventory = context.read<InventoryProvider>();
+                    final sales = context.read<SalesProvider>();
+                    final sync = context.read<SyncProvider>();
+
                     setState(() {
                       _isRestoring = true;
                       _error = null;
@@ -188,50 +196,56 @@ class _ActivationScreenState extends State<ActivationScreen> {
                         
                         // 1. Try restore from cloud FIRST (with override)
                         try {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Row(
-                                children: [
-                                  SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)),
-                                  SizedBox(width: 12),
-                                  Text('Ma\'lumotlar yuklanmoqda...'),
-                                ],
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Row(
+                                  children: [
+                                    SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)),
+                                    SizedBox(width: 12),
+                                    Text('Ma\'lumotlar yuklanmoqda...'),
+                                  ],
+                                ),
+                                duration: Duration(minutes: 1),
                               ),
-                              duration: Duration(minutes: 1),
-                            ),
-                          );
+                            );
+                          }
                           
                           await sync.restoreDatabaseFromCloud(activationCodeOverride: code);
                         } catch (backupError) {
                           debugPrint('Auto-restore skipped or failed: $backupError');
                         }
                         
-                        // 2. Commit Activation
+                        // 2. Refresh ALL providers (Crucial for memory management)
+                        // Note: We don't check 'mounted' here for reloads because providers are independent of the widget,
+                        // and we want them to finish even if the screen is being unmounted by a state change.
+                        await appState.loadSettings();
+                        await settings.loadSettings();
+                        await auth.reloadUsers();
+                        await inventory.reloadData(forceRecalculate: true); // Force once after cloud restore
+                        await sales.reloadSalesData();
+                        await sync.loadSync();
+
+                        // 3. Commit Activation (This triggers the UI switch via notifyListeners)
                         if (mounted) {
                           await auth.activate(code);
-                        }
-
-                        // 3. Refresh ALL providers (Crucial for memory management)
-                        if (mounted) {
-                          final mainContext = context;
-                          await mainContext.read<AppState>().loadSettings();
-                          await mainContext.read<SettingsProvider>().loadSettings();
-                          await mainContext.read<AuthProvider>().reloadUsers();
-                          await mainContext.read<InventoryProvider>().reloadData();
-                          await mainContext.read<SalesProvider>().reloadSalesData();
-                          await mainContext.read<SyncProvider>().loadSync();
                           
-                          ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('✅ Faollashtirildi!'), backgroundColor: Colors.green),
-                          );
+                          // Final UI polish
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('✅ Faollashtirildi!'), backgroundColor: Colors.green),
+                            );
+                          }
                         }
                       } catch (e) {
-                      setState(() {
-                         _error = e.toString().replaceAll('Exception: ', '');
-                         _isRestoring = false;
-                      });
-                      if (mounted) ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                      if (mounted) {
+                        setState(() {
+                           _error = e.toString().replaceAll('Exception: ', '');
+                           _isRestoring = false;
+                        });
+                        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                      }
                     }
                   },
                   child: _isRestoring 

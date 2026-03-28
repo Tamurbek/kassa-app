@@ -265,6 +265,7 @@ class _SetupScreenState extends State<SetupScreen> {
 
     setState(() => isLoading = true);
     try {
+      final auth = context.read<AuthProvider>();
       await appState.setTerminalMode(
         isMasterChoice,
         ip: _ipController.text,
@@ -273,7 +274,7 @@ class _SetupScreenState extends State<SetupScreen> {
       );
       
       if (mounted) {
-        await context.read<AuthProvider>().loadAuth();
+        await auth.loadAuth();
       }
     } catch (e) {
       if (mounted) {

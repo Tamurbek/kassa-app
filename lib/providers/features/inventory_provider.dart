@@ -25,15 +25,14 @@ class InventoryProvider extends ChangeNotifier {
     await reloadData();
   }
 
-  Future<void> reloadData() async {
+  Future<void> reloadData({bool forceRecalculate = false}) async {
     try {
       _isLoading = true;
       notifyListeners();
       
-      // Force recalculate stocks from documents to ensure 100% accuracy
-      // This is wrapped in try-catch to avoid app crash if tables are missing/locked
+      // Force recalculate stocks if requested (e.g. from cloud sync or manual fix)
       try {
-        await DatabaseService.recalculateStocks();
+        await DatabaseService.recalculateStocks(force: forceRecalculate);
       } catch (e) {
         debugPrint('Stock recalculation error: $e');
       }

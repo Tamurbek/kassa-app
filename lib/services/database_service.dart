@@ -42,10 +42,13 @@ class DatabaseService {
     await newFile.copy(path);
   }
 
+  static bool _factoryInitialized = false;
+
   static Future<Database> _initDb() async {
-    if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+    if ((Platform.isWindows || Platform.isLinux || Platform.isMacOS) && !_factoryInitialized) {
       sqfliteFfiInit();
       databaseFactory = databaseFactoryFfi;
+      _factoryInitialized = true;
     }
 
     final docsDir = await getApplicationDocumentsDirectory();
@@ -851,21 +854,7 @@ class DatabaseService {
         }
 
         // Atomic STOCK update
-        final currentRes = await txn.query('stocks', 
-          where: 'productId = ? AND warehouseId = ?', 
-          whereArgs: [item.productId, entry.warehouseId]);
-        
-        double currentStock = 0;
-        if (currentRes.isNotEmpty) {
-          currentStock = double.tryParse(currentRes.first['quantity'].toString()) ?? 0;
-        }
-
-        final newStock = currentStock + item.quantity;
-        await txn.insert('stocks', {
-          'productId': item.productId,
-          'warehouseId': entry.warehouseId,
-          'quantity': newStock,
-        }, conflictAlgorithm: ConflictAlgorithm.replace);
+        await _increaseStockTxn(txn, item.productId, entry.warehouseId, item.quantity);
       }
     });
   }
@@ -909,6 +898,7 @@ class DatabaseService {
 
   // --- Sales ---
   static Future<void> saveSale(Sale sale) async {
+    debugPrint('DatabaseService: Saving sale ${sale.id} for warehouse ${sale.warehouseId}');
     final db = await database;
     await db.transaction((txn) async {
       await txn.insert('sales', {
@@ -930,6 +920,15 @@ class DatabaseService {
           'price': item.price,
           'costPrice': item.costPrice,
         });
+
+        // Atomic STOCK update
+        final pRes = await txn.query('products', columns: ['trackStock'], where: 'id = ?', whereArgs: [item.productId]);
+        if (pRes.isNotEmpty && pRes.first['trackStock'] == 1) {
+          debugPrint('DatabaseService: Deducting ${item.quantity} from stock for product ${item.productId}');
+          await _decreaseStockTxn(txn, item.productId, sale.warehouseId, item.quantity);
+        } else {
+          debugPrint('DatabaseService: Skipping stock deduction for ${item.productId} (trackStock=0 or not found)');
+        }
       }
     });
   }
@@ -1029,6 +1028,9 @@ class DatabaseService {
           'quantity': item.quantity,
           'price': item.price,
         });
+
+        // Atomic STOCK update
+        await _increaseStockTxn(txn, item.productId, ret.warehouseId, item.quantity);
       }
     });
   }
@@ -1086,6 +1088,9 @@ class DatabaseService {
           'productName': item.productName,
           'quantity': item.quantity,
         });
+
+        // Atomic STOCK update
+        await _decreaseStockTxn(txn, item.productId, wo.warehouseId, item.quantity);
       }
     });
   }
@@ -1142,6 +1147,13 @@ class DatabaseService {
           'expectedQuantity': item.expectedQuantity,
           'actualQuantity': item.actualQuantity,
         });
+
+        // Atomic STOCK update (Inventory sets actual stock)
+        await txn.insert('stocks', {
+          'productId': item.productId,
+          'warehouseId': inv.warehouseId,
+          'quantity': item.actualQuantity,
+        }, conflictAlgorithm: ConflictAlgorithm.replace);
       }
     });
   }
@@ -1303,6 +1315,10 @@ class DatabaseService {
           'productName': item.productName,
           'quantity': item.quantity,
         });
+
+        // Atomic STOCK update
+        await _decreaseStockTxn(txn, item.productId, transfer.fromWarehouseId, item.quantity);
+        await _increaseStockTxn(txn, item.productId, transfer.toWarehouseId, item.quantity);
       }
     });
   }
@@ -1338,9 +1354,18 @@ class DatabaseService {
     return transfers;
   }
 
-  static Future<void> recalculateStocks() async {
+  static Future<void> recalculateStocks({bool force = false}) async {
     try {
       final db = await database;
+      
+      if (!force) {
+        final existing = await db.query('stocks', limit: 1);
+        if (existing.isNotEmpty) {
+          debugPrint('RecalculateStocks skipped (already has data)');
+          return;
+        }
+      }
+      
       await db.transaction((txn) async {
         // 1. Reset
         await txn.delete('stocks');

@@ -58,9 +58,11 @@ class _LoginScreenState extends State<LoginScreen> {
     if (success) {
       // Navigation happens automatically in InitializationWrapper
     } else {
-      setState(() {
-        pin = '';
-      });
+      if (mounted) {
+        setState(() {
+          pin = '';
+        });
+      }
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -427,16 +429,25 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
             onPressed: () async {
               Navigator.pop(ctx);
+              
+              // Capture providers before any async work because 'context' might become invalid
+              final appState = context.read<AppState>();
+              final auth = context.read<AuthProvider>();
+              final settings = context.read<SettingsProvider>();
+              final inventory = context.read<InventoryProvider>();
+              final sales = context.read<SalesProvider>();
+              final sync = context.read<SyncProvider>();
+
               // Clear everything via AppState (which also clears Database and SharedPreferences)
-              await context.read<AppState>().resetTerminalMode();
+              await appState.resetTerminalMode();
               
               if (mounted) {
                 // Also reload other providers to clear their memory state
-                await context.read<AuthProvider>().loadAuth();
-                await context.read<SettingsProvider>().loadSettings();
-                await context.read<InventoryProvider>().reloadData();
-                await context.read<SalesProvider>().reloadSalesData();
-                await context.read<SyncProvider>().loadSync();
+                await auth.loadAuth();
+                if (mounted) await settings.loadSettings();
+                if (mounted) await inventory.reloadData();
+                if (mounted) await sales.reloadSalesData();
+                if (mounted) await sync.loadSync();
               }
             },
             child: const Text('Qayta sozlash'),
