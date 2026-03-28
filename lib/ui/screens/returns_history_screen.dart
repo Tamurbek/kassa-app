@@ -31,7 +31,7 @@ class ReturnsHistoryScreen extends StatelessWidget {
             onPressed: () => _showReturnDialog(context, sales, inventory),
           ),
         ],
-      ),
+      body: sales.returns.isEmpty
           ? const Center(
               child: Text(
                 'Vazvratlar mavjud emas',
@@ -212,7 +212,7 @@ class ReturnsHistoryScreen extends StatelessWidget {
                 backgroundColor: Colors.orange,
                 foregroundColor: Colors.white,
               ),
-              onPressed: () {
+              onPressed: () async {
                 if (items.isNotEmpty && returnWarehouseId != null) {
                   final ret = SaleReturn(
                     id: DateTime.now().millisecondsSinceEpoch.toString(),

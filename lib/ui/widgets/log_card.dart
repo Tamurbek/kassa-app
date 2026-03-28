@@ -40,10 +40,10 @@ class LogCard extends StatelessWidget {
         ],
       ),
       child: ExpansionTile(
-        shape: const RoundedRectangleBorder(
+        shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),
-        collapsedShape: const RoundedRectangleBorder(
+        collapsedShape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),
         backgroundColor: Colors.transparent,
