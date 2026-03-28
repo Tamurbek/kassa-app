@@ -378,6 +378,49 @@ class SyncProvider extends ChangeNotifier {
     } catch (e) {
       debugPrint("Restore error detail: $e");
       rethrow;
+  }
+    } finally {
+      isSyncingCloud = false;
+      syncingStage = '';
+      notifyListeners();
+    }
+  }
+
+  /// Combined Push & Pull Sync
+  Future<void> performFullSync(BuildContext context) async {
+    isSyncingCloud = true;
+    syncingStage = 'Sinxronizatsiya qilinmoqda...';
+    notifyListeners();
+
+    try {
+      // 1. First push local changes (Incremental)
+      syncingStage = 'O\'zgarishlar yuborilmoqda...';
+      notifyListeners();
+      await syncIncremental();
+
+      // 2. Pull changes from cloud (Incremental)
+      syncingStage = 'Serverdan ma\'lumotlar olinmoqda...';
+      notifyListeners();
+      await pullFromCloudIncremental();
+
+      // 3. Backup full database (for safety/history)
+      if (isMaster == true) {
+        syncingStage = 'To\'liq zaxira saqlanmoqda...';
+        notifyListeners();
+        await uploadDatabaseToCloud();
+      }
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('✅ Sinxronizatsiya muvaffaqiyatli yakunlandi!'), backgroundColor: Colors.green),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Xatolik: $e'), backgroundColor: Colors.red),
+        );
+      }
     } finally {
       isSyncingCloud = false;
       syncingStage = '';

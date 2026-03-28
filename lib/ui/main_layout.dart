@@ -722,64 +722,48 @@ class _MainLayoutState extends State<MainLayout> {
                 Padding(
                   padding: const EdgeInsets.only(bottom: 16),
                   child: Text(
-                    'Oxirgi bulutli sinxronizatsiya: ${sync.lastCloudSync!.toString().substring(0, 16)}',
+                    'Oxirgi sinxronizatsiya: ${intl.DateFormat('yyyy-MM-dd HH:mm').format(sync.lastCloudSync!)}',
                     style: const TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.bold),
                   ),
                 ),
               if (sync.isSyncingCloud)
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 20),
+                 Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 20),
                   child: Column(
                     children: [
-                      CircularProgressIndicator(),
-                      SizedBox(height: 16),
-                      Text('Sinxronizatsiya kutilmoqda...', style: TextStyle(fontSize: 12)),
+                      const CircularProgressIndicator(),
+                      const SizedBox(height: 16),
+                      Text(sync.syncingStage.isNotEmpty ? sync.syncingStage : 'Sinxronizatsiya kutilmoqda...', style: const TextStyle(fontSize: 12)),
                     ],
                   ),
                 )
               else ...[
-                // Section: Cloud
                 const Text('🔥 Bulutli xizmat (Cloud)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.blue)),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 18),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      elevation: 4,
+                      shadowColor: Colors.blue.withOpacity(0.3),
+                    ),
+                    icon: const Icon(Icons.sync_rounded, size: 24),
+                    label: const Text(
+                      'Sinxronizatsiya qilish', 
+                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, letterSpacing: 0.5)
+                    ),
+                    onPressed: () => sync.performFullSync(mainContext),
+                  ),
+                ),
                 const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        icon: const Icon(Icons.cloud_download_rounded, size: 18),
-                        label: const Text('Yuklab olish', style: TextStyle(fontSize: 12)),
-                        // Pass mainContext so _confirmRestoreFromCloud can reload providers
-                        onPressed: () => _confirmRestoreFromCloud(mainContext, sync),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue.shade50,
-                          foregroundColor: Colors.blue.shade900,
-                          elevation: 0,
-                        ),
-                        icon: const Icon(Icons.cloud_upload_rounded, size: 18),
-                        label: const Text('Bulutga saqlash', style: TextStyle(fontSize: 12)),
-                        onPressed: () async {
-                          try {
-                            await sync.uploadDatabaseToCloud();
-                            if (mainContext.mounted) {
-                              ScaffoldMessenger.of(mainContext).showSnackBar(
-                                const SnackBar(content: Text('✅ Ma\'lumotlar bulutga saqlandi!'), backgroundColor: Colors.green),
-                              );
-                            }
-                          } catch (e) {
-                            if (mainContext.mounted) {
-                              ScaffoldMessenger.of(mainContext).showSnackBar(
-                                SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
-                              );
-                            }
-                          }
-                        },
-                      ),
-                    ),
-                  ],
+                const Text(
+                  'Bu tugma barcha terminalardagi o\'zgarishlarni birlashtiradi va saqlaydi.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 10, color: Colors.grey),
                 ),
               ],
             ],
