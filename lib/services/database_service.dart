@@ -1557,4 +1557,55 @@ class DatabaseService {
     }
     return result;
   }
+
+  static Future<void> saveSyncedRecord(String table, Map<String, dynamic> data) async {
+    final db = await database;
+    await db.transaction((txn) async {
+      final Map<String, dynamic> mutable = Map.from(data);
+      final List<dynamic>? items = mutable.remove('items') as List<dynamic>?;
+      mutable['isSynced'] = 1;
+      final id = mutable['id'];
+
+      await txn.insert(table, mutable, conflictAlgorithm: ConflictAlgorithm.replace);
+
+      if (items != null) {
+        if (table == 'sales') {
+          await txn.delete('sale_items', where: 'saleId = ?', whereArgs: [id]);
+          for (var item in items) {
+            await txn.insert('sale_items', Map<String, dynamic>.from(item));
+          }
+        } else if (table == 'returns') {
+          await txn.delete('return_items', where: 'returnId = ?', whereArgs: [id]);
+          for (var item in items) {
+            await txn.insert('return_items', Map<String, dynamic>.from(item));
+          }
+        } else if (table == 'write_offs') {
+          await txn.delete('write_off_items', where: 'writeOffId = ?', whereArgs: [id]);
+          for (var item in items) {
+            await txn.insert('write_off_items', Map<String, dynamic>.from(item));
+          }
+        } else if (table == 'inventories') {
+          await txn.delete('inventory_items', where: 'inventoryId = ?', whereArgs: [id]);
+          for (var item in items) {
+            await txn.insert('inventory_items', Map<String, dynamic>.from(item));
+          }
+        } else if (table == 'stock_entries') {
+          await txn.delete('stock_entry_items', where: 'entryId = ?', whereArgs: [id]);
+          for (var item in items) {
+            await txn.insert('stock_entry_items', Map<String, dynamic>.from(item));
+          }
+        } else if (table == 'stock_transfers') {
+          await txn.delete('stock_transfer_items', where: 'transferId = ?', whereArgs: [id]);
+          for (var item in items) {
+            await txn.insert('stock_transfer_items', Map<String, dynamic>.from(item));
+          }
+        }
+      }
+    });
+
+    // If transactions are changed, we should eventually recalculate stocks
+    if (['sales', 'returns', 'write_offs', 'stock_entries', 'stock_transfers', 'inventories'].contains(table)) {
+      await recalculateStocks();
+    }
+  }
 }
