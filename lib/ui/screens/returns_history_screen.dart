@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/features/sales_provider.dart';
 import '../../providers/features/inventory_provider.dart';
+import '../../providers/app_state.dart';
 import '../../models/models.dart';
 
 class ReturnsHistoryScreen extends StatelessWidget {
@@ -94,7 +95,13 @@ class ReturnsHistoryScreen extends StatelessWidget {
                   onDelete: () => _confirmDelete(
                     context,
                     'Vazvratni bekor qilmoqchimisiz?',
-                    () => sales.deleteReturn(ret.id),
+                    () async {
+                      final inventory = context.read<InventoryProvider>();
+                      final appState = context.read<AppState>();
+                      await sales.deleteReturn(ret.id);
+                      await inventory.reloadData();
+                      await appState.reloadData();
+                    },
                   ),
                 );
               },
@@ -378,7 +385,10 @@ class ReturnsHistoryScreen extends StatelessWidget {
                         )
                         .toList(),
                   );
-                  sales.addReturn(ret);
+                  final appState = context.read<AppState>();
+                  await sales.addReturn(ret);
+                  await inventory.reloadData();
+                  await appState.reloadData();
                   Navigator.pop(context);
                 }
               },

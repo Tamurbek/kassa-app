@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../models/models.dart';
 import '../../providers/features/inventory_provider.dart';
 import '../../providers/features/sales_provider.dart';
+import '../../providers/app_state.dart';
 
 class WriteOffScreen extends StatefulWidget {
   final WriteOff? writeOff;
@@ -214,7 +215,14 @@ class _WriteOffScreenState extends State<WriteOffScreen> {
     );
 
     try {
+      final inventory = context.read<InventoryProvider>();
+      final appState = context.read<AppState>();
+      
       await sales.addWriteOff(entry);
+      
+      await inventory.reloadData();
+      await appState.reloadData();
+      
       if (mounted) Navigator.pop(context);
     } catch (e) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Xatolik: $e')));

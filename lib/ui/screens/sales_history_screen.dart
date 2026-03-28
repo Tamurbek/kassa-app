@@ -4,6 +4,8 @@ import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 import '../../providers/features/sales_provider.dart';
 import '../../providers/features/settings_provider.dart';
+import '../../providers/features/inventory_provider.dart';
+import '../../providers/app_state.dart';
 import '../../models/models.dart';
 import '../../services/print_service.dart';
 
@@ -687,7 +689,13 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen> {
                     )
                     .toList(),
               );
+              final inventory = context.read<InventoryProvider>();
+              final appState = context.read<AppState>();
               await salesProv.addReturn(ret);
+              
+              // Force UI update for stock levels
+              await inventory.reloadData();
+              await appState.reloadData();
               if (mounted) {
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
