@@ -19,6 +19,9 @@ class _SetupScreenState extends State<SetupScreen> {
   final TextEditingController _ipController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   
+  ThemeData get theme => Theme.of(context);
+  bool get isDark => theme.brightness == Brightness.dark;
+
   bool isCloudMode = false;
   bool isMasterChoice = true;
   bool isLoading = false;

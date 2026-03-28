@@ -126,13 +126,12 @@ class _InitializationWrapperState extends State<InitializationWrapper> {
               ),
               const SizedBox(height: 12),
               Text(
-                'Professional POS System',
+                'PROFESSIONAL POS SYSTEM',
                 style: GoogleFonts.outfit(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
                   color: Colors.white.withOpacity(0.4),
                   letterSpacing: 2,
-                  textStyle: const TextStyle(uppercase: true),
                 ),
               ),
               const SizedBox(height: 64),

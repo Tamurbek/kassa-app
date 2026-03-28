@@ -31,6 +31,7 @@ class ReturnsHistoryScreen extends StatelessWidget {
             onPressed: () => _showReturnDialog(context, sales, inventory),
           ),
         ],
+      ),
       body: sales.returns.isEmpty
           ? const Center(
               child: Text(

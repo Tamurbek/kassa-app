@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../constants/app_constants.dart';
 
+class AppColors {
+  static const Color slateGrey = Color(0xFF64748B);
+}
+
 class AppTheme {
   // Brand Colors
   static const Color primaryColor = Color(0xFF6366F1); // Indigo 500

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' as intl;
 import 'package:provider/provider.dart';
@@ -32,6 +33,10 @@ class MainLayout extends StatefulWidget {
 class _MainLayoutState extends State<MainLayout> {
   int _selectedIndex = 0;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  
+  ThemeData get theme => Theme.of(context);
+  bool get isDark => theme.brightness == Brightness.dark;
+
   Timer? _inactivityTimer;
   static const inactivityTimeout = Duration(minutes: 5);
 

@@ -226,7 +226,7 @@ class _AppUpdateDialogState extends State<AppUpdateDialog> {
                       Text('Nimalar yangi:', style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
                       const SizedBox(height: 8),
                       Container(
-                        maxHeight: 120,
+                        constraints: const BoxConstraints(maxHeight: 120),
                         width: double.infinity,
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
