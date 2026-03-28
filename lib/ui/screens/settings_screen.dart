@@ -863,7 +863,12 @@ class SettingsScreen extends StatelessWidget {
 
     if (updateData != null) {
       if (context.mounted) {
-        _showUpdateDialog(context, updateData['version'], updateData['url']);
+        _showUpdateDialog(
+          context, 
+          updateData['version'], 
+          updateData['url'],
+          changelog: updateData['changelog'],
+        );
       }
     } else {
       if (context.mounted) {
@@ -874,8 +879,8 @@ class SettingsScreen extends StatelessWidget {
     }
   }
 
-  void _showUpdateDialog(BuildContext context, String version, String url) {
-    AppUpdateDialog.show(context, version, url);
+  void _showUpdateDialog(BuildContext context, String version, String url, {String? changelog}) {
+    AppUpdateDialog.show(context, version, url, changelog: changelog);
   }
 
   void _showReceiptWidthPicker(BuildContext context, SettingsProvider settings) {

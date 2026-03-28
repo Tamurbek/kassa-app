@@ -12,9 +12,10 @@ class AppConstants {
 
   // API / URLs
   static const int masterPort = 8080;
+  static const String activationServerUrl = "https://web-production-d2ed7.up.railway.app";
   static const String defaultOrganizationName = 'SimpleSale User';
   
   // UI Constants
-  static const double borderRadius = 8.0;
+  static const double borderRadius = 12.0;
   static const double padding = 16.0;
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../providers/app_state.dart';
 import '../../providers/features/auth_provider.dart';
 import '../../providers/features/settings_provider.dart';
@@ -8,6 +9,9 @@ import '../../providers/features/sync_provider.dart';
 import '../../providers/features/inventory_provider.dart';
 import '../../providers/features/sales_provider.dart';
 import '../../models/models.dart';
+import '../../core/theme/app_theme.dart';
+import '../../core/constants/app_constants.dart';
+import '../widgets/app_button.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -266,11 +270,11 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final sync = context.watch<SyncProvider>();
-    final settings = context.watch<SettingsProvider>();
 
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: Focus(
         focusNode: _focusNode,
         autofocus: true,
@@ -291,22 +295,33 @@ class _LoginScreenState extends State<LoginScreen> {
         },
         child: Stack(
           children: [
+            // Background decoration
+            Positioned(
+              top: -100,
+              right: -100,
+              child: Container(
+                width: 300,
+                height: 300,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppTheme.primaryColor.withOpacity(0.03),
+                ),
+              ),
+            ),
             Center(
               child: SingleChildScrollView(
                 child: Container(
                   constraints: const BoxConstraints(maxWidth: 450),
                   margin: const EdgeInsets.all(24),
-                  padding: const EdgeInsets.all(40),
+                  padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 48),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).cardColor,
-                    borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: Theme.of(context).dividerColor),
+                    color: theme.cardColor,
+                    borderRadius: BorderRadius.circular(AppConstants.borderRadius * 2),
+                    border: Border.all(color: theme.dividerColor.withOpacity(0.1)),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(
-                          Theme.of(context).brightness == Brightness.dark ? 0.4 : 0.1,
-                        ),
-                        blurRadius: 30,
+                        color: Colors.black.withOpacity(theme.brightness == Brightness.dark ? 0.3 : 0.05),
+                        blurRadius: 40,
                         offset: const Offset(0, 15),
                       ),
                     ],
@@ -314,66 +329,60 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 24),
-                        child: Icon(
-                          Icons.shopping_bag_rounded,
-                          size: 100,
-                          color: Theme.of(context).colorScheme.primary,
+                      Hero(
+                        tag: 'app_logo',
+                        child: Container(
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            color: AppTheme.primaryColor.withOpacity(0.08),
+                            borderRadius: BorderRadius.circular(AppConstants.borderRadius * 1.5),
+                          ),
+                          child: const Icon(
+                            Icons.shopping_bag_rounded,
+                            size: 64,
+                            color: AppTheme.primaryColor,
+                          ),
                         ),
                       ),
+                      const SizedBox(height: 32),
                       Text(
-                        'Tizimga Kirish',
-                        style: TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.w900,
-                          color: Theme.of(context).colorScheme.onSurface,
-                          letterSpacing: -0.5,
+                        'Xush Kelibsiz',
+                        style: GoogleFonts.outfit(
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
+                          color: theme.colorScheme.onSurface,
+                          letterSpacing: -1,
                         ),
                       ),
                       const SizedBox(height: 8),
                       Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 4,
-                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                         decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8),
+                          color: AppTheme.primaryColor.withOpacity(0.05),
+                          borderRadius: BorderRadius.circular(100),
                         ),
                         child: Text(
-                          sync.isMaster == true
-                              ? '🖥 Master terminal'
-                              : '💻 Klient terminal',
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.primary,
+                          sync.isMaster == true ? 'MASTER TERMINAL' : 'KLIENT TERMINAL',
+                          style: GoogleFonts.outfit(
+                            color: AppTheme.primaryColor,
                             fontSize: 12,
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 1.5,
                           ),
                         ),
                       ),
-                      const SizedBox(height: 48),
+                      const SizedBox(height: 56),
                       _buildPinDisplay(),
-                      const SizedBox(height: 48),
-                      Center(
-                        child: ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 320),
-                          child: _buildNumpad(),
-                        ),
+                      const SizedBox(height: 56),
+                      ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 320),
+                        child: _buildNumpad(),
                       ),
-                      const SizedBox(height: 24),
-                      TextButton(
+                      const SizedBox(height: 32),
+                      AppButton(
+                        label: 'PINni unutdingizmi?',
+                        style: AppButtonStyle.ghost,
                         onPressed: _showRecoveryDialog,
-                        style: TextButton.styleFrom(
-                          foregroundColor: Theme.of(context).textTheme.bodySmall?.color,
-                        ),
-                        child: const Text(
-                          'PINni unutdingizmi?',
-                          style: TextStyle(
-                            decoration: TextDecoration.underline,
-                            fontSize: 13,
-                          ),
-                        ),
                       ),
                     ],
                   ),
@@ -386,16 +395,13 @@ class _LoginScreenState extends State<LoginScreen> {
               child: SafeArea(
                 child: IconButton(
                   onPressed: _resetTerminalMode,
-                  icon: Icon(
-                    Icons.settings_rounded,
-                    color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
-                    size: 24,
-                  ),
+                  icon: const Icon(Icons.settings_outlined),
                   style: IconButton.styleFrom(
-                    backgroundColor: Theme.of(context).cardColor,
+                    backgroundColor: theme.cardColor,
+                    padding: const EdgeInsets.all(12),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      side: BorderSide(color: Theme.of(context).dividerColor),
+                      borderRadius: BorderRadius.circular(16),
+                      side: BorderSide(color: theme.dividerColor.withOpacity(0.2)),
                     ),
                   ),
                   tooltip: 'Terminal sozlamalari',

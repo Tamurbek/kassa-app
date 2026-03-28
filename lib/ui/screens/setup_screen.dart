@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../providers/app_state.dart';
 import '../../providers/features/auth_provider.dart';
 import '../../services/sync_service.dart';
+import '../../core/theme/app_theme.dart';
+import '../../core/constants/app_constants.dart';
+import '../widgets/app_button.dart';
 
 class SetupScreen extends StatefulWidget {
   const SetupScreen({super.key});
@@ -61,56 +65,64 @@ class _SetupScreenState extends State<SetupScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(vertical: 40),
+            padding: const EdgeInsets.symmetric(vertical: 48),
             child: Container(
-              width: 550,
-              padding: const EdgeInsets.all(40),
+              width: 600,
+              padding: const EdgeInsets.all(48),
               decoration: BoxDecoration(
-                color: Theme.of(context).cardColor,
-                borderRadius: BorderRadius.circular(24),
+                color: theme.cardColor,
+                borderRadius: BorderRadius.circular(AppConstants.borderRadius * 2),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(
-                      Theme.of(context).brightness == Brightness.dark ? 0.3 : 0.05,
-                    ),
-                    blurRadius: 20,
-                    offset: const Offset(0, 10),
+                    color: Colors.black.withOpacity(isDark ? 0.3 : 0.05),
+                    blurRadius: 40,
+                    offset: const Offset(0, 15),
                   ),
                 ],
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Image.asset(
-                    'assets/icon.png',
-                    width: 100,
-                    height: 100,
-                    fit: BoxFit.contain,
-                    filterQuality: FilterQuality.high,
-                  ),
-                  const SizedBox(height: 24),
-                  Text(
-                    'Tizimni sozlash',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w900,
-                      color: Theme.of(context).colorScheme.onSurface,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Ushbu terminal qanday usulda ishlashini tanlang',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Theme.of(context).textTheme.bodySmall?.color,
+                  Hero(
+                    tag: 'app_logo',
+                    child: Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: AppTheme.primaryColor.withOpacity(0.08),
+                        borderRadius: BorderRadius.circular(AppConstants.borderRadius * 1.5),
+                      ),
+                      child: const Icon(
+                        Icons.settings_suggest_rounded,
+                        size: 64,
+                        color: AppTheme.primaryColor,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 32),
+                  Text(
+                    'Tizimni Sozlash',
+                    style: GoogleFonts.outfit(
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                      color: theme.colorScheme.onSurface,
+                      letterSpacing: -1,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Ushbu terminal qanday usulda ishlashini tanlang',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.outfit(
+                      color: theme.colorScheme.onSurface.withOpacity(0.5),
+                      fontSize: 15,
+                    ),
+                  ),
+                  const SizedBox(height: 40),
 
                   // Mode Selection
                   Row(
@@ -124,11 +136,11 @@ class _SetupScreenState extends State<SetupScreen> {
                           onTap: () => setState(() => isCloudMode = false),
                         ),
                       ),
-                      const SizedBox(width: 16),
+                      const SizedBox(width: 20),
                       Expanded(
                         child: _buildChoiceCard(
                           title: 'Bulutli Tizim',
-                          subtitle: 'Har bir kassa alohida bazada va bulutga bog\'lanadi',
+                          subtitle: 'Railway serveri orqali markazlashgan boshqaruv',
                           icon: Icons.cloud_outlined,
                           isSelected: isCloudMode,
                           onTap: () => setState(() => isCloudMode = true),
@@ -137,34 +149,44 @@ class _SetupScreenState extends State<SetupScreen> {
                     ],
                   ),
 
+                  const SizedBox(height: 40),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: Divider(color: theme.dividerColor.withOpacity(0.1)),
+                  ),
                   const SizedBox(height: 32),
-                  const Divider(),
-                  const SizedBox(height: 24),
 
                   if (!isCloudMode) ...[
                     // LAN Specific Options
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildSubChoiceCard(
-                            title: 'Asosiy (Master)',
-                            icon: Icons.storage_rounded,
-                            isSelected: isMasterChoice,
-                            onTap: () => setState(() => isMasterChoice = true),
+                    Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: isDark ? Colors.white10 : Colors.black.withOpacity(0.03),
+                        borderRadius: BorderRadius.circular(AppConstants.borderRadius + 4),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: _buildSubChoiceCard(
+                              title: 'Asosiy (Master)',
+                              icon: Icons.dns_rounded,
+                              isSelected: isMasterChoice,
+                              onTap: () => setState(() => isMasterChoice = true),
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: _buildSubChoiceCard(
-                            title: 'Qo\'shimcha',
-                            icon: Icons.computer_rounded,
-                            isSelected: !isMasterChoice,
-                            onTap: () => setState(() => isMasterChoice = false),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: _buildSubChoiceCard(
+                              title: 'Qo\'shimcha',
+                              icon: Icons.terminal_rounded,
+                              isSelected: !isMasterChoice,
+                              onTap: () => setState(() => isMasterChoice = false),
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 32),
                     if (isMasterChoice) ...[
                       _buildIpInfo(),
                       const SizedBox(height: 24),
@@ -176,22 +198,23 @@ class _SetupScreenState extends State<SetupScreen> {
                   ] else ...[
                     // Cloud Mode options
                     Container(
-                      padding: const EdgeInsets.all(20),
+                      padding: const EdgeInsets.all(24),
                       decoration: BoxDecoration(
-                        color: Colors.blue.shade50.withOpacity(0.3),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: Colors.blue.shade200),
+                        color: AppTheme.primaryColor.withOpacity(0.05),
+                        borderRadius: BorderRadius.circular(AppConstants.borderRadius),
+                        border: Border.all(color: AppTheme.primaryColor.withOpacity(0.1)),
                       ),
                       child: Column(
                         children: [
-                          Icon(Icons.info_outline, color: Colors.blue.shade700),
-                          const SizedBox(height: 12),
+                          const Icon(Icons.verified_user_outlined, color: AppTheme.primaryColor),
+                          const SizedBox(height: 16),
                           Text(
-                            "Bulutli rejimda har bir terminal o'zining mustaqil ma'lumotlar bazasiga ega bo'ladi. Ma'lumotlar markazlashgan Railway serveri orqali sinxronizatsiya qilinadi.",
+                            "Bulutli rejimda ma'lumotlar markazlashgan server orqali sinxronizatsiya qilinadi.",
                             textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: Colors.blue.shade900,
+                            style: GoogleFonts.outfit(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: theme.colorScheme.onSurface.withOpacity(0.8),
                             ),
                           ),
                         ],
@@ -201,40 +224,14 @@ class _SetupScreenState extends State<SetupScreen> {
                     _buildPasswordField(),
                   ],
 
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 48),
 
-                  SizedBox(
+                  AppButton(
+                    label: (isCloudMode || isMasterChoice) ? 'SOZLOVNI YAKUNLASH' : 'ULANISH VA DAVOM ETISH',
                     width: double.infinity,
-                    height: 55,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Theme.of(context).colorScheme.primary,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        elevation: 0,
-                      ),
-                      onPressed: isLoading ? null : _handleSetup,
-                      child: isLoading
-                          ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                                strokeWidth: 2,
-                              ),
-                            )
-                          : Text(
-                              (isCloudMode || isMasterChoice)
-                                  ? 'SOZLOVNI YAKUNLASH'
-                                  : 'ULANISH VA DAVOM ETISH',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 1,
-                              ),
-                            ),
-                    ),
+                    isLoading: isLoading,
+                    onPressed: _handleSetup,
+                    icon: Icons.check_circle_outline_rounded,
                   ),
                 ],
               ),

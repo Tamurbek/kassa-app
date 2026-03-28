@@ -32,12 +32,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
   void _checkUpdateOnStartup() async {
     final updateData = await UpdateService.checkUpdate();
     if (updateData != null && mounted) {
-      _showUpdateDialog(context, updateData['version'], updateData['url']);
+      _showUpdateDialog(
+        context, 
+        updateData['version'], 
+        updateData['url'],
+        changelog: updateData['changelog'],
+      );
     }
   }
 
-  void _showUpdateDialog(BuildContext context, String version, String url) {
-    AppUpdateDialog.show(context, version, url);
+  void _showUpdateDialog(BuildContext context, String version, String url, {String? changelog}) {
+    AppUpdateDialog.show(context, version, url, changelog: changelog);
   }
 
   @override

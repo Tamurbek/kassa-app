@@ -1,47 +1,75 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../constants/app_constants.dart';
 
 class AppTheme {
-  // Common Colors
-  static const Color primaryColor = Color(0xFF4F46E5);
-  static const Color lightScaffoldBackground = Color(0xFFF8F9FA);
-  static const Color darkScaffoldBackground = Color(0xFF1A1A1A);
-  static const Color lightDividerColor = Color(0xFFE9ECEF);
-  static const Color darkDividerColor = Color(0x14FFFFFF); // white.withOpacity(0.08)
+  // Brand Colors
+  static const Color primaryColor = Color(0xFF6366F1); // Indigo 500
+  static const Color secondaryColor = Color(0xFF10B981); // Emerald 500
+  static const Color accentColor = Color(0xFFF59E0B); // Amber 500
+  
+  // Neutral Colors (Light)
+  static const Color lightBg = Color(0xFFF8FAFC); // Slate 50
+  static const Color lightSurface = Colors.white;
+  static const Color lightBorder = Color(0xFFE2E8F0); // Slate 200
+  
+  // Neutral Colors (Dark)
+  static const Color darkBg = Color(0xFF0F172A); // Slate 900
+  static const Color darkSurface = Color(0xFF1E293B); // Slate 800
+  static const Color darkBorder = Color(0xFF334155); // Slate 700
 
   static ThemeData lightTheme = ThemeData(
     useMaterial3: true,
     brightness: Brightness.light,
-    scaffoldBackgroundColor: lightScaffoldBackground,
-    cardColor: Colors.white,
-    dividerColor: lightDividerColor,
+    scaffoldBackgroundColor: lightBg,
+    cardColor: lightSurface,
+    dividerColor: lightBorder,
     colorScheme: ColorScheme.fromSeed(
-      seedColor: const Color(0xFF2D2D2D),
+      seedColor: primaryColor,
       primary: primaryColor,
-      onPrimary: Colors.white,
-      surface: lightScaffoldBackground,
-      onSurface: const Color(0xFF212529),
+      secondary: secondaryColor,
+      surface: lightSurface,
+      onSurface: Color(0xFF1E293B),
+      outline: lightBorder,
     ),
-    textTheme: GoogleFonts.interTextTheme(ThemeData.light().textTheme),
+    textTheme: GoogleFonts.outfitTextTheme(ThemeData.light().textTheme).copyWith(
+      headlineSmall: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+      titleMedium: GoogleFonts.outfit(fontWeight: FontWeight.w600, color: Color(0xFF1E293B)),
+    ),
     cardTheme: CardThemeData(
       elevation: 0,
-      color: Colors.white,
+      color: lightSurface,
       surfaceTintColor: Colors.transparent,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(4),
-        side: const BorderSide(color: Color(0xFFE9ECEF)),
+        borderRadius: BorderRadius.circular(AppConstants.borderRadius),
+        side: const BorderSide(color: lightBorder),
       ),
     ),
-    appBarTheme: const AppBarTheme(
-      backgroundColor: Colors.white,
-      foregroundColor: Color(0xFF2D2D2D),
+    appBarTheme: AppBarTheme(
+      backgroundColor: lightBg,
+      foregroundColor: Color(0xFF0F172A),
       elevation: 0,
-      scrolledUnderElevation: 0,
-      iconTheme: IconThemeData(color: Color(0xFF2D2D2D)),
-      titleTextStyle: TextStyle(
-        color: Color(0xFF2D2D2D),
-        fontSize: 18,
+      centerTitle: false,
+      titleTextStyle: GoogleFonts.outfit(
+        color: Color(0xFF0F172A),
+        fontSize: 20,
         fontWeight: FontWeight.bold,
+      ),
+    ),
+    inputDecorationTheme: InputDecorationTheme(
+      filled: true,
+      fillColor: Colors.white,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(AppConstants.borderRadius),
+        borderSide: const BorderSide(color: lightBorder),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(AppConstants.borderRadius),
+        borderSide: const BorderSide(color: lightBorder),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(AppConstants.borderRadius),
+        borderSide: const BorderSide(color: primaryColor, width: 2),
       ),
     ),
   );
@@ -49,36 +77,36 @@ class AppTheme {
   static ThemeData darkTheme = ThemeData(
     useMaterial3: true,
     brightness: Brightness.dark,
-    scaffoldBackgroundColor: darkScaffoldBackground,
-    cardColor: const Color(0xFF262626),
-    dividerColor: darkDividerColor,
+    scaffoldBackgroundColor: darkBg,
+    cardColor: darkSurface,
+    dividerColor: darkBorder,
     colorScheme: ColorScheme.fromSeed(
-      seedColor: const Color(0xFF818CF8),
+      seedColor: primaryColor,
       brightness: Brightness.dark,
-      primary: const Color(0xFF818CF8),
-      onPrimary: Colors.white,
-      surface: darkScaffoldBackground,
-      onSurface: const Color(0xFFE9ECEF),
+      primary: primaryColor,
+      secondary: secondaryColor,
+      surface: darkSurface,
+      onSurface: Color(0xFFF1F5F9),
+      outline: darkBorder,
     ),
-    textTheme: GoogleFonts.interTextTheme(ThemeData.dark().textTheme),
+    textTheme: GoogleFonts.outfitTextTheme(ThemeData.dark().textTheme),
     cardTheme: CardThemeData(
       elevation: 0,
-      color: const Color(0xFF262626),
+      color: darkSurface,
       surfaceTintColor: Colors.transparent,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(4),
-        side: BorderSide(color: Colors.white.withOpacity(0.1)),
+        borderRadius: BorderRadius.circular(AppConstants.borderRadius),
+        side: const BorderSide(color: darkBorder),
       ),
     ),
-    appBarTheme: const AppBarTheme(
-      backgroundColor: Color(0xFF121212),
+    appBarTheme: AppBarTheme(
+      backgroundColor: darkBg,
       foregroundColor: Colors.white,
       elevation: 0,
-      scrolledUnderElevation: 0,
-      iconTheme: IconThemeData(color: Colors.white),
-      titleTextStyle: TextStyle(
+      centerTitle: false,
+      titleTextStyle: GoogleFonts.outfit(
         color: Colors.white,
-        fontSize: 18,
+        fontSize: 20,
         fontWeight: FontWeight.bold,
       ),
     ),

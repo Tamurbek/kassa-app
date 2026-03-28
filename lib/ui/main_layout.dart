@@ -1,8 +1,9 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' as intl;
 import 'package:provider/provider.dart';
-import '../core/theme/app_colors.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../core/theme/app_theme.dart';
+import '../core/constants/app_constants.dart';
 import '../providers/features/auth_provider.dart';
 import '../providers/features/settings_provider.dart';
 import '../providers/features/inventory_provider.dart';
@@ -108,7 +109,7 @@ class _MainLayoutState extends State<MainLayout> {
         },
         child: Scaffold(
           key: _scaffoldKey,
-          endDrawer: Drawer(width: 250, child: _buildSidebar(context, auth, settings, sync, false)),
+          endDrawer: Drawer(width: 280, child: _buildSidebar(context, auth, settings, sync, false)),
           body: LayoutBuilder(
             builder: (context, constraints) {
               final isSmall = constraints.maxWidth < 700;
@@ -186,10 +187,10 @@ class _MainLayoutState extends State<MainLayout> {
       7: Icons.settings_suggest_rounded,
     };
 
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isDark = theme.brightness == Brightness.dark;
 
     return Container(
-      color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+      color: isDark ? AppTheme.darkBg : Colors.white,
       child: Column(
         children: [
           _buildSidebarHeader(isMedium, settings, isDark),
@@ -221,10 +222,10 @@ class _MainLayoutState extends State<MainLayout> {
     return Container(
       padding: EdgeInsets.all(isCollapsed ? 12 : 24),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1A1A1A) : const Color(0xFFF8FAFC),
+        color: isDark ? AppTheme.darkSurface : AppTheme.lightBg,
         border: Border(
             bottom: BorderSide(
-                color: isDark ? Colors.white10 : const Color(0xFFF1F5F9))),
+                color: theme.dividerColor.withOpacity(0.1))),
       ),
       child: Row(
         mainAxisAlignment:
@@ -233,8 +234,8 @@ class _MainLayoutState extends State<MainLayout> {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: const Color(0xFF6366F1),
-              borderRadius: BorderRadius.circular(10),
+              color: AppTheme.primaryColor,
+              borderRadius: BorderRadius.circular(8),
             ),
             child: const Icon(Icons.shopping_bag_rounded,
                 color: Colors.white, size: 20),
@@ -245,9 +246,9 @@ class _MainLayoutState extends State<MainLayout> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'SimpleSale',
-                    style: TextStyle(
+                  Text(
+                    AppConstants.appName,
+                    style: GoogleFonts.outfit(
                       fontWeight: FontWeight.w900,
                       fontSize: 18,
                       letterSpacing: -0.5,
@@ -255,9 +256,9 @@ class _MainLayoutState extends State<MainLayout> {
                   ),
                   Text(
                     settings.organizationName ?? 'Savdo Tizimi',
-                    style: const TextStyle(
+                    style: GoogleFonts.outfit(
                       fontSize: 11,
-                      color: Colors.grey,
+                      color: theme.colorScheme.onSurface.withOpacity(0.5),
                       fontWeight: FontWeight.w600,
                     ),
                     maxLines: 1,
@@ -288,7 +289,8 @@ class _MainLayoutState extends State<MainLayout> {
 
   Widget _buildSidebarItem(int index, String title, IconData icon,
       bool isSelected, bool isCollapsed, bool isDark) {
-    final Color activeColor = const Color(0xFF6366F1);
+    final theme = Theme.of(context);
+    final Color activeColor = AppTheme.primaryColor;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 4),
@@ -299,7 +301,7 @@ class _MainLayoutState extends State<MainLayout> {
             Navigator.pop(context);
           }
         },
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(AppConstants.borderRadius),
         child: Container(
           padding: EdgeInsets.symmetric(
               horizontal: 12, vertical: isCollapsed ? 12 : 10),
@@ -307,7 +309,7 @@ class _MainLayoutState extends State<MainLayout> {
             color: isSelected
                 ? activeColor.withOpacity(isDark ? 0.15 : 0.08)
                 : Colors.transparent,
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(AppConstants.borderRadius),
             border: Border.all(
               color: isSelected && !isDark
                   ? activeColor.withOpacity(0.12)
@@ -331,12 +333,12 @@ class _MainLayoutState extends State<MainLayout> {
                 Expanded(
                   child: Text(
                     title,
-                    style: TextStyle(
+                    style: GoogleFonts.outfit(
                       fontSize: 13,
                       fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                       color: isSelected
                           ? activeColor
-                          : (isDark ? Colors.grey[300] : AppColors.slateGrey),
+                          : theme.colorScheme.onSurface.withOpacity(0.7),
                     ),
                   ),
                 ),
@@ -354,7 +356,7 @@ class _MainLayoutState extends State<MainLayout> {
       decoration: BoxDecoration(
         border: Border(
             top: BorderSide(
-                color: isDark ? Colors.white10 : const Color(0xFFF1F5F9))),
+                color: Theme.of(context).dividerColor.withOpacity(0.1))),
       ),
       child: isCollapsed
           ? const Icon(Icons.bolt, color: Colors.amber, size: 18)
@@ -391,11 +393,10 @@ class _MainLayoutState extends State<MainLayout> {
         const SizedBox(width: 6),
         Text(
           label,
-          style: TextStyle(
+          style: GoogleFonts.outfit(
             fontSize: 11,
             fontWeight: FontWeight.w600,
             color: isDark ? Colors.grey[300] : Colors.grey[800],
-            fontFamily: isMono ? 'monospace' : null,
           ),
         ),
       ],
@@ -442,7 +443,7 @@ class _MainLayoutState extends State<MainLayout> {
               const SizedBox(width: 6),
               Text(
                 label,
-                style: TextStyle(
+                style: GoogleFonts.outfit(
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
                   color: color,
@@ -503,7 +504,7 @@ class _MainLayoutState extends State<MainLayout> {
                       : (sync.isConnected
                           ? 'Asosiy terminalga ulangan'
                           : 'Aloqa yo\'q'),
-                  style: TextStyle(
+                  style: GoogleFonts.outfit(
                     fontSize: 11,
                     fontWeight: FontWeight.w800,
                     color: statusColor,

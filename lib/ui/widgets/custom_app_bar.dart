@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
@@ -19,10 +20,14 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
 
     return Container(
-      color: theme.cardColor,
+      decoration: BoxDecoration(
+        color: theme.scaffoldBackgroundColor,
+        border: Border(
+          bottom: BorderSide(color: theme.dividerColor.withOpacity(0.3)),
+        ),
+      ),
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 1400),
@@ -31,38 +36,54 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
             elevation: 0,
             backgroundColor: Colors.transparent,
             foregroundColor: theme.colorScheme.onSurface,
-            centerTitle: true,
+            centerTitle: false,
             leading: leading ??
                 (onMenuPressed != null
-                    ? IconButton(
-                        icon: const Icon(Icons.menu_rounded),
-                        onPressed: onMenuPressed,
+                    ? Padding(
+                        padding: const EdgeInsets.only(left: 8.0),
+                        child: IconButton(
+                          icon: const Icon(Icons.menu_rounded, size: 28),
+                          onPressed: onMenuPressed,
+                          style: IconButton.styleFrom(
+                            backgroundColor: theme.colorScheme.primary.withOpacity(0.05),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
                       )
                     : null),
             title: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 if (showLogo) ...[
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: Image.asset(
-                      'assets/icon.png',
-                      width: 30,
-                      height: 30,
-                      fit: BoxFit.cover,
+                  Hero(
+                    tag: 'app_logo',
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Image.asset(
+                        'assets/icon.png',
+                        width: 36,
+                        height: 36,
+                        fit: BoxFit.cover,
+                      ),
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 16),
                 ],
                 Text(
                   title,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+                  style: GoogleFonts.outfit(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 22,
+                    letterSpacing: -0.5,
+                  ),
                 ),
               ],
             ),
             actions: [
               if (actions != null) ...actions!,
-              const SizedBox(width: 8),
+              const SizedBox(width: 16),
             ],
           ),
         ),
@@ -71,5 +92,5 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   }
 
   @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+  Size get preferredSize => const Size.fromHeight(64);
 }

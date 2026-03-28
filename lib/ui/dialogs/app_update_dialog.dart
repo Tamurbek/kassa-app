@@ -2,41 +2,44 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:open_app_file/open_app_file.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:provider/provider.dart';
-import 'dart:ui'; // For BackdropFilter
+import '../../services/update_service.dart';
+import '../../core/constants/app_constants.dart';
 
 class AppUpdateDialog extends StatefulWidget {
   const AppUpdateDialog({
     super.key,
     required this.version,
     required this.url,
+    this.changelog,
     this.isMandatory = false,
   });
 
   final String version;
   final String url;
+  final String? changelog;
   final bool isMandatory;
 
-  static void show(BuildContext context, String version, String url, {bool isMandatory = false}) {
+  static void show(BuildContext context, String version, String url, {String? changelog, bool isMandatory = false}) {
     showGeneralDialog(
       context: context,
       barrierDismissible: !isMandatory,
       barrierLabel: '',
-      barrierColor: Colors.black.withOpacity(0.4),
-      transitionDuration: const Duration(milliseconds: 300),
+      barrierColor: Colors.black.withOpacity(0.6),
+      transitionDuration: const Duration(milliseconds: 400),
       pageBuilder: (context, anim1, anim2) => AppUpdateDialog(
         version: version,
         url: url,
+        changelog: changelog,
         isMandatory: isMandatory,
       ),
       transitionBuilder: (context, anim1, anim2, child) {
-        return Transform.scale(
-          scale: anim1.value,
-          child: Opacity(
-            opacity: anim1.value,
+        final curve = CurvedAnimation(parent: anim1, curve: Curves.easeOutBack);
+        return ScaleTransition(
+          scale: curve,
+          child: FadeTransition(
+            opacity: anim1,
             child: child,
           ),
         );
@@ -58,45 +61,13 @@ class _AppUpdateDialogState extends State<AppUpdateDialog> {
   
   String _formatBytes(int bytes, int decimals) {
     if (bytes <= 0) return "0 B";
-    const suffixes = ["B", "KB", "MB", "GB", "TB"];
-    var i = (bytes.toString().length - 1) ~/ 3;
-    var res = (bytes / (1024 * i)).toStringAsFixed(decimals);
-    // Simple manual index for suffixes
     if (bytes < 1024) return "${bytes} B";
     if (bytes < 1024 * 1024) return "${(bytes / 1024).toStringAsFixed(decimals)} KB";
     if (bytes < 1024 * 1024 * 1024) return "${(bytes / (1024 * 1024)).toStringAsFixed(decimals)} MB";
     return "${(bytes / (1024 * 1024 * 1024)).toStringAsFixed(decimals)} GB";
   }
 
-  String _getDownloadUrl() {
-    const activationServerUrl = "https://web-production-d2ed7.up.railway.app";
-    String url = widget.url.startsWith('http') ? widget.url : "$activationServerUrl${widget.url}";
-    
-    // Google Drive URL transformation
-    if (url.contains('drive.google.com/file/d/')) {
-      final idMatch = RegExp(r'/file/d/([a-zA-Z0-9_-]+)').firstMatch(url);
-      if (idMatch != null) {
-        final fileId = idMatch.group(1);
-        return 'https://drive.google.com/uc?export=download&id=$fileId&confirm=t';
-      }
-    }
-    return url;
-  }
-
   Future<void> _startUpdate() async {
-    if (Platform.isAndroid) {
-      await _downloadAndHandleUpdate();
-    } else if (Platform.isWindows) {
-      await _downloadAndHandleUpdate();
-    } else if (Platform.isMacOS) {
-      await _downloadAndHandleUpdate();
-    } else {
-      // For Linux or others, just open link
-      Navigator.pop(context);
-    }
-  }
-
-  Future<void> _downloadAndHandleUpdate() async {
     if (Platform.isAndroid) {
       final status = await Permission.storage.request();
       if (!status.isGranted && !await Permission.manageExternalStorage.request().isGranted) {
@@ -109,20 +80,19 @@ class _AppUpdateDialogState extends State<AppUpdateDialog> {
       isDownloading = true;
       downloadProgress = 0.0;
       errorMessage = null;
-      isInstalling = false;
     });
 
     try {
       final dio = Dio();
       final tempDir = await getTemporaryDirectory();
-      final downloadUrl = _getDownloadUrl();
+      final downloadUrl = UpdateService.getFinalUrl(widget.url);
       final uri = Uri.parse(downloadUrl);
       
       String fileName = uri.pathSegments.isNotEmpty ? uri.pathSegments.last : 'update_file';
       if (Platform.isWindows && !fileName.toLowerCase().endsWith('.exe') && !fileName.toLowerCase().endsWith('.msi')) {
-        fileName = 'SimpleSale_Update_${widget.version}.exe';
+        fileName = 'SimpleSale_Update_v${widget.version}.exe';
       } else if (Platform.isAndroid && !fileName.toLowerCase().endsWith('.apk')) {
-        fileName = 'SimpleSale_${widget.version}.apk';
+        fileName = 'SimpleSale_v${widget.version}.apk';
       }
       
       final filePath = '${tempDir.path}/$fileName';
@@ -139,7 +109,7 @@ class _AppUpdateDialogState extends State<AppUpdateDialog> {
                 downloadProgress = received / total;
                 totalBytesStr = _formatBytes(total, 1);
               } else {
-                downloadProgress = 0.01; // Undefined total
+                downloadProgress = 0.05;
               }
               downloadedBytesStr = _formatBytes(received, 1);
             });
@@ -154,11 +124,9 @@ class _AppUpdateDialogState extends State<AppUpdateDialog> {
         isInstalling = true;
       });
 
-      // Give a tiny moment for UI to reflect "Installing"
       await Future.delayed(const Duration(milliseconds: 800));
 
       if (Platform.isWindows) {
-        // Detached launch
         if (filePath.toLowerCase().endsWith('.msi')) {
           await Process.start('msiexec.exe', ['/i', filePath, '/qn', '/norestart'], mode: ProcessStartMode.detached);
         } else {
@@ -167,10 +135,9 @@ class _AppUpdateDialogState extends State<AppUpdateDialog> {
         await Future.delayed(const Duration(seconds: 1));
         exit(0);
       } else {
-        // Android / macOS / others
         final result = await OpenAppFile.open(filePath);
         if (result.type != ResultType.done) {
-          throw Exception('O\'rnatishni boshlab bo\'lmadi: ${result.message}');
+          throw Exception('O\'rnatishda xatolik: ${result.message}');
         }
         if (mounted) Navigator.pop(context);
       }
@@ -179,7 +146,7 @@ class _AppUpdateDialogState extends State<AppUpdateDialog> {
       setState(() {
         isDownloading = false;
         isInstalling = false;
-        errorMessage = 'Yuklab olishda xatolik: ${e.toString()}';
+        errorMessage = 'Xatolik: ${e.toString()}';
       });
     }
   }
@@ -193,23 +160,24 @@ class _AppUpdateDialogState extends State<AppUpdateDialog> {
       child: Material(
         color: Colors.transparent,
         child: Container(
-          width: 400,
-          margin: const EdgeInsets.symmetric(horizontal: 24),
+          width: 440,
+          margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
           decoration: BoxDecoration(
             color: theme.cardColor,
-            borderRadius: BorderRadius.circular(28),
+            borderRadius: BorderRadius.circular(AppConstants.borderRadius * 2),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.15),
-                blurRadius: 30,
-                offset: const Offset(0, 10),
+                color: Colors.black.withOpacity(0.3),
+                blurRadius: 50,
+                spreadRadius: -10,
+                offset: const Offset(0, 20),
               ),
             ],
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Header Image/Icon
+              // Header
               Container(
                 height: 140,
                 width: double.infinity,
@@ -219,75 +187,84 @@ class _AppUpdateDialogState extends State<AppUpdateDialog> {
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(AppConstants.borderRadius * 2)),
                 ),
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    // Decorative patterns
-                    Positioned(
-                      right: -20,
-                      top: -20,
-                      child: Container(
-                        width: 100,
-                        height: 100,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.white.withOpacity(0.1),
-                        ),
-                      ),
-                    ),
-                    const Icon(
-                      Icons.auto_awesome_rounded,
-                      size: 64,
-                      color: Colors.white,
-                    ),
-                  ],
+                child: const Center(
+                  child: Icon(Icons.system_update_alt_rounded, size: 56, color: Colors.white),
                 ),
               ),
               
               Padding(
-                padding: const EdgeInsets.all(28.0),
+                padding: const EdgeInsets.all(24.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Yangilanish mavjud!',
-                      style: theme.textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: -0.5,
-                      ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            'Yangi versiya tayyor!',
+                            style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: primaryColor.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            'v${widget.version}',
+                            style: TextStyle(color: primaryColor, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Simple Sale v${widget.version} endi tayyor.',
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.hintColor,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 16),
                     
-                    if (!isDownloading && !isInstalling) ...[
+                    if (widget.changelog != null && widget.changelog!.isNotEmpty) ...[
+                      Text('Nimalar yangi:', style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 8),
+                      Container(
+                        maxHeight: 120,
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: theme.dividerColor.withOpacity(0.05),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: theme.dividerColor.withOpacity(0.1)),
+                        ),
+                        child: SingleChildScrollView(
+                          child: Text(
+                            widget.changelog!,
+                            style: theme.textTheme.bodyMedium?.copyWith(height: 1.4),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                    ] else ...[
                       const Text(
-                        'Ushbu yangilanishda xavfsizlik kuchaytirilgan va tizim barqarorligi oshirilgan. Yangilash tavsiya etiladi.',
+                        'Barqarorlikni oshirish va xavfsizlikni kuchaytirish uchun dasturni yangilash tavsiya etiladi.',
                         style: TextStyle(height: 1.5),
                       ),
-                      const SizedBox(height: 32),
+                      const SizedBox(height: 24),
+                    ],
+
+                    if (!isDownloading && !isInstalling) ...[
                       Row(
                         children: [
                           if (!widget.isMandatory)
                             Expanded(
-                              child: TextButton(
+                              child: OutlinedButton(
                                 onPressed: () => Navigator.pop(context),
-                                style: TextButton.styleFrom(
+                                style: OutlinedButton.styleFrom(
                                   padding: const EdgeInsets.symmetric(vertical: 16),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                                 ),
                                 child: Text('Keyinroq', style: TextStyle(color: theme.hintColor)),
                               ),
                             ),
-                          const SizedBox(width: 12),
+                          if (!widget.isMandatory) const SizedBox(width: 12),
                           Expanded(
                             child: ElevatedButton(
                               onPressed: _startUpdate,
@@ -296,40 +273,23 @@ class _AppUpdateDialogState extends State<AppUpdateDialog> {
                                 foregroundColor: Colors.white,
                                 elevation: 0,
                                 padding: const EdgeInsets.symmetric(vertical: 16),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                               ),
                               child: const Text('Yangilash', style: TextStyle(fontWeight: FontWeight.bold)),
                             ),
                           ),
                         ],
                       ),
-                    ] else if (isDownloading) ...[
-                      _buildProgressSection(primaryColor, 'Yuklab olinmoqda...'),
-                    ] else if (isInstalling) ...[
-                      _buildProgressSection(Colors.green, 'O\'rnatishga tayyorlanmoqda...', undefined: true),
+                    ] else ...[
+                      _buildProgressSection(primaryColor, isInstalling ? 'O\'rnatilmoqda...' : 'Yuklanmoqda...'),
                     ],
                     
                     if (errorMessage != null)
                       Padding(
                         padding: const EdgeInsets.only(top: 16),
-                        child: Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Colors.red.withOpacity(0.08),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Row(
-                            children: [
-                              const Icon(Icons.error_outline_rounded, color: Colors.red, size: 20),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: Text(
-                                  errorMessage!,
-                                  style: const TextStyle(color: Colors.red, fontSize: 13, fontWeight: FontWeight.w500),
-                                ),
-                              ),
-                            ],
-                          ),
+                        child: Text(
+                          errorMessage!,
+                          style: const TextStyle(color: Colors.red, fontSize: 13),
                         ),
                       ),
                   ],
@@ -342,42 +302,26 @@ class _AppUpdateDialogState extends State<AppUpdateDialog> {
     );
   }
 
-  Widget _buildProgressSection(Color color, String status, {bool undefined = false}) {
+  Widget _buildProgressSection(Color color, String status) {
     return Column(
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              status,
-              style: TextStyle(fontWeight: FontWeight.w700, color: color),
-            ),
-            if (!undefined && totalBytesStr != null)
-              Text(
-                '${downloadedBytesStr ?? "0"} / $totalBytesStr',
-                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-              )
-            else if (!undefined)
-              Text(
-                '${(downloadProgress * 100).toStringAsFixed(0)}%',
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
+            Text(status, style: TextStyle(fontWeight: FontWeight.bold, color: color)),
+            if (totalBytesStr != null)
+              Text('$downloadedBytesStr / $totalBytesStr', style: const TextStyle(fontSize: 12)),
           ],
         ),
         const SizedBox(height: 12),
         ClipRRect(
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(8),
           child: LinearProgressIndicator(
-            value: undefined ? null : downloadProgress,
-            minHeight: 12,
+            value: isInstalling ? null : downloadProgress,
+            minHeight: 10,
             backgroundColor: color.withOpacity(0.1),
             valueColor: AlwaysStoppedAnimation<Color>(color),
           ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          undefined ? 'Iltimos kuting...' : 'Dastur fayllari yuklanmoqda',
-          style: TextStyle(fontSize: 12, color: Colors.grey[500]),
         ),
       ],
     );
