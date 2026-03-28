@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:async';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
@@ -10,6 +11,12 @@ class DatabaseService {
   static Future<Database>? _initFuture;
   
   static Function()? onDataChanged;
+  static final StreamController<void> dbUpdateStream = StreamController<void>.broadcast();
+
+  static void triggerUpdate({bool skipPush = false}) {
+    if (!skipPush) onDataChanged?.call();
+    dbUpdateStream.add(null);
+  }
 
   static Future<Database> get database async {
     if (_db != null && _db!.isOpen) return _db!;
@@ -514,6 +521,7 @@ class DatabaseService {
   static Future<void> deleteCategory(String id) async {
     final db = await database;
     await db.delete('categories', where: 'id = ?', whereArgs: [id]);
+    triggerUpdate();
   }
 
   // --- Warehouses ---
@@ -526,6 +534,7 @@ class DatabaseService {
       'updatedAt': DateTime.now().toIso8601String(),
       'isSynced': 0,
     }, conflictAlgorithm: ConflictAlgorithm.replace);
+    triggerUpdate();
   }
 
   static Future<List<Warehouse>> getWarehouses() async {
@@ -545,6 +554,7 @@ class DatabaseService {
   static Future<void> deleteWarehouse(String id) async {
     final db = await database;
     await db.delete('warehouses', where: 'id = ?', whereArgs: [id]);
+    triggerUpdate();
   }
 
   // --- Registers ---
@@ -558,6 +568,7 @@ class DatabaseService {
       'updatedAt': DateTime.now().toIso8601String(),
       'isSynced': 0,
     }, conflictAlgorithm: ConflictAlgorithm.replace);
+    triggerUpdate();
   }
 
   static Future<List<Register>> getRegisters() async {
@@ -578,11 +589,13 @@ class DatabaseService {
   static Future<void> deleteRegister(String id) async {
     final db = await database;
     await db.delete('registers', where: 'id = ?', whereArgs: [id]);
+    triggerUpdate();
   }
 
   static Future<void> updateRegisterDevice(String id, String? deviceId) async {
     final db = await database;
     await db.update('registers', {'activeDeviceId': deviceId}, where: 'id = ?', whereArgs: [id]);
+    triggerUpdate();
   }
 
   // --- Products & Stocks ---
@@ -627,6 +640,7 @@ class DatabaseService {
         'quantity': entry.value,
       }, conflictAlgorithm: ConflictAlgorithm.replace);
     }
+    triggerUpdate();
   }
 
   static Future<List<Product>> getProducts() async {
@@ -692,6 +706,7 @@ class DatabaseService {
     final db = await database;
     await db.delete('products', where: 'id = ?', whereArgs: [id]);
     await db.delete('stocks', where: 'productId = ?', whereArgs: [id]);
+    triggerUpdate();
   }
 
   static Future<void> updateStock(
@@ -713,16 +728,19 @@ class DatabaseService {
       'warehouseId': warehouseId,
       'quantity': newQuantity,
     }, conflictAlgorithm: ConflictAlgorithm.replace);
+    triggerUpdate();
   }
 
   static Future<void> updateProductCostPrice(String id, double costPrice) async {
     final db = await database;
     await db.update('products', {'costPrice': costPrice}, where: 'id = ?', whereArgs: [id]);
+    triggerUpdate();
   }
 
   static Future<void> updateProductImagePath(String id, String path) async {
     final db = await database;
     await db.update('products', {'imagePath': path}, where: 'id = ?', whereArgs: [id]);
+    triggerUpdate();
   }
 
   // --- Bulk Sync ---
@@ -798,6 +816,7 @@ class DatabaseService {
         }
       }
     });
+    triggerUpdate();
   }
 
   // --- Settings ---
@@ -808,6 +827,7 @@ class DatabaseService {
       {'key': key, 'value': value},
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
+    triggerUpdate();
   }
 
   static Future<String?> getSetting(String key) async {
@@ -860,6 +880,7 @@ class DatabaseService {
         await _increaseStockTxn(txn, item.productId, entry.warehouseId, item.quantity);
       }
     });
+    triggerUpdate();
   }
 
   static Future<List<StockEntry>> getStockEntries() async {
@@ -934,7 +955,7 @@ class DatabaseService {
         }
       }
     });
-    onDataChanged?.call();
+    triggerUpdate();
   }
 
   static Future<List<Sale>> getSales() async {
@@ -988,6 +1009,7 @@ class DatabaseService {
       'updatedAt': DateTime.now().toIso8601String(),
       'isSynced': 0,
     }, conflictAlgorithm: ConflictAlgorithm.replace);
+    triggerUpdate();
   }
 
   static Future<List<User>> getUsers() async {
@@ -1009,6 +1031,7 @@ class DatabaseService {
   static Future<void> deleteUser(String id) async {
     final db = await database;
     await db.delete('users', where: 'id = ?', whereArgs: [id]);
+    triggerUpdate();
   }
 
   // --- Returns ---
@@ -1037,6 +1060,7 @@ class DatabaseService {
         await _increaseStockTxn(txn, item.productId, ret.warehouseId, item.quantity);
       }
     });
+    triggerUpdate();
   }
 
   static Future<List<SaleReturn>> getReturns() async {
@@ -1097,6 +1121,7 @@ class DatabaseService {
         await _decreaseStockTxn(txn, item.productId, wo.warehouseId, item.quantity);
       }
     });
+    triggerUpdate();
   }
 
   static Future<List<WriteOff>> getWriteOffs() async {
@@ -1160,6 +1185,7 @@ class DatabaseService {
         }, conflictAlgorithm: ConflictAlgorithm.replace);
       }
     });
+    triggerUpdate();
   }
 
   static Future<List<InventoryEntry>> getInventories() async {
@@ -1212,6 +1238,7 @@ class DatabaseService {
       await txn.delete('returns', where: 'id = ?', whereArgs: [id]);
       await txn.delete('return_items', where: 'returnId = ?', whereArgs: [id]);
     });
+    triggerUpdate();
   }
 
   static Future<void> deleteWriteOff(String id) async {
@@ -1235,6 +1262,7 @@ class DatabaseService {
         whereArgs: [id],
       );
     });
+    triggerUpdate();
   }
 
   static Future<void> deleteStockEntry(String id) async {
@@ -1258,6 +1286,7 @@ class DatabaseService {
         whereArgs: [id],
       );
     });
+    triggerUpdate();
   }
 
   static Future<void> deleteInventory(String id) async {
@@ -1270,6 +1299,7 @@ class DatabaseService {
         whereArgs: [id],
       );
     });
+    triggerUpdate();
   }
 
   static Future<void> clearAllData() async {
@@ -1296,6 +1326,7 @@ class DatabaseService {
       await txn.delete('users');
       await txn.delete('settings');
     });
+    triggerUpdate();
   }
 
   // --- Stock Transfers ---
@@ -1325,6 +1356,7 @@ class DatabaseService {
         await _increaseStockTxn(txn, item.productId, transfer.toWarehouseId, item.quantity);
       }
     });
+    triggerUpdate();
   }
 
   static Future<List<StockTransfer>> getStockTransfers() async {
@@ -1501,11 +1533,13 @@ class DatabaseService {
       await txn.delete('stock_transfers', where: 'id = ?', whereArgs: [id]);
       await txn.delete('stock_transfer_items', where: 'transferId = ?', whereArgs: [id]);
     });
+    triggerUpdate();
   }
 
   static Future<void> deleteSetting(String key) async {
     final db = await DatabaseService.database;
     await db.delete('settings', where: 'key = ?', whereArgs: [key]);
+    triggerUpdate();
   }
 
   static Future<void> markAsSynced(String table, String id) async {
@@ -1516,7 +1550,7 @@ class DatabaseService {
       where: 'id = ?',
       whereArgs: [id],
     );
-    onDataChanged?.call();
+    triggerUpdate();
   }
 
   static Future<Map<String, List<Map<String, dynamic>>>> getUnsyncedRecords() async {
@@ -1612,5 +1646,6 @@ class DatabaseService {
     if (['sales', 'returns', 'write_offs', 'stock_entries', 'stock_transfers', 'inventories'].contains(table)) {
       await recalculateStocks();
     }
+    triggerUpdate(skipPush: true);
   }
 }

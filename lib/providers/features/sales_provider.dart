@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../models/models.dart';
 import '../../services/database_service.dart';
@@ -11,6 +12,20 @@ class SalesProvider extends ChangeNotifier {
   
   bool _isLoading = false;
   bool get isLoading => _isLoading;
+  StreamSubscription<void>? _dbSubscription;
+
+  SalesProvider() {
+    _dbSubscription = DatabaseService.dbUpdateStream.stream.listen((_) {
+      debugPrint("SalesProvider: Background data change detected. Reloading...");
+      reloadSalesData();
+    });
+  }
+
+  @override
+  void dispose() {
+    _dbSubscription?.cancel();
+    super.dispose();
+  }
 
   double get todaySalesTotal {
     final now = DateTime.now();

@@ -108,12 +108,19 @@ class SyncProvider extends ChangeNotifier {
     }
   }
 
+  bool _isSyncingInternally = false;
+
   Future<void> syncNow() async {
-    if (!isCloudMode) return;
+    if (!isCloudMode || _isSyncingInternally) return;
     
-    debugPrint("Professional Sync: Triggering immediate cloud sync...");
-    await syncIncremental();
-    await pullFromCloudIncremental();
+    _isSyncingInternally = true;
+    try {
+      debugPrint("Professional Sync: Triggering immediate cloud sync...");
+      await syncIncremental();
+      await pullFromCloudIncremental();
+    } finally {
+      _isSyncingInternally = false;
+    }
   }
 
   Future<void> pullFromCloudIncremental() async {
@@ -121,33 +128,34 @@ class SyncProvider extends ChangeNotifier {
     final activationCode = prefs.getString('activationCode')?.trim().toUpperCase();
     if (activationCode == null) return;
 
-    final int lastId = prefs.getInt('lastCloudEventId') ?? 0;
-    
+    final lastId = prefs.getInt('lastSyncId') ?? 0;
+    final url = "https://web-production-d2ed7.up.railway.app/sync-incremental?activation_code=$activationCode&last_id=$lastId";
+
     try {
-      final pullUrl = "https://web-production-d2ed7.up.railway.app/sync-incremental?activation_code=$activationCode&last_id=$lastId";
-      final response = await http.get(Uri.parse(pullUrl)).timeout(const Duration(seconds: 15));
-
+      final response = await http.get(Uri.parse(url)).timeout(const Duration(seconds: 15));
       if (response.statusCode == 200) {
-        final List<dynamic> events = jsonDecode(response.body);
+        final List events = jsonDecode(response.body);
         if (events.isEmpty) return;
-
-        debugPrint("Professional Sync: Found ${events.length} new cloud events");
 
         int maxId = lastId;
         for (var event in events) {
-          final table = event['table_name'];
-          final data = event['data'];
-          final id = event['id'];
-          
-          await DatabaseService.saveSyncedRecord(table, data);
+          final id = event['id'] as int;
+          final tableName = event['table_name'] as String;
+          final data = event['data'] as Map<String, dynamic>;
+
+          await DatabaseService.saveSyncedRecord(tableName, data);
           if (id > maxId) maxId = id;
         }
 
-        await prefs.setInt('lastCloudEventId', maxId);
-        notifyListeners(); // Refresh UI to show new cloud sales
+        await prefs.setInt('lastSyncId', maxId);
+        lastCloudSync = DateTime.now();
+        await prefs.setString('lastCloudSync', lastCloudSync!.toIso8601String());
+        
+        notifyListeners();
+        debugPrint("Professional Sync: Pulled ${events.length} records. Latest ID: $maxId");
       }
     } catch (e) {
-      debugPrint("Professional Sync: Cloud incremental pull failed: $e");
+      debugPrint("Professional Sync: Pull error: $e");
     }
   }
 

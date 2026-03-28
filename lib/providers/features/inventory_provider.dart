@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../models/models.dart';
 import '../../services/database_service.dart';
@@ -12,6 +13,20 @@ class InventoryProvider extends ChangeNotifier {
   
   bool _isLoading = false;
   bool get isLoading => _isLoading;
+  StreamSubscription<void>? _dbSubscription;
+
+  InventoryProvider() {
+    _dbSubscription = DatabaseService.dbUpdateStream.stream.listen((_) {
+      debugPrint("InventoryProvider: Background data change detected. Reloading...");
+      reloadData();
+    });
+  }
+
+  @override
+  void dispose() {
+    _dbSubscription?.cancel();
+    super.dispose();
+  }
 
   List<Category> get activeCategories => categories.where((c) => !c.isDeleted).toList();
   List<Category> get deletedCategories => categories.where((c) => c.isDeleted).toList();
