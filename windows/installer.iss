@@ -56,6 +56,14 @@ Type: files; Name: "{commonprograms}\{#MyAppName}.lnk"
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
 
+; Add Firewall rule for the application during installation
+Filename: "{sys}\netsh.exe"; \
+    Parameters: "advfirewall firewall add rule name=""Simple Sale POS"" dir=in action=allow program=""{app}\{#MyAppExeName}"" enable=yes"; \
+    Flags: runhidden; StatusMsg: "Tarmoq sozlamalari yangilanmoqda..."
+Filename: "{sys}\netsh.exe"; \
+    Parameters: "advfirewall firewall add rule name=""Simple Sale Sync"" dir=in action=allow protocol=TCP localport=8080 enable=yes"; \
+    Flags: runhidden; StatusMsg: "Sinxronizatsiya porti ochilmoqda..."
+
 [UninstallDelete]
 ; Delete the database file from Documents (Old location)
 Type: files; Name: "{userdocs}\simple_sale.db"
