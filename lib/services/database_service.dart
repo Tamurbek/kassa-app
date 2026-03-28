@@ -8,6 +8,8 @@ import '../models/models.dart';
 class DatabaseService {
   static Database? _db;
   static Future<Database>? _initFuture;
+  
+  static Function()? onDataChanged;
 
   static Future<Database> get database async {
     if (_db != null && _db!.isOpen) return _db!;
@@ -492,6 +494,7 @@ class DatabaseService {
       json,
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
+    onDataChanged?.call();
   }
 
   static Future<List<Category>> getCategories() async {
@@ -931,6 +934,7 @@ class DatabaseService {
         }
       }
     });
+    onDataChanged?.call();
   }
 
   static Future<List<Sale>> getSales() async {
@@ -1512,6 +1516,7 @@ class DatabaseService {
       where: 'id = ?',
       whereArgs: [id],
     );
+    onDataChanged?.call();
   }
 
   static Future<Map<String, List<Map<String, dynamic>>>> getUnsyncedRecords() async {

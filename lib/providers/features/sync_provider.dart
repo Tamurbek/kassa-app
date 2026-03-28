@@ -34,6 +34,13 @@ class SyncProvider extends ChangeNotifier {
     masterAddress = prefs.getString('masterAddress');
     final lastSyncStr = prefs.getString('lastCloudSync');
     if (lastSyncStr != null) lastCloudSync = DateTime.parse(lastSyncStr);
+    
+    DatabaseService.onDataChanged = () => syncNow();
+
+    final activationCode = prefs.getString('activationCode')?.trim().toUpperCase();
+    if (isCloudMode && activationCode != null) {
+      _connectCloudSync(activationCode);
+    }
 
     if (isMaster == false && masterAddress != null) {
       _connectRealtime();
@@ -99,6 +106,14 @@ class SyncProvider extends ChangeNotifier {
       // SLAVE (LAN Mode): Push to Master via Local Network
       await _pushToMasterIncremental(unsynced);
     }
+  }
+
+  Future<void> syncNow() async {
+    if (!isCloudMode) return;
+    
+    debugPrint("Professional Sync: Triggering immediate cloud sync...");
+    await syncIncremental();
+    await pullFromCloudIncremental();
   }
 
   Future<void> pullFromCloudIncremental() async {
@@ -187,6 +202,41 @@ class SyncProvider extends ChangeNotifier {
       }
     } catch (e) {
       debugPrint("Professional Sync: Master incremental sync failed: $e");
+    }
+  }
+
+  WebSocketChannel? _cloudSyncChannel;
+
+  void _connectCloudSync(String activationCode) {
+    _cloudSyncChannel?.sink.close();
+    
+    final wsUrl = "wss://web-production-d2ed7.up.railway.app/ws/sync/$activationCode";
+    debugPrint("Professional Sync: Connecting to cloud websocket: $wsUrl");
+    
+    try {
+      _cloudSyncChannel = WebSocketChannel.connect(Uri.parse(wsUrl));
+      _cloudSyncChannel!.stream.listen(
+        (message) {
+          debugPrint("Professional Sync: Received cloud notification: $message");
+          if (message == "sync_needed") {
+            pullFromCloudIncremental();
+          }
+        },
+        onDone: () {
+          debugPrint("Professional Sync: Cloud websocket closed. Reconnecting...");
+          Future.delayed(const Duration(seconds: 10), () {
+            if (isCloudMode) _connectCloudSync(activationCode);
+          });
+        },
+        onError: (e) {
+          debugPrint("Professional Sync: Cloud websocket error: $e");
+          Future.delayed(const Duration(seconds: 15), () {
+            if (isCloudMode) _connectCloudSync(activationCode);
+          });
+        },
+      );
+    } catch (e) {
+      debugPrint("Professional Sync: Could not establish cloud websocket: $e");
     }
   }
 
