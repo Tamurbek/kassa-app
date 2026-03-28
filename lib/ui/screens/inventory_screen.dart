@@ -4,6 +4,9 @@ import 'package:uuid/uuid.dart';
 import '../../models/models.dart';
 import '../../providers/features/inventory_provider.dart';
 import '../../providers/app_state.dart';
+import '../widgets/custom_app_bar.dart';
+import '../widgets/product_selection_row.dart';
+import '../widgets/barcode_scanner_input.dart';
 
 class InventoryScreen extends StatefulWidget {
   final InventoryEntry? inventory;
@@ -85,42 +88,26 @@ class _InventoryScreenState extends State<InventoryScreen> {
     final inventoryProv = context.watch<InventoryProvider>();
 
     return Scaffold(
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(kToolbarHeight),
-        child: Container(
-          color: Theme.of(context).cardColor,
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 1400),
-              child: AppBar(
-                title: Text(
-                  widget.inventory == null
-                      ? 'Yangi Inventarizatsiya'
-                      : 'Inventarizatsiyani Tahrirlash',
-                ),
-                backgroundColor: Colors.transparent,
-                elevation: 0,
-                actions: [
-                  IconButton(icon: Icon(Icons.save), onPressed: _save),
-                  SizedBox(width: 8),
-                ],
-              ),
-            ),
-          ),
-        ),
+      appBar: CustomAppBar(
+        title: widget.inventory == null
+            ? 'Yangi Inventarizatsiya'
+            : 'Inventarizatsiyani Tahrirlash',
+        actions: [
+          IconButton(icon: const Icon(Icons.save), onPressed: _save),
+        ],
       ),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 1400),
           child: SingleChildScrollView(
-            padding: EdgeInsets.all(24),
+            padding: const EdgeInsets.all(24),
             child: Container(
               decoration: BoxDecoration(
                 color: Theme.of(context).cardColor,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: Theme.of(context).dividerColor),
               ),
-              padding: EdgeInsets.all(24),
+              padding: const EdgeInsets.all(24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -145,12 +132,12 @@ class _InventoryScreenState extends State<InventoryScreen> {
                           onChanged: (val) => setState(() => invWarehouseId = val),
                         ),
                       ),
-                      SizedBox(width: 16),
+                      const SizedBox(width: 16),
                       Expanded(
                         child: InkWell(
                           onTap: _pickDate,
                           child: InputDecorator(
-                            decoration: InputDecoration(
+                            decoration: const InputDecoration(
                               labelText: 'Sana va vaqt',
                               border: OutlineInputBorder(),
                               prefixIcon: Icon(Icons.calendar_today),
@@ -161,7 +148,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
                       ),
                     ],
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   TextField(
                     controller: descCtrl,
                     decoration: const InputDecoration(
@@ -170,120 +157,65 @@ class _InventoryScreenState extends State<InventoryScreen> {
                       prefixIcon: Icon(Icons.comment),
                     ),
                   ),
-                  SizedBox(height: 24),
+                  const SizedBox(height: 24),
                   const Divider(),
-                  SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: barcodeCtrl,
-                          focusNode: barcodeFocusNode,
-                          decoration: const InputDecoration(
-                            labelText: 'Shtrix kod orqali qo\'shish',
-                            hintText: 'Shtrix kodni o\'qing yoki yozing...',
-                            border: OutlineInputBorder(),
-                            prefixIcon: Icon(Icons.qr_code_scanner),
-                          ),
-                          onSubmitted: (val) => _handleBarcode(val, inventoryProv),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      IconButton.filled(
-                        onPressed: () => _handleBarcode(barcodeCtrl.text, inventoryProv),
-                        icon: const Icon(Icons.add),
-                        style: IconButton.styleFrom(
-                          backgroundColor: Colors.teal,
-                          foregroundColor: Colors.white,
-                        ),
-                      ),
-                    ],
+                  const SizedBox(height: 16),
+                  BarcodeScannerInput(
+                    controller: barcodeCtrl,
+                    focusNode: barcodeFocusNode,
+                    label: 'Shtrix kod orqali qo\'shish',
+                    hint: 'Shtrix kodni o\'qing yoki yozing...',
+                    onBarcodeSubmitted: (val) => _handleBarcode(val, inventoryProv),
                   ),
                   const Divider(height: 48),
-                  SizedBox(height: 16),
-                  Text(
+                  const SizedBox(height: 16),
+                  const Text(
                     'Mahsulotlar',
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   ...items.asMap().entries.map((entry) {
                     final idx = entry.key;
                     final item = entry.value;
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            flex: 3,
-                            child: DropdownButtonFormField<String>(
-                              value: item['productId'],
-                              decoration: InputDecoration(
-                                border: OutlineInputBorder(),
-                                contentPadding: EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                ),
-                              ),
-                              hint: Text('Tanlang'),
-                              items: inventoryProv.activeProducts
-                                  .map(
-                                    (p) => DropdownMenuItem(
-                                      value: p.id,
-                                      child: Text(p.name),
-                                    ),
-                                  )
-                                  .toList(),
-                                onChanged: (val) {
-                                if (val == null) return;
-                                final p = inventoryProv.activeProducts.firstWhere(
-                                  (p) => p.id == val,
-                                );
-                                setState(() {
-                                  items[idx]['productId'] = val;
-                                  items[idx]['productName'] = p.name;
-                                  if (widget.inventory == null) {
-                                    items[idx]['expected'] =
-                                        p.stocks[invWarehouseId] ?? 0.0;
-                                  }
-                                });
-                              },
-                            ),
+                    return ProductSelectionRow(
+                      selectedProduct: item['productId'] != null
+                          ? inventoryProv.activeProducts.firstWhere(
+                              (p) => p.id == item['productId'],
+                              orElse: () => inventoryProv.activeProducts.first,
+                            )
+                          : null,
+                      availableProducts: inventoryProv.activeProducts,
+                      quantity: item['actual'] ?? 0.0,
+                      quantityHint: 'Haqiqiy',
+                      extraInfo: [
+                        Expanded(
+                          child: Text(
+                            'Kutilgan:\n${item['expected'] ?? 0}',
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(fontSize: 12, color: Colors.grey),
                           ),
-                          SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              'Kutilgan:\n${item['expected'] ?? 0}',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(fontSize: 12, color: Colors.grey),
-                            ),
-                          ),
-                          SizedBox(width: 8),
-                          Expanded(
-                            flex: 1,
-                            child: TextFormField(
-                              initialValue: item['actual'] == 0
-                                  ? ''
-                                  : item['actual'].toString(),
-                              decoration: const InputDecoration(
-                                hintText: 'Haqiqiy',
-                                border: OutlineInputBorder(),
-                                contentPadding: EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                ),
-                              ),
-                              keyboardType: TextInputType.number,
-                              onChanged: (val) =>
-                                  items[idx]['actual'] = double.tryParse(val) ?? 0,
-                            ),
-                          ),
-                          IconButton(
-                            icon: Icon(Icons.remove_circle, color: Colors.teal),
-                            onPressed: () => setState(() => items.removeAt(idx)),
-                          ),
-                        ],
-                      ),
+                        ),
+                      ],
+                      onProductChanged: (val) {
+                        if (val == null) return;
+                        final p = inventoryProv.activeProducts.firstWhere(
+                          (p) => p.id == val,
+                        );
+                        setState(() {
+                          items[idx]['productId'] = val;
+                          items[idx]['productName'] = p.name;
+                          if (widget.inventory == null) {
+                            items[idx]['expected'] =
+                                p.stocks[invWarehouseId] ?? 0.0;
+                          }
+                        });
+                      },
+                      onQuantityChanged: (val) =>
+                          items[idx]['actual'] = double.tryParse(val) ?? 0,
+                      onRemove: () => setState(() => items.removeAt(idx)),
                     );
                   }),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   ElevatedButton.icon(
                     onPressed: () => setState(
                       () => items.add({
@@ -293,15 +225,15 @@ class _InventoryScreenState extends State<InventoryScreen> {
                         'actual': 0.0,
                       }),
                     ),
-                    icon: Icon(Icons.add),
-                    label: Text('Mahsulot qo\'shish'),
+                    icon: const Icon(Icons.add),
+                    label: const Text('Mahsulot qo\'shish'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.teal.withOpacity(0.1),
                       foregroundColor: Colors.teal,
                       elevation: 0,
                     ),
                   ),
-                  SizedBox(height: 32),
+                  const SizedBox(height: 32),
                   SizedBox(
                     width: double.infinity,
                     height: 50,
@@ -311,7 +243,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
                         backgroundColor: Colors.teal,
                         foregroundColor: Colors.white,
                       ),
-                      child: Text(
+                      child: const Text(
                         'Inventarizatsiyani Saqlash',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
@@ -341,7 +273,6 @@ class _InventoryScreenState extends State<InventoryScreen> {
         final existingIdx =
             items.indexWhere((i) => i['productId'] == product.id);
         if (existingIdx >= 0) {
-          // If already exists, just focus or maybe do nothing as actual quantity needs to be entered manually
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('${product.name} allaqachon ro\'yxatda bor'),
@@ -366,7 +297,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
     }
   }
 
-  void _save() {
+  Future<void> _save() async {
     final inventoryProv = context.read<InventoryProvider>();
     if (invWarehouseId == null) return;
 
@@ -385,12 +316,12 @@ class _InventoryScreenState extends State<InventoryScreen> {
     if (finalItems.isEmpty) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('Kamida 1 ta mahsulot kiriting!')));
+      ).showSnackBar(const SnackBar(content: Text('Kamida 1 ta mahsulot kiriting!')));
       return;
     }
 
     final entry = InventoryEntry(
-      id: widget.inventory?.id ?? Uuid().v4(),
+      id: widget.inventory?.id ?? const Uuid().v4(),
       date: selectedDate,
       warehouseId: invWarehouseId!,
       description: descCtrl.text,
@@ -400,10 +331,10 @@ class _InventoryScreenState extends State<InventoryScreen> {
     final appState = context.read<AppState>();
     if (widget.inventory == null) {
       await inventoryProv.addInventory(entry);
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Inventarizatsiya saqlandi')));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Inventarizatsiya saqlandi')));
     } else {
       await inventoryProv.updateInventory(entry);
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Inventarizatsiya tahrirlandi')));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Inventarizatsiya tahrirlandi')));
     }
     
     await appState.reloadData();
