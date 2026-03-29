@@ -29,8 +29,12 @@ class UpdateService {
 
   static bool _isNewer(String latest, String current) {
     try {
-      List<int> latestParts = latest.split('.').map((e) => int.tryParse(e) ?? 0).toList();
-      List<int> currentParts = current.split('.').map((e) => int.tryParse(e) ?? 0).toList();
+      // Remove build metadata (e.g., 1.22.37+37 -> 1.22.37)
+      String latestClean = latest.contains('+') ? latest.split('+')[0] : latest;
+      String currentClean = current.contains('+') ? current.split('+')[0] : current;
+
+      List<int> latestParts = latestClean.split('.').map((e) => int.tryParse(e) ?? 0).toList();
+      List<int> currentParts = currentClean.split('.').map((e) => int.tryParse(e) ?? 0).toList();
 
       for (int i = 0; i < latestParts.length; i++) {
         if (i >= currentParts.length) return true;

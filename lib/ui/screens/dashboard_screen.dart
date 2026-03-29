@@ -24,26 +24,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _checkUpdateOnStartup();
-    });
   }
 
-  void _checkUpdateOnStartup() async {
-    final updateData = await UpdateService.checkUpdate();
-    if (updateData != null && mounted) {
-      _showUpdateDialog(
-        context, 
-        updateData['version'], 
-        updateData['url'],
-        changelog: updateData['changelog'],
-      );
-    }
-  }
 
-  void _showUpdateDialog(BuildContext context, String version, String url, {String? changelog}) {
-    AppUpdateDialog.show(context, version, url, changelog: changelog);
-  }
 
   @override
   Widget build(BuildContext context) {

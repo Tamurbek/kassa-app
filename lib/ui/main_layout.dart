@@ -11,6 +11,8 @@ import '../providers/features/inventory_provider.dart';
 import '../providers/features/sales_provider.dart';
 import '../providers/features/sync_provider.dart';
 import '../models/models.dart';
+import '../services/update_service.dart';
+import 'dialogs/app_update_dialog.dart';
 import '../providers/app_state.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/pos_screen.dart';
@@ -53,6 +55,29 @@ class _MainLayoutState extends State<MainLayout> {
   void initState() {
     super.initState();
     _resetInactivityTimer();
+    _checkForUpdates();
+  }
+
+  void _checkForUpdates() async {
+    // Small delay to ensure navigator is ready
+    await Future.delayed(const Duration(seconds: 3));
+    if (!mounted) return;
+
+    try {
+      final updateData = await UpdateService.checkUpdate();
+      if (updateData != null && mounted) {
+        if (context.mounted) {
+           AppUpdateDialog.show(
+            context,
+            updateData['version'],
+            updateData['url'],
+            changelog: updateData['changelog'],
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('Error checking for updates: $e');
+    }
   }
 
   @override
