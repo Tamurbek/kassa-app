@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'dart:io';
 import '../../providers/app_state.dart';
+import '../../providers/features/settings_provider.dart';
 
 class ReceiptDesignerScreen extends StatefulWidget {
   const ReceiptDesignerScreen({super.key});
@@ -17,8 +18,8 @@ class _ReceiptDesignerScreenState extends State<ReceiptDesignerScreen> {
   @override
   void initState() {
     super.initState();
-    final state = context.read<AppState>();
-    _footerController = TextEditingController(text: state.receiptFooterText);
+    final settings = context.read<SettingsProvider>();
+    _footerController = TextEditingController(text: settings.receiptFooterText);
   }
 
   @override
@@ -30,6 +31,7 @@ class _ReceiptDesignerScreenState extends State<ReceiptDesignerScreen> {
   @override
   Widget build(BuildContext context) {
     final state = context.watch<AppState>();
+    final settings = context.watch<SettingsProvider>();
 
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
@@ -52,14 +54,9 @@ class _ReceiptDesignerScreenState extends State<ReceiptDesignerScreen> {
                   const SizedBox(height: 16),
                   _buildSettingCard([
                     _buildToggleTile(
-                      'Logoni ko\'rsatish',
-                      state.showLogoOnReceipt,
-                      (val) => state.updateReceiptSettings(showLogo: val),
-                    ),
-                    _buildToggleTile(
                       'Instagram / QR kod',
-                      state.showInstagramOnReceipt,
-                      (val) => state.updateReceiptSettings(showInstagram: val),
+                      settings.showInstagramOnReceipt,
+                      (val) => settings.updateReceiptSettings(showInstagram: val),
                     ),
                   ]),
                   const SizedBox(height: 24),
@@ -77,7 +74,7 @@ class _ReceiptDesignerScreenState extends State<ReceiptDesignerScreen> {
                       ),
                       hintText: 'Masalan: Xaridingiz uchun rahmat!',
                     ),
-                    onChanged: (val) => state.updateReceiptSettings(footerText: val),
+                    onChanged: (val) => settings.updateReceiptSettings(footerText: val),
                   ),
                   const SizedBox(height: 32),
                   ElevatedButton.icon(
@@ -103,7 +100,7 @@ class _ReceiptDesignerScreenState extends State<ReceiptDesignerScreen> {
               color: Colors.grey.withOpacity(0.1),
               child: Center(
                 child: SingleChildScrollView(
-                  child: _buildReceiptPreview(state),
+                  child: _buildReceiptPreview(state, settings),
                 ),
               ),
             ),
@@ -147,8 +144,8 @@ class _ReceiptDesignerScreenState extends State<ReceiptDesignerScreen> {
     );
   }
 
-  Widget _buildReceiptPreview(AppState state) {
-    final width = state.receiptWidth == 58 ? 250.0 : 350.0;
+  Widget _buildReceiptPreview(AppState state, SettingsProvider settings) {
+    final width = settings.receiptWidth == 58 ? 250.0 : 350.0;
     
     return Container(
       width: width,
@@ -168,15 +165,6 @@ class _ReceiptDesignerScreenState extends State<ReceiptDesignerScreen> {
         style: const TextStyle(color: Colors.black, fontFamily: 'monospace'),
         child: Column(
           children: [
-            if (state.showLogoOnReceipt && state.organizationLogoPath != null)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: Image.file(
-                  File(state.organizationLogoPath!),
-                  height: 60,
-                  fit: BoxFit.contain,
-                ),
-              ),
             Text(
               (state.organizationName ?? 'SIMPLE SALE').toUpperCase(),
               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
@@ -216,12 +204,12 @@ class _ReceiptDesignerScreenState extends State<ReceiptDesignerScreen> {
             ),
             const SizedBox(height: 20),
             Text(
-              state.receiptFooterText,
+              settings.receiptFooterText,
               style: const TextStyle(fontStyle: FontStyle.italic, fontSize: 12),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 12),
-            if (state.showInstagramOnReceipt && state.instagramUsername != null && state.instagramUsername!.isNotEmpty) ...[
+            if (settings.showInstagramOnReceipt && settings.instagramUsername != null && settings.instagramUsername!.isNotEmpty) ...[
               const Divider(color: Colors.black, thickness: 0.5, height: 20),
               Text('Instagram: @${state.instagramUsername}', style: const TextStyle(fontSize: 11)),
               const SizedBox(height: 8),

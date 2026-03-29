@@ -6,6 +6,8 @@ import 'package:shelf_router/shelf_router.dart';
 import 'package:http/http.dart' as http;
 import 'package:shelf_web_socket/shelf_web_socket.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
+import 'dart:async';
+import 'package:flutter/foundation.dart';
 
 class SyncService {
   static HttpServer? _server;
@@ -14,21 +16,37 @@ class SyncService {
   // Broadcast to all connected clients
   static void broadcast(String type, Map<String, dynamic> data) {
     if (_clients.isEmpty) return;
-    final message = jsonEncode({'type': type, 'data': data});
+    final message = jsonEncode({
+      'type': type, 
+      'data': data,
+      'timestamp': DateTime.now().toIso8601String(),
+    });
     final List<WebSocketChannel> toRemove = [];
 
     for (var client in List.from(_clients)) {
       try {
         client.sink.add(message);
       } catch (e) {
-        print('Broadcast error for client: $e');
+        debugPrint('SyncService: Broadcast error for client: $e');
         toRemove.add(client);
       }
     }
 
     if (toRemove.isNotEmpty) {
-      _clients.removeWhere((c) => toRemove.contains(c));
+      for (var client in toRemove) {
+        _clients.remove(client);
+      }
     }
+  }
+
+  static Timer? _heartbeatTimer;
+  static void _startHeartbeat() {
+    _heartbeatTimer?.cancel();
+    _heartbeatTimer = Timer.periodic(const Duration(seconds: 15), (timer) {
+      if (_clients.isNotEmpty) {
+        broadcast('heartbeat', {'status': 'active'});
+      }
+    });
   }
 
   // Start a local server on the "Master" register
@@ -150,49 +168,14 @@ class SyncService {
       );
     });
 
-    // Endpoint to serve Logo file
-    router.get('/logo', (Request request) async {
-      final stateData = await onSyncRequested();
-      final logoPath = stateData['logoPath'];
-      if (logoPath != null && File(logoPath).existsSync()) {
-        final file = File(logoPath);
-        return Response.ok(
-          file.openRead(),
-          headers: {
-            'Content-Type': 'image/png', // or appropriate type
-            'Content-Length': file.lengthSync().toString(),
-          },
-        );
-      }
-      return Response.notFound('Logo topilmadi');
-    });
-
-    // Endpoint to serve Product Image
-    router.get('/product-image/<id>', (Request request, String id) async {
-      final stateData = await onSyncRequested();
-      final products = stateData['products'] as List;
-      final product = products.firstWhere(
-        (p) => p['id'] == id,
-        orElse: () => null,
-      );
-
-      if (product != null && product['imagePath'] != null) {
-        final file = File(product['imagePath']);
-        if (file.existsSync()) {
-          return Response.ok(
-            file.openRead(),
-            headers: {
-              'Content-Type': 'image/jpeg',
-              'Content-Length': file.lengthSync().toString(),
-            },
-          );
-        }
-      }
-      return Response.notFound('Rasm topilmadi');
-    });
-
-    _server = await io.serve(router.call, InternetAddress.anyIPv4, 8080, shared: true);
-    print('Server ishga tushdi: ${_server!.address.address}:${_server!.port}');
+    try {
+      _server = await io.serve(router.call, InternetAddress.anyIPv4, 8080, shared: true);
+      _startHeartbeat();
+      debugPrint('SyncService: Server started on ${_server!.address.address}:${_server!.port}');
+    } catch (e) {
+      debugPrint('SyncService: CRITICAL - Failed to start server: $e');
+      rethrow;
+    }
   }
 
   // Client fetches status from Master
@@ -357,6 +340,7 @@ class SyncService {
   }
 
   static void stopServer() {
+    _heartbeatTimer?.cancel();
     _server?.close();
   }
 }

@@ -35,11 +35,6 @@ class AppState extends ChangeNotifier {
   String? barcodePrinterName;
   String? networkPrinterIp;
   String? networkBarcodePrinterIp;
-  int receiptWidth = 80; // 58 or 80
-  String receiptFooterText = 'Xaridingiz uchun rahmat!';
-  bool showLogoOnReceipt = true;
-  bool showInstagramOnReceipt = true;
-
   bool? isMaster;
   bool isCloudMode = false;
   String? masterAddress;
@@ -49,7 +44,6 @@ class AppState extends ChangeNotifier {
   String? organizationName;
   String? organizationAddress;
   String? instagramUsername;
-  String? organizationLogoPath;
   Timer? _syncTimer;
   WebSocketChannel? _wsChannel;
   Timer? _wsPingTimer;
@@ -64,8 +58,6 @@ class AppState extends ChangeNotifier {
 
   bool _isBarcodeScanMode = false;
   bool get isBarcodeScanMode => _isBarcodeScanMode;
-  bool _showProductImages = true;
-  bool get showProductImages => _showProductImages;
   String appVersion = AppConstants.appVersion;
 
   double get todaySalesTotal {
@@ -199,7 +191,6 @@ class AppState extends ChangeNotifier {
       organizationName = prefs.getString('organizationName') ?? 'test';
       organizationAddress = prefs.getString('organizationAddress') ?? 'O\'zbekiston, Toshkent';
       instagramUsername = prefs.getString('instagramUsername') ?? '@simplesale';
-      organizationLogoPath = prefs.getString('organizationLogoPath');
 
       try {
         final packageInfo = await PackageInfo.fromPlatform();
@@ -218,26 +209,8 @@ class AppState extends ChangeNotifier {
       final lastSyncStr = prefs.getString('lastCloudSync');
       if (lastSyncStr != null) lastCloudSync = DateTime.parse(lastSyncStr);
 
-      _isBarcodeScanMode = prefs.getBool('isBarcodeScanMode') ?? false;
-      _showProductImages = prefs.getBool('showProductImages') ?? true;
-      networkPrinterIp = prefs.getString('networkPrinterIp');
-      networkBarcodePrinterIp = prefs.getString('networkBarcodePrinterIp');
-      selectedPrinterName = prefs.getString('selectedPrinterName');
-      barcodePrinterName = prefs.getString('barcodePrinterName');
-      receiptWidth = prefs.getInt('receiptWidth') ?? 80;
-      receiptFooterText = prefs.getString('receiptFooterText') ?? 'Xaridingiz uchun rahmat!';
-      showLogoOnReceipt = prefs.getBool('showLogoOnReceipt') ?? true;
-      showInstagramOnReceipt = prefs.getBool('showInstagramOnReceipt') ?? true;
-
-      // Load settings from DB (overrides SharedPreferences if exists)
-      final dbSettings = await DatabaseService.getAllSettings();
-      if (dbSettings.containsKey('receiptFooterText')) receiptFooterText = dbSettings['receiptFooterText']!;
-      if (dbSettings.containsKey('showLogoOnReceipt')) showLogoOnReceipt = dbSettings['showLogoOnReceipt'] == 'true';
-      if (dbSettings.containsKey('showInstagramOnReceipt')) showInstagramOnReceipt = dbSettings['showInstagramOnReceipt'] == 'true';
-      if (dbSettings.containsKey('organizationName')) organizationName = dbSettings['organizationName']!;
-      if (dbSettings.containsKey('organizationAddress')) organizationAddress = dbSettings['organizationAddress']!;
-      if (dbSettings.containsKey('instagramUsername')) instagramUsername = dbSettings['instagramUsername']!;
-      if (dbSettings.containsKey('barcodePrinterName')) barcodePrinterName = dbSettings['barcodePrinterName']!;
+      // Load data from DB
+      await _loadFromDb();
 
       // Load data from DB
       await _loadFromDb();
@@ -293,15 +266,7 @@ class AppState extends ChangeNotifier {
 
 
   Future<void> _loadFromDb() async {
-    // Load settings from DB (overrides SharedPreferences if exists)
-    final dbSettings = await DatabaseService.getAllSettings();
-    if (dbSettings.containsKey('receiptFooterText')) receiptFooterText = dbSettings['receiptFooterText']!;
-    if (dbSettings.containsKey('showLogoOnReceipt')) showLogoOnReceipt = dbSettings['showLogoOnReceipt'] == 'true';
-    if (dbSettings.containsKey('showInstagramOnReceipt')) showInstagramOnReceipt = dbSettings['showInstagramOnReceipt'] == 'true';
-    if (dbSettings.containsKey('organizationName')) organizationName = dbSettings['organizationName']!;
-    if (dbSettings.containsKey('organizationAddress')) organizationAddress = dbSettings['organizationAddress']!;
-    if (dbSettings.containsKey('instagramUsername')) instagramUsername = dbSettings['instagramUsername']!;
-    if (dbSettings.containsKey('barcodePrinterName')) barcodePrinterName = dbSettings['barcodePrinterName']!;
+    categories = await DatabaseService.getCategories();
 
     categories = await DatabaseService.getCategories();
     products = await DatabaseService.getProducts();
@@ -639,49 +604,7 @@ class AppState extends ChangeNotifier {
           await DatabaseService.saveSetting('instagramUsername', instagramUsername!);
         }
         
-        // Logo sync
-        if (data['logoPath'] != null) {
-          try {
-            final logoResponse = await http.get(Uri.parse('http://$masterAddress:8080/logo'));
-            if (logoResponse.statusCode == 200) {
-              final appDir = await getApplicationDocumentsDirectory();
-              final localLogoFile = File('${appDir.path}/master_logo.png');
-              await localLogoFile.writeAsBytes(logoResponse.bodyBytes);
-              organizationLogoPath = localLogoFile.path;
-              await prefs.setString('organizationLogoPath', organizationLogoPath!);
-            }
-          } catch (e) {
-            print('Logo sync error: $e');
-          }
-        }
 
-        // Product images sync
-        final appDir = await getApplicationDocumentsDirectory();
-        final imagesDir = Directory('${appDir.path}/product_images');
-        if (!await imagesDir.exists()) await imagesDir.create();
-
-        for (var pData in data['products']) {
-          final pId = pData['id'];
-          final remotePath = pData['imagePath'];
-          
-          if (remotePath != null && remotePath.isNotEmpty) {
-            final localPath = '${imagesDir.path}/$pId.jpg';
-            final localFile = File(localPath);
-            
-            if (!await localFile.exists()) {
-              try {
-                final imgResponse = await http.get(Uri.parse('http://$masterAddress:8080/product-image/$pId'));
-                if (imgResponse.statusCode == 200) {
-                  await localFile.writeAsBytes(imgResponse.bodyBytes);
-                  // Update local state and DB (if you have it)
-                  await DatabaseService.updateProductImagePath(pId, localPath);
-                }
-              } catch (e) {
-                print('Product image sync error ($pId): $e');
-              }
-            }
-          }
-        }
 
         notifyListeners();
       } else {
@@ -765,12 +688,6 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  void toggleShowProductImages() async {
-    _showProductImages = !_showProductImages;
-    notifyListeners();
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('showProductImages', _showProductImages);
-  }
 
   void toggleTheme() {
     if (_themeMode == ThemeMode.dark) {
@@ -879,65 +796,30 @@ class AppState extends ChangeNotifier {
     try {
       switch (type) {
         case 'category':
-          await DatabaseService.saveCategory(Category.fromJson(data));
-          break;
         case 'product':
-          await DatabaseService.saveProduct(Product.fromJson(data));
-          break;
         case 'warehouse':
-          await DatabaseService.saveWarehouse(Warehouse.fromJson(data));
-          break;
         case 'register':
-          await DatabaseService.saveRegister(Register.fromJson(data));
-          break;
         case 'user':
-          await DatabaseService.saveUser(User.fromJson(data));
-          break;
         case 'stock_entry':
-        case 'stock_entry_update':
-          final entry = StockEntry.fromJson(data);
-          await DatabaseService.deleteStockEntry(entry.id);
-          await DatabaseService.saveStockEntry(entry);
-          // Update stocks locally
-          for (var item in entry.items) {
-            await _applyStockAdjustment(item.productId, entry.warehouseId, item.quantity);
-          }
-          break;
         case 'sale':
-          final sale = Sale.fromJson(data);
-          if (sales.any((s) => s.id == sale.id)) return;
-          await DatabaseService.saveSale(sale);
-          // Update stocks locally
-          for (var item in sale.items) {
-            await _applyStockAdjustment(item.productId, sale.warehouseId, -item.quantity);
-          }
-          break;
         case 'return':
-        case 'return_update':
-          final ret = SaleReturn.fromJson(data);
-          await DatabaseService.saveReturn(ret);
-          // Update stocks locally
-          for (var item in ret.items) {
-            await _applyStockAdjustment(item.productId, ret.warehouseId, item.quantity);
-          }
-          break;
         case 'write_off':
-        case 'write_off_update':
-          final wo = WriteOff.fromJson(data);
-          await DatabaseService.saveWriteOff(wo);
-          // Update stocks locally
-          for (var item in wo.items) {
-            await _applyStockAdjustment(item.productId, wo.warehouseId, -item.quantity);
-          }
-          break;
         case 'inventory':
-        case 'inventory_update':
-          final inv = InventoryEntry.fromJson(data);
-          await DatabaseService.saveInventory(inv);
-          // Update stocks locally to exact values
-          for (var item in inv.items) {
-            await DatabaseService.updateStock(item.productId, inv.warehouseId, item.actualQuantity);
-          }
+        case 'stock_transfer':
+          String table = type;
+          if (type == 'category') table = 'categories';
+          if (type == 'product') table = 'products';
+          if (type == 'warehouse') table = 'warehouses';
+          if (type == 'register') table = 'registers';
+          if (type == 'user') table = 'users';
+          if (type == 'stock_entry') table = 'stock_entries';
+          if (type == 'sale') table = 'sales';
+          if (type == 'return') table = 'returns';
+          if (type == 'write_off') table = 'write_offs';
+          if (type == 'inventory') table = 'inventories';
+          if (type == 'stock_transfer') table = 'stock_transfers';
+          
+          await DatabaseService.saveSyncedRecord(table, data);
           break;
         case 'warehouse_delete':
           await DatabaseService.deleteWarehouse(data['id']);
@@ -959,10 +841,6 @@ class AppState extends ChangeNotifier {
           break;
         case 'setting':
           await DatabaseService.saveSetting(data['key'], data['value'].toString());
-          // Update local state if it matches cached settings
-          if (data['key'] == 'receiptFooterText') receiptFooterText = data['value'];
-          if (data['key'] == 'showLogoOnReceipt') showLogoOnReceipt = data['value'] == 'true';
-          if (data['key'] == 'showInstagramOnReceipt') showInstagramOnReceipt = data['value'] == 'true';
           if (data['key'] == 'barcodePrinterName') barcodePrinterName = data['value'];
           break;
       }
@@ -990,39 +868,6 @@ class AppState extends ChangeNotifier {
     }
   }
 
-  Future<void> setReceiptWidth(int width) async {
-    receiptWidth = width;
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt('receiptWidth', width);
-    notifyListeners();
-  }
-
-  Future<void> updateReceiptSettings({
-    String? footerText,
-    bool? showLogo,
-    bool? showInstagram,
-  }) async {
-    final prefs = await SharedPreferences.getInstance();
-    if (footerText != null) {
-      receiptFooterText = footerText;
-      await prefs.setString('receiptFooterText', footerText);
-      await DatabaseService.saveSetting('receiptFooterText', footerText);
-      await _sendUpdate('setting', {'key': 'receiptFooterText', 'value': footerText});
-    }
-    if (showLogo != null) {
-      showLogoOnReceipt = showLogo;
-      await prefs.setBool('showLogoOnReceipt', showLogo);
-      await DatabaseService.saveSetting('showLogoOnReceipt', showLogo.toString());
-      await _sendUpdate('setting', {'key': 'showLogoOnReceipt', 'value': showLogo.toString()});
-    }
-    if (showInstagram != null) {
-      showInstagramOnReceipt = showInstagram;
-      await prefs.setBool('showInstagramOnReceipt', showInstagram);
-      await DatabaseService.saveSetting('showInstagramOnReceipt', showInstagram.toString());
-      await _sendUpdate('setting', {'key': 'showInstagramOnReceipt', 'value': showInstagram.toString()});
-    }
-    notifyListeners();
-  }
 
   Future<void> clearAllData() async {
     await DatabaseService.clearAllData();
@@ -1175,11 +1020,7 @@ class AppState extends ChangeNotifier {
           'organizationName': organizationName,
           'organizationAddress': organizationAddress,
           'instagramUsername': instagramUsername,
-          'logoPath': organizationLogoPath,
           'settings': {
-            'receiptFooterText': receiptFooterText,
-            'showLogoOnReceipt': showLogoOnReceipt.toString(),
-            'showInstagramOnReceipt': showInstagramOnReceipt.toString(),
             'barcodePrinterName': barcodePrinterName ?? '',
           }
         };

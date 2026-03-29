@@ -33,6 +33,13 @@ class SyncProvider extends ChangeNotifier {
     isMaster = prefs.getBool('isMaster');
     isCloudMode = prefs.getBool('isCloudMode') ?? false;
     masterAddress = prefs.getString('masterAddress');
+    _incrementalSyncTimer?.cancel();
+    _cloudBackupTimer?.cancel();
+    _wsChannel?.sink.close();
+    _cloudSyncChannel?.sink.close();
+    _isConnected = false;
+    _isConnectingWs = false;
+
     final lastSyncStr = prefs.getString('lastCloudSync');
     if (lastSyncStr != null) lastCloudSync = DateTime.parse(lastSyncStr);
     
@@ -99,26 +106,56 @@ class SyncProvider extends ChangeNotifier {
     debugPrint("Professional Sync: Found ${unsynced.length} tables with unsynced data");
 
     if (isCloudMode) {
-      // In Cloud Mode, everyone pushes to Cloud
+      // In Cloud Mode, we push to the central server
       await _pushToCloudIncremental(unsynced);
-    } else if (isMaster == true) {
-      // MASTER (LAN Mode): No local master to push to
+    }
+
+    // Simultaneously, maintain Local Network (LAN) synchronization
+    if (isMaster == true) {
+      // MASTER (LAN Mode): Broadcast unsynced local changes to connected terminals
+      for (var entry in unsynced.entries) {
+        final table = entry.key;
+        final type = _getSingularType(table);
+        for (var record in entry.value) {
+          debugPrint("Professional Sync: Master broadcasting $type to LAN");
+          SyncService.broadcast(type, record);
+          // After broadcasting/cloud-syncing, we mark it as synced locally
+          await DatabaseService.markAsSynced(table, record['id']);
+        }
+      }
     } else if (isMaster == false && masterAddress != null) {
-      // SLAVE (LAN Mode): Push to Master via Local Network
+      // SLAVE (LAN Mode): Push to Master via Local Network for real-time local updates
       await _pushToMasterIncremental(unsynced);
     }
+  }
+
+  String _getSingularType(String table) {
+    if (table == 'write_offs') return 'write_off';
+    if (table == 'inventories') return 'inventory';
+    if (table == 'stock_entries') return 'stock_entry';
+    if (table == 'stock_transfers') return 'stock_transfer';
+    if (table == 'categories') return 'category';
+    if (table == 'products') return 'product';
+    if (table == 'warehouses') return 'warehouse';
+    if (table == 'registers') return 'register';
+    if (table == 'sales') return 'sale';
+    if (table == 'returns') return 'return';
+    if (table == 'users') return 'user';
+    return table;
   }
 
   bool _isSyncingInternally = false;
 
   Future<void> syncNow() async {
-    if (!isCloudMode || _isSyncingInternally) return;
+    if (_isSyncingInternally) return;
     
     _isSyncingInternally = true;
     try {
-      debugPrint("Professional Sync: Triggering immediate cloud sync...");
+      debugPrint("Professional Sync: Triggering immediate sync (Cloud: $isCloudMode)...");
       await syncIncremental();
-      await pullFromCloudIncremental();
+      if (isCloudMode) {
+        await pullFromCloudIncremental();
+      }
     } finally {
       _isSyncingInternally = false;
     }
@@ -230,6 +267,8 @@ class SyncProvider extends ChangeNotifier {
           debugPrint("Professional Sync: Received cloud notification: $message");
           if (message == "sync_needed") {
             pullFromCloudIncremental();
+          } else if (message == "ping") {
+            _cloudSyncChannel?.sink.add("pong");
           } else if (message == "force_logout") {
             debugPrint("Professional Sync: Force logout command received via WebSocket!");
             onRemoteLogout?.call();
@@ -260,11 +299,22 @@ class SyncProvider extends ChangeNotifier {
     try {
       final wsUrl = 'ws://$masterAddress:8080/ws';
       _wsChannel = WebSocketChannel.connect(Uri.parse(wsUrl));
+      
+      // Assume connected since WebSocketChannel.connect doesn't throw on idle
+      _isConnected = true;
+      notifyListeners();
 
       _wsChannel!.stream.listen(
         (message) {
           _isConnected = true;
           final data = jsonDecode(message);
+          
+          if (data['type'] == 'heartbeat') {
+             // Keep-alive received, UI doesn't need to refresh, only status update
+             notifyListeners();
+             return;
+          }
+
           if (data['type'] == 'update') {
             notifyListeners();
           }

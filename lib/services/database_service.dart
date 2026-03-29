@@ -743,6 +743,7 @@ class DatabaseService {
     triggerUpdate();
   }
 
+
   // --- Bulk Sync ---
   static Future<void> clearAllAndReplace({
     required List<Category> categories,
@@ -1550,7 +1551,7 @@ class DatabaseService {
       where: 'id = ?',
       whereArgs: [id],
     );
-    triggerUpdate();
+    triggerUpdate(skipPush: true);
   }
 
   static Future<Map<String, List<Map<String, dynamic>>>> getUnsyncedRecords() async {

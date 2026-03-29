@@ -155,18 +155,12 @@ class PrintService {
     String? orgName,
     String? orgAddress,
     String? instagram,
-    String? logoPath,
     int width = 80,
     String? footerText,
-    bool showLogo = true,
     bool showInstagram = true,
   }) async {
     final doc = pw.Document();
     
-    pw.MemoryImage? logoImage;
-    if (showLogo && logoPath != null && File(logoPath).existsSync()) {
-      logoImage = pw.MemoryImage(File(logoPath).readAsBytesSync());
-    }
 
     doc.addPage(
       pw.Page(
@@ -182,11 +176,6 @@ class PrintService {
             child: pw.Column(
               crossAxisAlignment: pw.CrossAxisAlignment.stretch,
               children: [
-                if (showLogo && logoImage != null)
-                  pw.Container(
-                    height: 50 * scale,
-                    child: pw.Image(logoImage, fit: pw.BoxFit.contain),
-                  ),
                 pw.SizedBox(height: 5),
                 pw.Text(
                   _clean((orgName ?? 'SIMPLE SALE').toUpperCase()),

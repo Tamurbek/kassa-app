@@ -82,16 +82,6 @@ class SettingsScreen extends StatelessWidget {
                           ),
                           _buildSettingsTile(
                             context,
-                            icon: Icons.image_rounded,
-                            color: Colors.teal,
-                            title: 'Tashkilot logosi',
-                            subtitle: settings.organizationLogoPath != null
-                                ? 'Logo yuklangan'
-                                : 'Yuklanmagan',
-                            onTap: () => _pickLogo(context, auth, settings),
-                          ),
-                          _buildSettingsTile(
-                            context,
                             icon: Icons.terminal_rounded,
                             color: Colors.indigo,
                             title: 'Kassa Terminallari',
@@ -161,18 +151,6 @@ class SettingsScreen extends StatelessWidget {
                                   ? 'Yorug\' rejim'
                                   : 'Tizim rejimi',
                           onTap: () => _showThemePicker(context, settings),
-                        ),
-                        _buildSettingsTile(
-                          context,
-                          icon: Icons.image_outlined,
-                          color: Colors.lightBlue,
-                          title: 'Mahsulot rasmlari',
-                          subtitle: settings.showProductImages ? 'Ko\'rsatish' : 'Bekitish',
-                          trailing: Switch(
-                            value: settings.showProductImages,
-                            onChanged: (v) => settings.toggleShowProductImages(),
-                          ),
-                          onTap: () => settings.toggleShowProductImages(),
                         ),
                         _buildSettingsTile(
                           context,
@@ -792,26 +770,6 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  Future<void> _pickLogo(BuildContext context, AuthProvider auth, SettingsProvider settings) async {
-    if (auth.currentUser?.role != UserRole.admin) return;
-    
-    try {
-      final result = await FilePicker.platform.pickFiles(
-        type: FileType.image,
-        allowMultiple: false,
-      );
-      
-      if (result != null && result.files.single.path != null) {
-        await settings.updateOrganizationLogo(result.files.single.path);
-      }
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Xatolik: $e'), backgroundColor: Colors.red),
-        );
-      }
-    }
-  }
 
   void _checkUpdate(BuildContext context) async {
     showDialog(

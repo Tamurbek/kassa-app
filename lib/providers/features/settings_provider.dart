@@ -17,19 +17,16 @@ class SettingsProvider extends ChangeNotifier {
   String? networkBarcodePrinterIp;
   int receiptWidth = 80;
   String receiptFooterText = 'Xaridingiz uchun rahmat!';
-  bool showLogoOnReceipt = true;
   bool showInstagramOnReceipt = true;
   
   String? organizationName = 'Biznes Nomi';
   String? organizationAddress = 'O\'zbekiston';
   String? instagramUsername = '@simplesale';
-  String? organizationLogoPath;
   
   List<Register> registers = [];
   Register? currentRegister;
   
   bool isBarcodeScanMode = false;
-  bool showProductImages = true;
   String appVersion = AppConstants.appVersion;
   String? deviceId;
 
@@ -49,7 +46,6 @@ class SettingsProvider extends ChangeNotifier {
       _themeMode = savedTheme == 'light' ? ThemeMode.light : (savedTheme == 'dark' ? ThemeMode.dark : ThemeMode.system);
       
       isBarcodeScanMode = prefs.getBool('isBarcodeScanMode') ?? false;
-      showProductImages = prefs.getBool('showProductImages') ?? true;
       receiptWidth = prefs.getInt('receiptWidth') ?? 80;
 
       // 3. Load from Database (Source of Truth for persistence)
@@ -58,7 +54,6 @@ class SettingsProvider extends ChangeNotifier {
       organizationName = dbSettings['organizationName'] ?? prefs.getString('organizationName') ?? 'Mening Do\'konim';
       organizationAddress = dbSettings['organizationAddress'] ?? prefs.getString('organizationAddress') ?? 'O\'zbekiston';
       instagramUsername = dbSettings['instagramUsername'] ?? prefs.getString('instagramUsername') ?? '@simplesale';
-      organizationLogoPath = dbSettings['organizationLogoPath'] ?? prefs.getString('organizationLogoPath');
       
       selectedPrinterName = dbSettings['selectedPrinterName'] ?? prefs.getString('selectedPrinterName');
       barcodePrinterName = dbSettings['barcodePrinterName'] ?? prefs.getString('barcodePrinterName');
@@ -66,7 +61,6 @@ class SettingsProvider extends ChangeNotifier {
       networkBarcodePrinterIp = dbSettings['networkBarcodePrinterIp'] ?? prefs.getString('networkBarcodePrinterIp');
       
       receiptFooterText = dbSettings['receiptFooterText'] ?? prefs.getString('receiptFooterText') ?? 'Xaridingiz uchun rahmat!';
-      showLogoOnReceipt = (dbSettings['showLogoOnReceipt'] ?? prefs.getBool('showLogoOnReceipt')?.toString() ?? 'true') == 'true';
       showInstagramOnReceipt = (dbSettings['showInstagramOnReceipt'] ?? prefs.getBool('showInstagramOnReceipt')?.toString() ?? 'true') == 'true';
 
       // 4. Load Registers and selection
@@ -108,12 +102,6 @@ class SettingsProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> toggleShowProductImages() async {
-    showProductImages = !showProductImages;
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('showProductImages', showProductImages);
-    notifyListeners();
-  }
 
   Future<void> updateCurrentRegister(Register? register) async {
     currentRegister = register;
@@ -151,28 +139,11 @@ class SettingsProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> updateOrganizationLogo(String? path) async {
-    organizationLogoPath = path;
-    final prefs = await SharedPreferences.getInstance();
-    if (path != null) {
-      await prefs.setString('organizationLogoPath', path);
-      await DatabaseService.saveSetting('organizationLogoPath', path);
-    } else {
-      await prefs.remove('organizationLogoPath');
-      await DatabaseService.deleteSetting('organizationLogoPath');
-    }
-    notifyListeners();
-  }
-
-  Future<void> updateReceiptSettings({String? footer, bool? showLogo, bool? showInstagram, int? width}) async {
+  Future<void> updateReceiptSettings({String? footer, bool? showInstagram, int? width}) async {
     final prefs = await SharedPreferences.getInstance();
     if (footer != null) {
       receiptFooterText = footer;
       await DatabaseService.saveSetting('receiptFooterText', footer);
-    }
-    if (showLogo != null) {
-      showLogoOnReceipt = showLogo;
-      await DatabaseService.saveSetting('showLogoOnReceipt', showLogo.toString());
     }
     if (showInstagram != null) {
       showInstagramOnReceipt = showInstagram;

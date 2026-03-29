@@ -26,7 +26,6 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
   late TextEditingController _costPriceController;
   late TextEditingController _barcodeController;
   String? _selectedCategoryId;
-  String? _imagePath;
   bool _trackStock = true;
   List<TextEditingController> _additionalBarcodeControllers = [];
 
@@ -44,7 +43,6 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
       text: widget.product?.barcode ?? '',
     );
     _selectedCategoryId = widget.product?.categoryId;
-    _imagePath = widget.product?.imagePath;
     _trackStock = widget.product?.trackStock ?? true;
     _additionalBarcodeControllers = (widget.product?.additionalBarcodes ?? [])
         .map((b) => TextEditingController(text: b))
@@ -63,28 +61,6 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
     super.dispose();
   }
 
-  Future<void> _pickImage() async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-
-    if (pickedFile != null) {
-      final appDir = await getApplicationDocumentsDirectory();
-      final imagesDir = Directory(path.join(appDir.path, 'product_images'));
-      if (!await imagesDir.exists()) {
-        await imagesDir.create(recursive: true);
-      }
-
-      final fileName =
-          '${DateTime.now().millisecondsSinceEpoch}${path.extension(pickedFile.path)}';
-      final savedImage = await File(
-        pickedFile.path,
-      ).copy(path.join(imagesDir.path, fileName));
-
-      setState(() {
-        _imagePath = savedImage.path;
-      });
-    }
-  }
 
   void _save() async {
     if (_formKey.currentState!.validate()) {
@@ -133,7 +109,6 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
           _selectedCategoryId!,
           barcode.isEmpty ? inventory.generateBarcode() : barcode,
           costPrice: costPrice,
-          imagePath: _imagePath,
           trackStock: _trackStock,
         ).copyWith(additionalBarcodes: additionalBarcodes);
         await inventory.saveProduct(product);
@@ -145,7 +120,6 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
           categoryId: _selectedCategoryId,
           barcode: barcode.isEmpty ? inventory.generateBarcode() : barcode,
           additionalBarcodes: additionalBarcodes,
-          imagePath: _imagePath,
           trackStock: _trackStock,
         );
         await inventory.saveProduct(updatedProduct);
@@ -243,7 +217,6 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildImagePicker(),
                   SizedBox(height: 32),
                   _buildTextField(
                     'Mahsulot nomi',
@@ -337,76 +310,6 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
     );
   }
 
-  Widget _buildImagePicker() {
-    return Center(
-      child: InkWell(
-        onTap: _pickImage,
-        borderRadius: BorderRadius.circular(30),
-        child: Stack(
-          children: [
-            Container(
-              width: 160,
-              height: 160,
-              decoration: BoxDecoration(
-                color: Theme.of(context).cardColor,
-                borderRadius: BorderRadius.circular(30),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withAlpha(
-                      Theme.of(context).brightness == Brightness.dark
-                          ? 77 // ~0.3
-                          : 13 // ~0.05
-                    ),
-                    blurRadius: 20,
-                    offset: const Offset(0, 10),
-                  ),
-                ],
-                image: _imagePath != null
-                    ? DecorationImage(
-                        image: FileImage(File(_imagePath!)),
-                        fit: BoxFit.cover,
-                      )
-                    : null,
-              ),
-              child: _imagePath == null
-                  ? Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.add_a_photo_outlined,
-                          size: 48,
-                          color: Theme.of(context).hintColor,
-                        ),
-                        SizedBox(height: 8),
-                        Text(
-                          'Rasm yuklash',
-                          style: TextStyle(
-                            color: Theme.of(context).hintColor,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
-                    )
-                  : null,
-            ),
-            if (_imagePath != null)
-              Positioned(
-                top: 8,
-                right: 8,
-                child: CircleAvatar(
-                  radius: 18,
-                  backgroundColor: Colors.black.withAlpha(128), // ~0.5
-                  child: IconButton(
-                    icon: Icon(Icons.close, size: 18, color: Colors.white),
-                    onPressed: () => setState(() => _imagePath = null),
-                  ),
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
 
   Widget _buildTextField(
     String label,

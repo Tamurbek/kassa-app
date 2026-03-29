@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../providers/app_state.dart';
 import '../../providers/features/auth_provider.dart';
+import '../../providers/features/sync_provider.dart';
 import '../../services/sync_service.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/constants/app_constants.dart';
@@ -275,6 +276,7 @@ class _SetupScreenState extends State<SetupScreen> {
       
       if (mounted) {
         await auth.loadAuth();
+        await context.read<SyncProvider>().loadSync();
       }
     } catch (e) {
       if (mounted) {

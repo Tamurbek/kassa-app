@@ -469,14 +469,6 @@ class _POSScreenState extends State<POSScreen> {
                         },
                         tooltip: 'Scan rejimi',
                       ),
-                      _buildTopBarAction(
-                        icon: settings.showProductImages
-                            ? Icons.image_outlined
-                            : Icons.image_not_supported_outlined,
-                        isActive: settings.showProductImages,
-                        onTap: () => settings.toggleShowProductImages(),
-                        tooltip: settings.showProductImages ? 'Rasmlarni yashirish' : 'Rasmlarni ko\'rsatish',
-                      ),
                       const SizedBox(width: 4),
                     ],
                   ),
@@ -666,7 +658,7 @@ class _POSScreenState extends State<POSScreen> {
         maxCrossAxisExtent: width < 600 ? 180 : 220,
         crossAxisSpacing: 16,
         mainAxisSpacing: 16,
-        mainAxisExtent: settings.showProductImages ? 260 : 100,
+        mainAxisExtent: 100,
       ),
       itemCount: products.length,
       itemBuilder: (context, index) =>
@@ -695,7 +687,7 @@ class _POSScreenState extends State<POSScreen> {
       child: Container(
         decoration: BoxDecoration(
           color: Theme.of(context).cardColor,
-          borderRadius: BorderRadius.circular(settings.showProductImages ? 20 : 16),
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: Theme.of(context).dividerColor.withOpacity(0.5),
             width: 1,
@@ -709,48 +701,10 @@ class _POSScreenState extends State<POSScreen> {
           ],
         ),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(settings.showProductImages ? 20 : 16),
+          borderRadius: BorderRadius.circular(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (settings.showProductImages)
-                Expanded(
-                  child: Stack(
-                    children: [
-                      Container(
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.primary.withOpacity(0.05),
-                          image: product.imagePath != null
-                              ? DecorationImage(
-                                  image: FileImage(File(product.imagePath!)),
-                                  fit: BoxFit.cover,
-                                )
-                              : null,
-                        ),
-                        child: product.imagePath == null
-                            ? Center(
-                                child: Icon(
-                                  inventory.categories.any(
-                                            (c) =>
-                                                c.id == product.categoryId &&
-                                                c.name == 'Ichimliklar',
-                                          )
-                                      ? Icons.local_drink_rounded
-                                      : Icons.restaurant_rounded,
-                                  size: 48,
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .primary
-                                      .withOpacity(0.2),
-                                ),
-                              )
-                            : null,
-                      ),
-                      PositionBagde(isLowStock: isLowStock, stock: stock, unit: product.unit),
-                    ],
-                  ),
-                ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                 child: Column(
@@ -778,7 +732,6 @@ class _POSScreenState extends State<POSScreen> {
                             fontSize: 15,
                           ),
                         ),
-                        if (!settings.showProductImages)
                           Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 8,
@@ -991,20 +944,12 @@ class _POSScreenState extends State<POSScreen> {
                   borderRadius: BorderRadius.circular(12),
                   color: Theme.of(context).colorScheme.surface,
                   border: Border.all(color: Theme.of(context).dividerColor),
-                  image: product?.imagePath != null
-                      ? DecorationImage(
-                          image: FileImage(File(product!.imagePath!)),
-                          fit: BoxFit.cover,
-                        )
-                      : null,
                 ),
-                child: product?.imagePath == null
-                    ? Icon(
-                        Icons.inventory_2_outlined,
-                        size: 20,
-                        color: Theme.of(context).colorScheme.primary,
-                      )
-                    : null,
+                child: Icon(
+                  Icons.inventory_2_outlined,
+                  size: 20,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
               ),
               const SizedBox(width: 14),
               Expanded(

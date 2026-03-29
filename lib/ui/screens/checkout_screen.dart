@@ -80,10 +80,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           orgName: settings.organizationName,
           orgAddress: settings.organizationAddress,
           instagram: settings.instagramUsername,
-          logoPath: settings.organizationLogoPath,
           width: settings.receiptWidth,
           footerText: settings.receiptFooterText,
-          showLogo: settings.showLogoOnReceipt,
           showInstagram: settings.showInstagramOnReceipt,
         );
       }
