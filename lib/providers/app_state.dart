@@ -14,6 +14,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import '../core/constants/app_constants.dart';
 
 class AppState extends ChangeNotifier {
   List<Warehouse> warehouses = [];

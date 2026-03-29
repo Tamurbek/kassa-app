@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 import '../../services/database_service.dart';
 import '../../models/models.dart';
+import '../../core/constants/app_constants.dart';
 import 'dart:io';
 
 class SettingsProvider extends ChangeNotifier {
