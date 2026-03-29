@@ -132,7 +132,7 @@ class AppState extends ChangeNotifier {
       warehouses.where((w) => w.isMain).firstOrNull ??
       (warehouses.isNotEmpty ? warehouses.first : null);
 
-  Future<String?> get localIp async {
+  Future<List<String>> get allLocalIps async {
     try {
       final interfaces = await NetworkInterface.list();
       List<String> allIps = [];
@@ -152,27 +152,30 @@ class AppState extends ChangeNotifier {
         }
       }
 
-      if (allIps.isEmpty) return null;
-
-      // Prioritize common local network patterns
-      try {
-        return allIps.firstWhere(
-          (ip) =>
-              ip.startsWith('192.168.') ||
-              ip.startsWith('10.0.') ||
-              ip.startsWith('172.'),
-          orElse: () => allIps.first,
-        );
-      } catch (e) {
-        return allIps.first;
-      }
+      if (allIps.isEmpty) return [];
+      
+      // Sort to prioritize common local patterns but keep all
+      allIps.sort((a, b) {
+         if (a.startsWith('192.168.')) return -1;
+         if (b.startsWith('192.168.')) return 1;
+         return 0;
+      });
+      
+      return allIps;
     } catch (e) {
-      return null;
+      return [];
     }
+  }
+
+  Future<String?> get localIp async {
+    final ips = await allLocalIps;
+    return ips.isNotEmpty ? ips.first : null;
   }
 
   AppState() {
     loadSettings();
+    // Professional: Listen to database updates from other providers (like SyncProvider)
+    DatabaseService.dbUpdateStream.stream.listen((_) => _loadFromDb());
   }
 
   Future<void> loadSettings() async {
@@ -900,7 +903,7 @@ class AppState extends ChangeNotifier {
     if (Platform.isWindows) {
       try {
         final exePath = Platform.resolvedExecutable;
-        // 1. Rule for port 8080 (TCP)
+        // 1. Rule for port 8080 (TCP) - Explicitly allow on ALL profiles
         await Process.run('netsh', [
           'advfirewall',
           'firewall',
@@ -911,8 +914,10 @@ class AppState extends ChangeNotifier {
           'action=allow',
           'protocol=TCP',
           'localport=8080',
+          'profile=any',
+          'edge=yes', // Allow edge traversal (helpful for complex network topologies)
         ]);
-        // 2. Rule for application executable to allow all its network traffic
+        // 2. Rule for application executable
         await Process.run('netsh', [
           'advfirewall',
           'firewall',
@@ -923,10 +928,11 @@ class AppState extends ChangeNotifier {
           'action=allow',
           'program=$exePath',
           'enable=yes',
+          'profile=any',
         ]);
-        debugPrint('Windows Firewall rules updated.');
+        debugPrint('Windows Firewall rules updated for all profiles.');
       } catch (e) {
-        debugPrint('Failed to add Windows firewall rule: $e');
+        debugPrint('CRITICAL: Failed to add Windows firewall rule. Please run as Administrator: $e');
       }
     } else if (Platform.isMacOS) {
       try {

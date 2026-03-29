@@ -72,6 +72,11 @@ class SyncProvider extends ChangeNotifier {
        await syncIncremental();
        if (isCloudMode) {
          await pullFromCloudIncremental();
+       } else if (isMaster == false && masterAddress != null) {
+         // LAN Fallback: Periodically fetch status or sync data if WS is down
+         try {
+           await syncWithMaster(); // Keep Slave in sync even if WS is unstable
+         } catch (_) {}
        }
     });
   }
@@ -300,13 +305,13 @@ class SyncProvider extends ChangeNotifier {
       final wsUrl = 'ws://$masterAddress:8080/ws';
       _wsChannel = WebSocketChannel.connect(Uri.parse(wsUrl));
       
-      // Assume connected since WebSocketChannel.connect doesn't throw on idle
-      _isConnected = true;
-      notifyListeners();
-
+      // We don't set _isConnected = true yet. We wait for FIRST message (heartbeat or data)
       _wsChannel!.stream.listen(
         (message) {
-          _isConnected = true;
+          if (!_isConnected) {
+            _isConnected = true;
+            notifyListeners();
+          }
           final data = jsonDecode(message);
           
           if (data['type'] == 'heartbeat') {

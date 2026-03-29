@@ -171,7 +171,18 @@ class SyncService {
     try {
       _server = await io.serve(router.call, InternetAddress.anyIPv4, 8080, shared: true);
       _startHeartbeat();
-      debugPrint('SyncService: Server started on ${_server!.address.address}:${_server!.port}');
+      
+      // Professional: Explicit log to help with multi-subnet debugging
+      final interfaces = await NetworkInterface.list();
+      debugPrint('SyncService: Server successfully started on port 8080');
+      debugPrint('Available addresses:');
+      for (var interface in interfaces) {
+        for (var addr in interface.addresses) {
+          if (addr.type == InternetAddressType.IPv4) {
+            debugPrint(' - ${interface.name}: http://${addr.address}:8080');
+          }
+        }
+      }
     } catch (e) {
       debugPrint('SyncService: CRITICAL - Failed to start server: $e');
       rethrow;
@@ -289,7 +300,10 @@ class SyncService {
       }
 
       // Professional: Add common subnets as fallback for MikroTik/VLAN setups
-      final commonSubnets = ['192.168.1', '192.168.0', '192.168.3', '192.168.8', '192.168.100', '10.0.0'];
+      final commonSubnets = [
+        '192.168.1', '192.168.0', '192.168.3', '192.168.8', '192.168.100', 
+        '192.168.31', '192.168.10', '192.168.11', '10.0.0', '10.0.1', '172.16.0'
+      ];
       for (var s in commonSubnets) {
         subnets.add(s);
       }
@@ -324,7 +338,7 @@ class SyncService {
     try {
       final response = await http
           .get(Uri.parse('http://$ip:8080/status'))
-          .timeout(const Duration(milliseconds: 800)); // Optimal timeout for local network
+          .timeout(const Duration(milliseconds: 1200)); // Optimal timeout for complex local networks
       
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);

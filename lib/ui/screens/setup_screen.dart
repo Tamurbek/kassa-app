@@ -383,9 +383,10 @@ class _SetupScreenState extends State<SetupScreen> {
   }
 
   Widget _buildIpInfo() {
-    return FutureBuilder<String?>(
-      future: context.read<AppState>().localIp,
+    return FutureBuilder<List<String>>(
+      future: context.read<AppState>().allLocalIps,
       builder: (context, snapshot) {
+        final ips = (snapshot.data ?? []).join(', ');
         return Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
@@ -393,15 +394,25 @@ class _SetupScreenState extends State<SetupScreen> {
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: Colors.amber.shade200),
           ),
-          child: Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Icon(Icons.info_outline, color: Colors.amber),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  'Ushbu kompyuter IP manzili: ${snapshot.data ?? "Aniqlanmoqda..."}\nUni boshqa kompyuterda kiriting.',
-                  style: TextStyle(fontSize: 12, color: Colors.amber.shade900),
-                ),
+              Row(
+                children: [
+                  const Icon(Icons.info_outline, color: Colors.amber),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Asosiy kompyuter IP manzillari (Master):',
+                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.amber.shade900),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                '${snapshot.hasData && snapshot.data!.isNotEmpty ? ips : "Aniqlanmoqda..."}\n\nQo\'shimcha kasada shu manzillardan birini kiriting. Agar ping bo\'lsa-yu, ulanmasa, port (8080) routerda yoki firewall-da yopiq bo\'lishi ham mumkin.',
+                style: TextStyle(fontSize: 12, color: Colors.amber.shade900),
               ),
             ],
           ),
