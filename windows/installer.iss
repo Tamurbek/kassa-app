@@ -56,15 +56,29 @@ Type: files; Name: "{userprograms}\{#MyAppName}.lnk"
 Type: files; Name: "{commonprograms}\{#MyAppName}.lnk"
 
 [Run]
+; Install VC++ Redistributable silently
+Filename: "{tmp}\vc_redist.x64.exe"; Parameters: "/quiet /install /norestart"; Flags: runhidden; StatusMsg: "Tizim kutubxonalari o'rnatilmoqda (Visual C++)..."
+
+; Run the main application
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
 
-; Add Firewall rule for the application during installation
+; Add Firewall rules for the application and sync port (delete existing first to avoid duplicates)
 Filename: "{sys}\netsh.exe"; \
-    Parameters: "advfirewall firewall add rule name=""Simple Sale POS"" dir=in action=allow program=""{app}\{#MyAppExeName}"" enable=yes"; \
+    Parameters: "advfirewall firewall delete rule name=""Simple Sale Business"""; \
+    Flags: runhidden
+Filename: "{sys}\netsh.exe"; \
+    Parameters: "advfirewall firewall add rule name=""Simple Sale Business"" dir=in action=allow program=""{app}\{#MyAppExeName}"" enable=yes"; \
     Flags: runhidden; StatusMsg: "Tarmoq sozlamalari yangilanmoqda..."
 Filename: "{sys}\netsh.exe"; \
-    Parameters: "advfirewall firewall add rule name=""Simple Sale Sync"" dir=in action=allow protocol=TCP localport=8080 enable=yes"; \
+    Parameters: "advfirewall firewall delete rule name=""Simple Sale Sync Port"""; \
+    Flags: runhidden
+Filename: "{sys}\netsh.exe"; \
+    Parameters: "advfirewall firewall add rule name=""Simple Sale Sync Port"" dir=in action=allow protocol=TCP localport=8080 enable=yes"; \
     Flags: runhidden; StatusMsg: "Sinxronizatsiya porti ochilmoqda..."
+
+[UninstallRun]
+Filename: "{sys}\netsh.exe"; Parameters: "advfirewall firewall delete rule name=""Simple Sale Business"""; Flags: runhidden
+Filename: "{sys}\netsh.exe"; Parameters: "advfirewall firewall delete rule name=""Simple Sale Sync Port"""; Flags: runhidden
 
 [UninstallDelete]
 ; Delete the database file from Documents (Old location)
