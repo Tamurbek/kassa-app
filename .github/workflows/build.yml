@@ -56,9 +56,18 @@ jobs:
           }
           Write-Host "Build output verified."
 
+      - name: Get Version from pubspec.yaml
+        id: get_version
+        shell: pwsh
+        run: |
+          $versionLine = Get-Content pubspec.yaml | Select-String "^version: "
+          $version = $versionLine.ToString().Split(":")[1].Trim().Split("+")[0]
+          echo "VERSION=$version" >> $env:GITHUB_OUTPUT
+          Write-Host "Found version: $version"
+
       - name: Create Installer (Inno Setup)
         shell: pwsh
-        run: iscc windows/installer.iss
+        run: iscc /DMyAppVersion=${{ steps.get_version.outputs.VERSION }} windows/installer.iss
 
       - name: Upload Windows Setup
         uses: actions/upload-artifact@v4

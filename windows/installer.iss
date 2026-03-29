@@ -2,7 +2,9 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "Simple Sale POS"
-#define MyAppVersion "1.22.32"
+#ifndef MyAppVersion
+#define MyAppVersion "0.0.0"
+#endif
 #define MyAppPublisher "SimpleSale Team"
 #define MyAppURL "https://simplesale.uz"
 #define MyAppExeName "simple_sale.exe"
