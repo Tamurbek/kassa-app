@@ -259,10 +259,8 @@ class AppState extends ChangeNotifier {
 
       if (isMaster == true) {
         _startServer();
-        // Automatic Windows Firewall rule add (if on Windows)
-        if (Platform.isWindows) {
-          _addWindowsFirewallRule();
-        }
+        // Automatic Firewall rule setup (requires appropriate privileges)
+        _setupFirewallRules();
       } else if (isMaster == false && masterAddress != null) {
         try {
           await syncWithMaster();
@@ -1052,24 +1050,52 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  void _addWindowsFirewallRule() async {
-    try {
-      // Command to add firewall rule for port 8080
-      // Requires admin privileges implicitly or by user prompt depending on OS settings
-      await Process.run('netsh', [
-        'advfirewall',
-        'firewall',
-        'add',
-        'rule',
-        'name=SimpleSaleServer',
-        'dir=in',
-        'action=allow',
-        'protocol=TCP',
-        'localport=8080',
-      ]);
-      print('Firewall rule added or already exists.');
-    } catch (e) {
-      print('Failed to add firewall rule: $e');
+  void _setupFirewallRules() async {
+    if (Platform.isWindows) {
+      try {
+        final exePath = Platform.resolvedExecutable;
+        // 1. Rule for port 8080 (TCP)
+        await Process.run('netsh', [
+          'advfirewall',
+          'firewall',
+          'add',
+          'rule',
+          'name=SimpleSaleServer',
+          'dir=in',
+          'action=allow',
+          'protocol=TCP',
+          'localport=8080',
+        ]);
+        // 2. Rule for application executable to allow all its network traffic
+        await Process.run('netsh', [
+          'advfirewall',
+          'firewall',
+          'add',
+          'rule',
+          'name=SimpleSaleApp',
+          'dir=in',
+          'action=allow',
+          'program=$exePath',
+          'enable=yes',
+        ]);
+        debugPrint('Windows Firewall rules updated.');
+      } catch (e) {
+        debugPrint('Failed to add Windows firewall rule: $e');
+      }
+    } else if (Platform.isMacOS) {
+      try {
+        final exePath = Platform.resolvedExecutable;
+        // On macOS, try to add the app to the application firewall (requires authorization)
+        await Process.run('/usr/libexec/ApplicationFirewall/socketfilterfw', [
+          '--add', exePath
+        ]);
+        await Process.run('/usr/libexec/ApplicationFirewall/socketfilterfw', [
+          '--unblockapp', exePath
+        ]);
+        debugPrint('macOS Firewall settings attempted for app.');
+      } catch (e) {
+        debugPrint('Failed to update macOS firewall: $e');
+      }
     }
   }
 
