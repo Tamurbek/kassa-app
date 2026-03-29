@@ -59,6 +59,8 @@ class AppState extends ChangeNotifier {
   bool _isBarcodeScanMode = false;
   bool get isBarcodeScanMode => _isBarcodeScanMode;
   String appVersion = AppConstants.appVersion;
+  bool isPublicNetwork = false;
+  String? currentNetworkName;
 
   double get todaySalesTotal {
     final now = DateTime.now();
@@ -176,6 +178,37 @@ class AppState extends ChangeNotifier {
     loadSettings();
     // Professional: Listen to database updates from other providers (like SyncProvider)
     DatabaseService.dbUpdateStream.stream.listen((_) => _loadFromDb());
+    
+    // Check network category on Windows to warn about "Public" profile
+    if (Platform.isWindows) {
+      checkNetworkProfile();
+    }
+  }
+
+  Future<void> checkNetworkProfile() async {
+    if (!Platform.isWindows) return;
+    
+    try {
+      // Professional: Use PowerShell to detect if network is Public/Private
+      final result = await Process.run('powershell', [
+        '-Command',
+        'Get-NetConnectionProfile | Select-Object -Property InterfaceAlias, NetworkCategory | ConvertTo-Json'
+      ]);
+
+      if (result.exitCode == 0) {
+        final decoded = jsonDecode(result.stdout);
+        if (decoded is List) {
+          isPublicNetwork = decoded.any((item) => item['NetworkCategory'] == 2); // 2 is Public
+          if (decoded.isNotEmpty) currentNetworkName = decoded.first['InterfaceAlias'];
+        } else if (decoded is Map) {
+          isPublicNetwork = decoded['NetworkCategory'] == 2;
+          currentNetworkName = decoded['InterfaceAlias'];
+        }
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('Error checking network profile: $e');
+    }
   }
 
   Future<void> loadSettings() async {

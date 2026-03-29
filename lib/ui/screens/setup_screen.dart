@@ -383,41 +383,85 @@ class _SetupScreenState extends State<SetupScreen> {
   }
 
   Widget _buildIpInfo() {
-    return FutureBuilder<List<String>>(
-      future: context.read<AppState>().allLocalIps,
-      builder: (context, snapshot) {
-        final ips = (snapshot.data ?? []).join(', ');
-        return Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.amber.shade50,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.amber.shade200),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  const Icon(Icons.info_outline, color: Colors.amber),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      'Asosiy kompyuter IP manzillari (Master):',
-                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.amber.shade900),
-                    ),
+    return Consumer<AppState>(
+      builder: (context, appState, child) {
+        return FutureBuilder<List<String>>(
+          future: appState.allLocalIps,
+          builder: (context, snapshot) {
+            final ips = (snapshot.data ?? []).join(', ');
+            return Column(
+              children: [
+                if (Platform.isWindows && appState.isPublicNetwork)
+                  _buildNetworkWarning(appState),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.amber.shade50,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.amber.shade200),
                   ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Text(
-                '${snapshot.hasData && snapshot.data!.isNotEmpty ? ips : "Aniqlanmoqda..."}\n\nQo\'shimcha kasada shu manzillardan birini kiriting. Agar ping bo\'lsa-yu, ulanmasa, port (8080) routerda yoki firewall-da yopiq bo\'lishi ham mumkin.',
-                style: TextStyle(fontSize: 12, color: Colors.amber.shade900),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.info_outline, color: Colors.amber),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              'Asosiy kompyuter IP manzillari (Master):',
+                              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.amber.shade900),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        '${snapshot.hasData && snapshot.data!.isNotEmpty ? ips : "Aniqlanmoqda..."}\n\nQo\'shimcha kasada shu manzillardan birini kiriting. Agar ping bo\'lsa-yu, ulanmasa, port (8080) routerda yoki firewall-da yopiq bo\'lishi ham mumkin.',
+                        style: TextStyle(fontSize: 12, color: Colors.amber.shade900),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildNetworkWarning(AppState appState) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.red.shade50,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.red.shade200),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.warning_amber_rounded, color: Colors.red),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Xavfli Tarmoq Rejimi (Public)!',
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.red.shade900),
+                ),
               ),
             ],
           ),
-        );
-      },
+          const SizedBox(height: 8),
+          Text(
+            'Windows tizimida joriy tarmoq ("${appState.currentNetworkName ?? 'Noma'lum'}") "Public" rejimida. Bu rejimda Windows barcha tashqi ulanishlarni bloklaydi.\n\nEchish: Windows-da "Settings > Network & Internet" bo\'limiga kiring va tarmoq turini "Private" ga o\'zgartiring.',
+            style: TextStyle(fontSize: 12, color: Colors.red.shade900),
+          ),
+        ],
+      ),
     );
   }
 
