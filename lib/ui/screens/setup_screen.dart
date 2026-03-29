@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -457,7 +458,7 @@ class _SetupScreenState extends State<SetupScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Windows tizimida joriy tarmoq ("${appState.currentNetworkName ?? 'Noma'lum'}") "Public" rejimida. Bu rejimda Windows barcha tashqi ulanishlarni bloklaydi.\n\nEchish: Windows-da "Settings > Network & Internet" bo\'limiga kiring va tarmoq turini "Private" ga o\'zgartiring.',
+            'Windows tizimida joriy tarmoq ("${appState.currentNetworkName ?? "Noma\'lum"}") "Public" rejimida. Bu rejimda Windows barcha tashqi ulanishlarni bloklaydi.\n\nEchish: Windows-da "Settings > Network & Internet" bo\'limiga kiring va tarmoq turini "Private" ga o\'zgartiring.',
             style: TextStyle(fontSize: 12, color: Colors.red.shade900),
           ),
         ],
