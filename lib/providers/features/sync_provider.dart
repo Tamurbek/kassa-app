@@ -14,6 +14,7 @@ import '../../services/database_service.dart';
 import '../../services/sync_service.dart';
 
 class SyncProvider extends ChangeNotifier {
+  bool isInitialized = false;
   bool? isMaster;
   bool isCloudMode = false;
   String? masterAddress;
@@ -213,6 +214,7 @@ class SyncProvider extends ChangeNotifier {
     }
   }
 
+  VoidCallback? onRemoteLogout;
   WebSocketChannel? _cloudSyncChannel;
 
   void _connectCloudSync(String activationCode) {
@@ -228,6 +230,9 @@ class SyncProvider extends ChangeNotifier {
           debugPrint("Professional Sync: Received cloud notification: $message");
           if (message == "sync_needed") {
             pullFromCloudIncremental();
+          } else if (message == "force_logout") {
+            debugPrint("Professional Sync: Force logout command received via WebSocket!");
+            onRemoteLogout?.call();
           }
         },
         onDone: () {

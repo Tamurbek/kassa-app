@@ -36,7 +36,17 @@ void main() async {
         ChangeNotifierProvider(create: (context) => AuthProvider()..loadAuth()),
         ChangeNotifierProvider(create: (context) => InventoryProvider()..reloadData()),
         ChangeNotifierProvider(create: (context) => SalesProvider()..reloadSalesData()),
-        ChangeNotifierProvider(create: (context) => SyncProvider()..loadSync()),
+        ChangeNotifierProxyProvider<AuthProvider, SyncProvider>(
+          create: (context) => SyncProvider(),
+          update: (context, auth, sync) {
+            sync!.onRemoteLogout = () => auth.performRemoteLogout();
+            if (!sync.isInitialized) {
+              sync.loadSync();
+              sync.isInitialized = true;
+            }
+            return sync;
+          },
+        ),
         ChangeNotifierProvider(create: (context) => AppState()..loadSettings()),
       ],
       child: const SimpleSaleApp(),

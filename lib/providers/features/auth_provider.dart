@@ -168,6 +168,16 @@ class AuthProvider extends ChangeNotifier {
   String cloudStatus = 'Sinxronizatsiya faol';
   bool _isConnecting = false;
 
+  Future<void> performRemoteLogout() async {
+    debugPrint("Remote data wipe requested. Clearing...");
+    await DatabaseService.clearAllData();
+    _isActivated = false;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
+    if (deviceId != null) await prefs.setString('deviceId', deviceId!);
+    notifyListeners();
+  }
+
   Future<void> checkBlockingStatus() async {
     if (!_isActivated || activationCode == null || deviceId == null || _isConnecting) return;
     _isConnecting = true;
@@ -216,12 +226,7 @@ class AuthProvider extends ChangeNotifier {
 
         // 3. Remote Data Management (Wipe if requested by master server)
         if (data['force_logout'] == true) {
-          debugPrint("Remote data wipe requested by Railway. Clearing...");
-          await DatabaseService.clearAllData();
-          _isActivated = false;
-          await prefs.clear();
-          if (deviceId != null) await prefs.setString('deviceId', deviceId!);
-          notifyListeners();
+          await performRemoteLogout();
         }
       } else {
         cloudStatus = 'Serverda xato (${response.statusCode})';
