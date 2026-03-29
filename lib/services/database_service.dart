@@ -1649,4 +1649,22 @@ class DatabaseService {
     }
     triggerUpdate(skipPush: true);
   }
+
+  static Future<void> deleteSyncedRecord(String table, String id) async {
+    final db = await database;
+    await db.delete(table, where: 'id = ?', whereArgs: [id]);
+    
+    // Also delete child items if any
+    if (table == 'sales') await db.delete('sale_items', where: 'saleId = ?', whereArgs: [id]);
+    if (table == 'returns') await db.delete('return_items', where: 'returnId = ?', whereArgs: [id]);
+    if (table == 'write_offs') await db.delete('write_off_items', where: 'writeOffId = ?', whereArgs: [id]);
+    if (table == 'inventories') await db.delete('inventory_items', where: 'inventoryId = ?', whereArgs: [id]);
+    if (table == 'stock_entries') await db.delete('stock_entry_items', where: 'entryId = ?', whereArgs: [id]);
+    if (table == 'stock_transfers') await db.delete('stock_transfer_items', where: 'transferId = ?', whereArgs: [id]);
+
+    if (['sales', 'returns', 'write_offs', 'stock_entries', 'stock_transfers', 'inventories'].contains(table)) {
+      await recalculateStocks();
+    }
+    triggerUpdate(skipPush: true);
+  }
 }

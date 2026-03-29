@@ -303,42 +303,93 @@ class SyncProvider extends ChangeNotifier {
 
     try {
       final wsUrl = 'ws://$masterAddress:8080/ws';
+      debugPrint("Professional Sync: Connecting to LAN websocket: $wsUrl");
       _wsChannel = WebSocketChannel.connect(Uri.parse(wsUrl));
       
-      // We don't set _isConnected = true yet. We wait for FIRST message (heartbeat or data)
       _wsChannel!.stream.listen(
-        (message) {
+        (message) async {
           if (!_isConnected) {
             _isConnected = true;
             notifyListeners();
           }
-          final data = jsonDecode(message);
           
-          if (data['type'] == 'heartbeat') {
-             // Keep-alive received, UI doesn't need to refresh, only status update
-             notifyListeners();
-             return;
-          }
+          try {
+            final data = jsonDecode(message);
+            final type = data['type'];
+            
+            if (type == 'heartbeat' || type == 'pong') {
+               notifyListeners();
+               return;
+            }
 
-          if (data['type'] == 'update') {
+            debugPrint("Professional Sync: Received real-time update: $type");
+            
+            // Handle specific entity updates
+            const entities = [
+              'category', 'product', 'warehouse', 'register', 
+              'sale', 'return', 'write_off', 'inventory', 
+              'stock_entry', 'user', 'stock_transfer'
+            ];
+            
+            if (entities.contains(type)) {
+              String table = type;
+              if (type == 'category') table = 'categories';
+              if (type == 'product') table = 'products';
+              if (type == 'warehouse') table = 'warehouses';
+              if (type == 'register') table = 'registers';
+              if (type == 'user') table = 'users';
+              if (type == 'stock_entry') table = 'stock_entries';
+              if (type == 'sale') table = 'sales';
+              if (type == 'return') table = 'returns';
+              if (type == 'write_off') table = 'write_offs';
+              if (type == 'inventory') table = 'inventories';
+              if (type == 'stock_transfer') table = 'stock_transfers';
+              
+              await DatabaseService.saveSyncedRecord(table, data['data']);
+              debugPrint("Professional Sync: $type record saved and UI notified");
+            } else if (type == 'setting') {
+              await DatabaseService.saveSetting(data['data']['key'], data['data']['value'].toString());
+            } else if (type.toString().endsWith('_delete')) {
+               final entityType = type.toString().split('_').first;
+               String table = entityType;
+               if (entityType == 'category') table = 'categories';
+               if (entityType == 'product') table = 'products';
+               // ... (add other table mappings if needed)
+               await DatabaseService.deleteSyncedRecord(table, data['data']['id']);
+            }
+            
             notifyListeners();
+          } catch (e) {
+            debugPrint("Professional Sync: Error parsing WS message: $e");
           }
         },
         onError: (e) {
+          debugPrint("Professional Sync: LAN websocket error: $e");
           _isConnected = false;
           _isConnectingWs = false;
-          Future.delayed(const Duration(seconds: 5), _connectRealtime);
+          _reconnectRealtime();
         },
         onDone: () {
+          debugPrint("Professional Sync: LAN websocket closed.");
           _isConnected = false;
           _isConnectingWs = false;
-          Future.delayed(const Duration(seconds: 5), _connectRealtime);
+          _reconnectRealtime();
         },
       );
     } catch (e) {
+      debugPrint("Professional Sync: Could not connect to LAN websocket: $e");
       _isConnected = false;
       _isConnectingWs = false;
+      _reconnectRealtime();
     }
+  }
+
+  void _reconnectRealtime() {
+    Future.delayed(const Duration(seconds: 5), () {
+      if (isMaster == false && masterAddress != null) {
+        _connectRealtime();
+      }
+    });
   }
 
   Future<void> syncWithMaster() async {

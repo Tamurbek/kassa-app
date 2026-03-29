@@ -45,11 +45,7 @@ class AppState extends ChangeNotifier {
   String? organizationAddress;
   String? instagramUsername;
   Timer? _syncTimer;
-  WebSocketChannel? _wsChannel;
-  Timer? _wsPingTimer;
-  bool _isConnectingWs = false;
-  bool _isConnected = false;
-  bool get isConnected => isMaster == true ? true : _isConnected;
+
   DateTime? lastCloudSync;
   bool isSyncingCloud = false;
   String syncingStage = '';
@@ -274,7 +270,6 @@ class AppState extends ChangeNotifier {
       } else if (isMaster == false && masterAddress != null) {
         try {
           await syncWithMaster();
-          _connectRealtime();
         } catch (e) {
           // Agar master bilan ulanib bo'lmasa ham, dastur ishlashini davom ettiradi
           print('Master bilan ulanishda xatolik (offline rejim): $e');
@@ -707,7 +702,6 @@ class AppState extends ChangeNotifier {
     }
 
     notifyListeners();
-    if (isMaster == false) _connectRealtime();
   }
 
   Future<void> setThemeMode(ThemeMode mode) async {
@@ -733,89 +727,7 @@ class AppState extends ChangeNotifier {
     }
   }
 
-  void _connectRealtime() {
-    _syncTimer?.cancel();
-    _wsPingTimer?.cancel();
-    if (isMaster != false || masterAddress == null || _isConnectingWs) return;
 
-    _isConnectingWs = true;
-    try {
-      final wsUrl = 'ws://$masterAddress:8080/ws';
-      _wsChannel = WebSocketChannel.connect(Uri.parse(wsUrl));
-
-      // Set up heartbeat
-      _wsPingTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
-        try {
-          _wsChannel?.sink.add(jsonEncode({'type': 'ping'}));
-        } catch (e) {
-          timer.cancel();
-        }
-      });
-
-      _wsChannel!.stream.listen(
-        (message) async {
-          if (!_isConnected) {
-            _isConnected = true;
-            notifyListeners();
-          }
-          final data = jsonDecode(message);
-          if (data['type'] == 'pong') return; // Ignore heartbeat responses
-          await _handleRemoteUpdate(data['type'], data['data']);
-        },
-        onDone: () {
-          _isConnectingWs = false;
-          _isConnected = false;
-          _wsPingTimer?.cancel();
-          _reconnectRealtime();
-          notifyListeners();
-        },
-        onError: (err) {
-          _isConnectingWs = false;
-          _isConnected = false;
-          _wsPingTimer?.cancel();
-          _reconnectRealtime();
-          notifyListeners();
-        },
-      );
-      print('WebSocket ulandi: $wsUrl');
-    } catch (e) {
-      _isConnectingWs = false;
-      _reconnectRealtime();
-    }
-
-    // Fallback polling for register status check
-    _syncTimer = Timer.periodic(const Duration(seconds: 10), (timer) async {
-      if (isMaster == false && masterAddress != null) {
-        try {
-          // Check if current register is still ours (lightweight check)
-          final data = await SyncService.fetchFullState(masterAddress!);
-          if (data != null && data['registers'] != null) {
-            final regs = (data['registers'] as List)
-                .map((r) => Register.fromJson(r))
-                .toList();
-            if (currentRegister != null) {
-              final latest = regs.firstWhere(
-                (r) => r.id == currentRegister!.id,
-                orElse: () => currentRegister!,
-              );
-              if (latest.activeDeviceId != deviceId) {
-                currentRegister = null;
-                notifyListeners();
-              }
-            }
-          }
-        } catch (e) {}
-      } else {
-        timer.cancel();
-      }
-    });
-  }
-
-  void _reconnectRealtime() {
-    Future.delayed(const Duration(seconds: 5), () {
-      if (isMaster == false) _connectRealtime();
-    });
-  }
 
   Future<void> _handleRemoteUpdate(
     String type,
