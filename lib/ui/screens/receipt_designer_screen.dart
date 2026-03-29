@@ -74,7 +74,7 @@ class _ReceiptDesignerScreenState extends State<ReceiptDesignerScreen> {
                       ),
                       hintText: 'Masalan: Xaridingiz uchun rahmat!',
                     ),
-                    onChanged: (val) => settings.updateReceiptSettings(footerText: val),
+                    onChanged: (val) => settings.updateReceiptSettings(footer: val),
                   ),
                   const SizedBox(height: 32),
                   ElevatedButton.icon(
