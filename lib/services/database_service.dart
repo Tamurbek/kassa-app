@@ -78,7 +78,7 @@ class DatabaseService {
 
     return await openDatabase(
       newPath,
-      version: 17,
+      version: 18,
       onCreate: (db, version) async {
         await db.execute('''
           CREATE TABLE categories (
@@ -485,6 +485,24 @@ class DatabaseService {
             }
           }
         }
+        
+        if (oldVersion < 18) {
+          final tables = [
+            'warehouses', 'registers', 'sales', 'returns', 'write_offs', 
+            'inventories', 'stock_entries', 'stock_transfers', 'categories', 'products', 'users'
+          ];
+          for (var table in tables) {
+            try {
+               var columns = await db.rawQuery('PRAGMA table_info($table)');
+               bool hasIsDeleted = columns.any((c) => c['name'] == 'isDeleted');
+               if (!hasIsDeleted) {
+                 await db.execute('ALTER TABLE $table ADD COLUMN isDeleted INTEGER NOT NULL DEFAULT 0');
+               }
+            } catch (e) {
+               print("Migration 18 error ($table): $e");
+            }
+          }
+        }
       },
     );
   }
@@ -506,7 +524,7 @@ class DatabaseService {
 
   static Future<List<Category>> getCategories() async {
     final db = await database;
-    final res = await db.query('categories', orderBy: 'name ASC');
+    final res = await db.query('categories', where: 'isDeleted = 0', orderBy: 'name ASC');
     return res
         .map(
           (c) => Category.fromJson({
@@ -520,7 +538,11 @@ class DatabaseService {
 
   static Future<void> deleteCategory(String id) async {
     final db = await database;
-    await db.delete('categories', where: 'id = ?', whereArgs: [id]);
+    await db.update('categories', {
+      'isDeleted': 1,
+      'isSynced': 0,
+      'updatedAt': DateTime.now().toIso8601String(),
+    }, where: 'id = ?', whereArgs: [id]);
     triggerUpdate();
   }
 
@@ -539,7 +561,7 @@ class DatabaseService {
 
   static Future<List<Warehouse>> getWarehouses() async {
     final db = await database;
-    final res = await db.query('warehouses', orderBy: 'name ASC');
+    final res = await db.query('warehouses', where: 'isDeleted = 0', orderBy: 'name ASC');
     return res
         .map(
           (w) => Warehouse.fromJson({
@@ -553,7 +575,11 @@ class DatabaseService {
 
   static Future<void> deleteWarehouse(String id) async {
     final db = await database;
-    await db.delete('warehouses', where: 'id = ?', whereArgs: [id]);
+    await db.update('warehouses', {
+      'isDeleted': 1,
+      'isSynced': 0,
+      'updatedAt': DateTime.now().toIso8601String(),
+    }, where: 'id = ?', whereArgs: [id]);
     triggerUpdate();
   }
 
@@ -573,7 +599,7 @@ class DatabaseService {
 
   static Future<List<Register>> getRegisters() async {
     final db = await database;
-    final res = await db.query('registers', orderBy: 'name ASC');
+    final res = await db.query('registers', where: 'isDeleted = 0', orderBy: 'name ASC');
     return res
         .map(
           (r) => Register.fromJson({
@@ -588,7 +614,11 @@ class DatabaseService {
 
   static Future<void> deleteRegister(String id) async {
     final db = await database;
-    await db.delete('registers', where: 'id = ?', whereArgs: [id]);
+    await db.update('registers', {
+      'isDeleted': 1,
+      'isSynced': 0,
+      'updatedAt': DateTime.now().toIso8601String(),
+    }, where: 'id = ?', whereArgs: [id]);
     triggerUpdate();
   }
 
@@ -655,8 +685,9 @@ class DatabaseService {
         PRIMARY KEY (productId, warehouseId)
       )
     ''');
-
-    final prodRes = await db.query('products', orderBy: 'name ASC');
+// NOTE: We don't filter isDeleted=0 in SQL yet because we need to check stocks separately,
+// but we'll filter them during the map loop.
+    final prodRes = await db.query('products', where: 'isDeleted = 0', orderBy: 'name ASC');
     
     // Auto-recalculate if stocks are missing/empty (only happens once on migration)
     final anyStock = await db.query('stocks', limit: 1);
@@ -704,8 +735,11 @@ class DatabaseService {
 
   static Future<void> deleteProduct(String id) async {
     final db = await database;
-    await db.delete('products', where: 'id = ?', whereArgs: [id]);
-    await db.delete('stocks', where: 'productId = ?', whereArgs: [id]);
+    await db.update('products', {
+      'isDeleted': 1,
+      'isSynced': 0,
+      'updatedAt': DateTime.now().toIso8601String(),
+    }, where: 'id = ?', whereArgs: [id]);
     triggerUpdate();
   }
 
@@ -886,7 +920,7 @@ class DatabaseService {
 
   static Future<List<StockEntry>> getStockEntries() async {
     final db = await database;
-    final entriesRes = await db.query('stock_entries', orderBy: 'date DESC');
+    final entriesRes = await db.query('stock_entries', where: 'isDeleted = 0', orderBy: 'date DESC');
     final List<StockEntry> entries = [];
 
     for (var eMap in entriesRes) {
@@ -961,7 +995,7 @@ class DatabaseService {
 
   static Future<List<Sale>> getSales() async {
     final db = await database;
-    final salesRes = await db.query('sales', orderBy: 'date DESC');
+    final salesRes = await db.query('sales', where: 'isDeleted = 0', orderBy: 'date DESC');
     final List<Sale> sales = [];
 
     for (var sMap in salesRes) {
@@ -1015,7 +1049,7 @@ class DatabaseService {
 
   static Future<List<User>> getUsers() async {
     final db = await database;
-    final res = await db.query('users', orderBy: 'name ASC');
+    final res = await db.query('users', where: 'isDeleted = 0', orderBy: 'name ASC');
     return res
         .map(
           (u) => User.fromJson({
@@ -1031,7 +1065,11 @@ class DatabaseService {
 
   static Future<void> deleteUser(String id) async {
     final db = await database;
-    await db.delete('users', where: 'id = ?', whereArgs: [id]);
+    await db.update('users', {
+      'isDeleted': 1,
+      'isSynced': 0,
+      'updatedAt': DateTime.now().toIso8601String(),
+    }, where: 'id = ?', whereArgs: [id]);
     triggerUpdate();
   }
 
@@ -1066,7 +1104,7 @@ class DatabaseService {
 
   static Future<List<SaleReturn>> getReturns() async {
     final db = await database;
-    final res = await db.query('returns', orderBy: 'date DESC');
+    final res = await db.query('returns', where: 'isDeleted = 0', orderBy: 'date DESC');
     final List<SaleReturn> returns = [];
     for (var rMap in res) {
       final itemsRes = await db.query(
@@ -1127,7 +1165,7 @@ class DatabaseService {
 
   static Future<List<WriteOff>> getWriteOffs() async {
     final db = await database;
-    final res = await db.query('write_offs', orderBy: 'date DESC');
+    final res = await db.query('write_offs', where: 'isDeleted = 0', orderBy: 'date DESC');
     final List<WriteOff> results = [];
     for (var map in res) {
       final itemsRes = await db.query(
@@ -1191,7 +1229,7 @@ class DatabaseService {
 
   static Future<List<InventoryEntry>> getInventories() async {
     final db = await database;
-    final res = await db.query('inventories', orderBy: 'date DESC');
+    final res = await db.query('inventories', where: 'isDeleted = 0', orderBy: 'date DESC');
     final List<InventoryEntry> results = [];
     for (var map in res) {
       final itemsRes = await db.query(
@@ -1236,8 +1274,11 @@ class DatabaseService {
         await _decreaseStockTxn(txn, pId, wId, qty); // Revert increase
       }
 
-      await txn.delete('returns', where: 'id = ?', whereArgs: [id]);
-      await txn.delete('return_items', where: 'returnId = ?', whereArgs: [id]);
+      await txn.update('returns', {
+        'isDeleted': 1,
+        'isSynced': 0,
+        'updatedAt': DateTime.now().toIso8601String(),
+      }, where: 'id = ?', whereArgs: [id]);
     });
     triggerUpdate();
   }
@@ -1256,12 +1297,11 @@ class DatabaseService {
         await _increaseStockTxn(txn, pId, wId, qty); // Revert decrease
       }
 
-      await txn.delete('write_offs', where: 'id = ?', whereArgs: [id]);
-      await txn.delete(
-        'write_off_items',
-        where: 'writeOffId = ?',
-        whereArgs: [id],
-      );
+      await txn.update('write_offs', {
+        'isDeleted': 1,
+        'isSynced': 0,
+        'updatedAt': DateTime.now().toIso8601String(),
+      }, where: 'id = ?', whereArgs: [id]);
     });
     triggerUpdate();
   }
@@ -1280,26 +1320,22 @@ class DatabaseService {
         await _decreaseStockTxn(txn, pId, wId, qty); // Revert increase
       }
 
-      await txn.delete('stock_entries', where: 'id = ?', whereArgs: [id]);
-      await txn.delete(
-        'stock_entry_items',
-        where: 'entryId = ?',
-        whereArgs: [id],
-      );
+      await txn.update('stock_entries', {
+        'isDeleted': 1,
+        'isSynced': 0,
+        'updatedAt': DateTime.now().toIso8601String(),
+      }, where: 'id = ?', whereArgs: [id]);
     });
     triggerUpdate();
   }
 
   static Future<void> deleteInventory(String id) async {
     final db = await database;
-    await db.transaction((txn) async {
-      await txn.delete('inventories', where: 'id = ?', whereArgs: [id]);
-      await txn.delete(
-        'inventory_items',
-        where: 'inventoryId = ?',
-        whereArgs: [id],
-      );
-    });
+    await db.update('inventories', {
+      'isDeleted': 1,
+      'isSynced': 0,
+      'updatedAt': DateTime.now().toIso8601String(),
+    }, where: 'id = ?', whereArgs: [id]);
     triggerUpdate();
   }
 
@@ -1362,7 +1398,7 @@ class DatabaseService {
 
   static Future<List<StockTransfer>> getStockTransfers() async {
     final db = await database;
-    final res = await db.query('stock_transfers', orderBy: 'date DESC');
+    final res = await db.query('stock_transfers', where: 'isDeleted = 0', orderBy: 'date DESC');
     final List<StockTransfer> transfers = [];
 
     for (var m in res) {
@@ -1408,12 +1444,12 @@ class DatabaseService {
         await txn.delete('stocks');
 
         // 2. Fetch all documents that affect stock
-        final entries = await _safeQuery(txn, 'stock_entries');
-        final sales = await _safeQuery(txn, 'sales');
-        final returns = await _safeQuery(txn, 'returns');
-        final woffs = await _safeQuery(txn, 'write_offs');
-        final transfers = await _safeQuery(txn, 'stock_transfers');
-        final inventories = await _safeQuery(txn, 'inventories');
+        final entries = await txn.query('stock_entries', where: 'isDeleted = 0');
+        final sales = await txn.query('sales', where: 'isDeleted = 0');
+        final returns = await txn.query('returns', where: 'isDeleted = 0');
+        final woffs = await txn.query('write_offs', where: 'isDeleted = 0');
+        final transfers = await txn.query('stock_transfers', where: 'isDeleted = 0');
+        final inventories = await txn.query('inventories', where: 'isDeleted = 0');
 
         // 3. Flatten and unify into a timeline
         List<Map<String, dynamic>> timeline = [];
@@ -1531,8 +1567,25 @@ class DatabaseService {
   static Future<void> deleteStockTransfer(String id) async {
     final db = await database;
     await db.transaction((txn) async {
-      await txn.delete('stock_transfers', where: 'id = ?', whereArgs: [id]);
-      await txn.delete('stock_transfer_items', where: 'transferId = ?', whereArgs: [id]);
+      final entryRes = await txn.query('stock_transfers', where: 'id = ?', whereArgs: [id]);
+      if (entryRes.isEmpty) return;
+      
+      final fromW = entryRes.first['fromWarehouseId'].toString();
+      final toW = entryRes.first['toWarehouseId'].toString();
+      final items = await txn.query('stock_transfer_items', where: 'transferId = ?', whereArgs: [id]);
+
+      for (var item in items) {
+        final pId = item['productId'].toString();
+        final qty = double.tryParse(item['quantity'].toString()) ?? 0;
+        await _increaseStockTxn(txn, pId, fromW, qty); // Revert decrease
+        await _decreaseStockTxn(txn, pId, toW, qty);   // Revert increase
+      }
+
+      await txn.update('stock_transfers', {
+        'isDeleted': 1,
+        'isSynced': 0,
+        'updatedAt': DateTime.now().toIso8601String(),
+      }, where: 'id = ?', whereArgs: [id]);
     });
     triggerUpdate();
   }

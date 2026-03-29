@@ -55,30 +55,8 @@ class _MainLayoutState extends State<MainLayout> {
   void initState() {
     super.initState();
     _resetInactivityTimer();
-    _checkForUpdates();
   }
 
-  void _checkForUpdates() async {
-    // Small delay to ensure navigator is ready
-    await Future.delayed(const Duration(seconds: 3));
-    if (!mounted) return;
-
-    try {
-      final updateData = await UpdateService.checkUpdate();
-      if (updateData != null && mounted) {
-        if (context.mounted) {
-           AppUpdateDialog.show(
-            context,
-            updateData['version'],
-            updateData['url'],
-            changelog: updateData['changelog'],
-          );
-        }
-      }
-    } catch (e) {
-      debugPrint('Error checking for updates: $e');
-    }
-  }
 
   @override
   void dispose() {
@@ -492,9 +470,11 @@ class _MainLayoutState extends State<MainLayout> {
 
     final Color statusColor = sync.isMaster == true
         ? (isDark ? const Color(0xFF60A5FA) : const Color(0xFF2563EB))
-        : (sync.isConnected
-            ? (isDark ? const Color(0xFF4ADE80) : const Color(0xFF16A34A))
-            : (isDark ? const Color(0xFFF87171) : const Color(0xFFDC2626)));
+        : (sync.isDiscovering 
+            ? (isDark ? Colors.orange[400]! : Colors.orange[700]!)
+            : (sync.isConnected
+                ? (isDark ? const Color(0xFF4ADE80) : const Color(0xFF16A34A))
+                : (isDark ? const Color(0xFFF87171) : const Color(0xFFDC2626))));
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
@@ -531,9 +511,11 @@ class _MainLayoutState extends State<MainLayout> {
                 Text(
                   sync.isMaster == true
                       ? 'Asosiy terminal (Master)'
-                      : (sync.isConnected
-                          ? 'Asosiy terminalga ulangan'
-                          : 'Aloqa yo\'q'),
+                      : (sync.isDiscovering
+                          ? 'Masterni qidiryapman...'
+                          : (sync.isConnected
+                              ? 'Asosiy terminalga ulangan'
+                              : 'Aloqa yo\'q')),
                   style: GoogleFonts.outfit(
                     fontSize: 11,
                     fontWeight: FontWeight.w800,

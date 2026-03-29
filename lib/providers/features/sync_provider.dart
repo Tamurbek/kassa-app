@@ -22,11 +22,16 @@ class SyncProvider extends ChangeNotifier {
   bool isSyncingCloud = false;
   String syncingStage = '';
   bool _isConnected = false;
+  bool _isDiscovering = false;
+  int _failedPings = 0;
+
   bool get isConnected => isMaster == true ? true : _isConnected;
+  bool get isDiscovering => _isDiscovering;
 
   WebSocketChannel? _wsChannel;
   bool _isConnectingWs = false;
   Timer? _cloudBackupTimer;
+  Timer? _connectivityTimer;
 
   Future<void> loadSync() async {
     final prefs = await SharedPreferences.getInstance();
@@ -35,10 +40,13 @@ class SyncProvider extends ChangeNotifier {
     masterAddress = prefs.getString('masterAddress');
     _incrementalSyncTimer?.cancel();
     _cloudBackupTimer?.cancel();
+    _connectivityTimer?.cancel();
     _wsChannel?.sink.close();
     _cloudSyncChannel?.sink.close();
     _isConnected = false;
     _isConnectingWs = false;
+    _isDiscovering = false;
+    _failedPings = 0;
 
     final lastSyncStr = prefs.getString('lastCloudSync');
     if (lastSyncStr != null) lastCloudSync = DateTime.parse(lastSyncStr);
@@ -60,8 +68,10 @@ class SyncProvider extends ChangeNotifier {
       startAutoIncrementalSync();
     } else if (isMaster == false && masterAddress != null) {
       startAutoIncrementalSync(); // Slaves also push their data incrementally
+      startAutoConnectivityCheck(); // Proactively check if master is still alive
     }
     notifyListeners();
+    Future.microtask(() => syncNow());
   }
 
   Timer? _incrementalSyncTimer;
@@ -95,10 +105,76 @@ class SyncProvider extends ChangeNotifier {
     });
   }
 
+  void startAutoConnectivityCheck() {
+    _connectivityTimer?.cancel();
+    _connectivityTimer = Timer.periodic(const Duration(seconds: 10), (timer) async {
+      if (isMaster == false && masterAddress != null && !_isDiscovering) {
+        try {
+          final status = await SyncService.fetchStatusFromMaster(masterAddress!);
+          final isCurrentlyAlive = status != null;
+          
+          if (isCurrentlyAlive) {
+            _failedPings = 0;
+            if (!_isConnected) {
+              _isConnected = true;
+              notifyListeners();
+              debugPrint("Professional Sync: Reconnected to Master at $masterAddress");
+            }
+          } else {
+            _handlePingFailure();
+          }
+        } catch (_) {
+          _handlePingFailure();
+        }
+      }
+    });
+  }
+
+  void _handlePingFailure() {
+    _failedPings++;
+    _isConnected = false;
+    notifyListeners();
+    
+    if (_failedPings >= 3) {
+      debugPrint("Professional Sync: Master lost for $_failedPings pings. Starting auto-discovery...");
+      _discoverMaster();
+    }
+  }
+
+  Future<void> _discoverMaster() async {
+    if (_isDiscovering) return;
+    _isDiscovering = true;
+    notifyListeners();
+
+    try {
+      final newIp = await SyncService.autoDiscoverMaster();
+      if (newIp != null && newIp != masterAddress) {
+        debugPrint("Professional Sync: Master moved! New IP found: $newIp");
+        final prefs = await SharedPreferences.getInstance();
+        masterAddress = newIp;
+        await prefs.setString('masterAddress', newIp);
+        
+        // Fully reset and reconnect to the new IP
+        _failedPings = 0;
+        _isDiscovering = false;
+        loadSync();
+      } else if (newIp != null) {
+        // Found it at the same IP, just reset failure count
+        _failedPings = 0;
+      }
+    } catch (e) {
+      debugPrint("Professional Sync: Discovery error: $e");
+    } finally {
+      _isDiscovering = false;
+      notifyListeners();
+    }
+  }
+
   @override
   void dispose() {
     _cloudBackupTimer?.cancel();
     _incrementalSyncTimer?.cancel();
+    _connectivityTimer?.cancel();
     _wsChannel?.sink.close();
     super.dispose();
   }
@@ -134,6 +210,23 @@ class SyncProvider extends ChangeNotifier {
     }
   }
 
+  String _getPluralTable(String type) {
+    switch (type) {
+      case 'category': return 'categories';
+      case 'product': return 'products';
+      case 'warehouse': return 'warehouses';
+      case 'register': return 'registers';
+      case 'sale': return 'sales';
+      case 'return': return 'returns';
+      case 'write_off': return 'write_offs';
+      case 'inventory': return 'inventories';
+      case 'stock_entry': return 'stock_entries';
+      case 'stock_transfer': return 'stock_transfers';
+      case 'user': return 'users';
+      default: return type.endsWith('s') ? type : '${type}s';
+    }
+  }
+
   String _getSingularType(String table) {
     if (table == 'write_offs') return 'write_off';
     if (table == 'inventories') return 'inventory';
@@ -146,7 +239,7 @@ class SyncProvider extends ChangeNotifier {
     if (table == 'sales') return 'sale';
     if (table == 'returns') return 'return';
     if (table == 'users') return 'user';
-    return table;
+    return table.endsWith('s') ? table.substring(0, table.length - 1) : table;
   }
 
   bool _isSyncingInternally = false;
@@ -332,32 +425,19 @@ class SyncProvider extends ChangeNotifier {
             ];
             
             if (entities.contains(type)) {
-              String table = type;
-              if (type == 'category') table = 'categories';
-              if (type == 'product') table = 'products';
-              if (type == 'warehouse') table = 'warehouses';
-              if (type == 'register') table = 'registers';
-              if (type == 'user') table = 'users';
-              if (type == 'stock_entry') table = 'stock_entries';
-              if (type == 'sale') table = 'sales';
-              if (type == 'return') table = 'returns';
-              if (type == 'write_off') table = 'write_offs';
-              if (type == 'inventory') table = 'inventories';
-              if (type == 'stock_transfer') table = 'stock_transfers';
-              
+              final table = _getPluralTable(type);
               await DatabaseService.saveSyncedRecord(table, data['data']);
               debugPrint("Professional Sync: $type record saved and UI notified");
             } else if (type == 'setting') {
               await DatabaseService.saveSetting(data['data']['key'], data['data']['value'].toString());
             } else if (type.toString().endsWith('_delete')) {
                final entityType = type.toString().split('_').first;
-               String table = entityType;
-               if (entityType == 'category') table = 'categories';
-               if (entityType == 'product') table = 'products';
-               // ... (add other table mappings if needed)
+               final table = _getPluralTable(entityType);
                await DatabaseService.deleteSyncedRecord(table, data['data']['id']);
+               debugPrint("Professional Sync: Remote $entityType delete applied for ID: ${data['data']['id']}");
             }
             
+            _failedPings = 0;
             notifyListeners();
           } catch (e) {
             debugPrint("Professional Sync: Error parsing WS message: $e");
@@ -397,6 +477,11 @@ class SyncProvider extends ChangeNotifier {
 
     final data = await SyncService.fetchFullState(masterAddress!);
     if (data != null) {
+      // If we successfully fetched data, we are definitely connected
+      if (!_isConnected) {
+        _isConnected = true;
+      }
+      
       final newCategories = (data['categories'] as List).map((c) => Category.fromJson(c)).toList();
       final newProducts = (data['products'] as List).map((p) => Product.fromJson(p)).toList();
       final newWarehouses = (data['warehouses'] as List).map((w) => Warehouse.fromJson(w)).toList();
@@ -422,6 +507,8 @@ class SyncProvider extends ChangeNotifier {
 
       notifyListeners();
     } else {
+      _isConnected = false;
+      notifyListeners();
       throw Exception('Asosiy kompyuterga ulanib bo\'lmadi.');
     }
   }

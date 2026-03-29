@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../services/update_service.dart';
+import 'dialogs/app_update_dialog.dart';
 import '../providers/app_state.dart';
 import '../providers/features/auth_provider.dart';
 import '../providers/features/settings_provider.dart';
@@ -21,6 +23,34 @@ class InitializationWrapper extends StatefulWidget {
 
 class _InitializationWrapperState extends State<InitializationWrapper> {
   User? _lastUser;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkForUpdates();
+  }
+
+  void _checkForUpdates() async {
+    // 5 second delay to ensure the screen is fully loaded 
+    // and don't compete with splashes or setup screens
+    await Future.delayed(const Duration(seconds: 5));
+    if (!mounted) return;
+
+    try {
+      final updateData = await UpdateService.checkUpdate();
+      if (updateData != null && mounted) {
+        if (!context.mounted) return;
+        AppUpdateDialog.show(
+          context,
+          updateData['version'],
+          updateData['url'],
+          changelog: updateData['changelog'],
+        );
+      }
+    } catch (e) {
+      debugPrint('Professional Update: Error on startup check: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

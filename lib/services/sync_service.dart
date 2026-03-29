@@ -288,6 +288,7 @@ class SyncService {
       final interfaces = await NetworkInterface.list();
       Set<String> subnets = {};
 
+      // 1. Prioritize subnets of the current device's interfaces
       for (var interface in interfaces) {
         for (var addr in interface.addresses) {
           if (addr.type == InternetAddressType.IPv4 && !addr.isLoopback) {
@@ -299,37 +300,42 @@ class SyncService {
         }
       }
 
-      // Professional: Add common subnets as fallback for MikroTik/VLAN setups
+      // 2. Add common office/business subnets (MikroTik, Ubiquiti, Cisco defaults)
       final commonSubnets = [
-        '192.168.1', '192.168.0', '192.168.3', '192.168.8', '192.168.100', 
-        '192.168.31', '192.168.10', '192.168.11', '10.0.0', '10.0.1', '172.16.0'
+        '192.168.1', '192.168.0', '192.168.88', '192.168.10', '192.168.2', 
+        '192.168.100', '192.168.31', '192.168.8', '192.168.11', '192.168.50',
+        '10.0.0', '10.10.10', '10.1.1', '172.16.0', '172.16.1'
       ];
       for (var s in commonSubnets) {
         subnets.add(s);
       }
 
-      print('Skanerlanayotgan subnetlar: $subnets');
+      debugPrint('SyncService: Scanning ${subnets.length} subnets: $subnets');
 
+      // Optimized scanning: first check direct subnets then common fallbacks
       for (var subnet in subnets) {
         final found = await _scanSubnet(subnet);
         if (found != null) return found;
       }
     } catch (e) {
-      print('Discovery error: $e');
+      debugPrint('SyncService: Discovery critical error: $e');
     }
     return null;
   }
 
   static Future<String?> _scanSubnet(String subnet) async {
-    // Parallel scanning of 254 IPs
-    final List<Future<String?>> tasks = [];
-    for (int i = 1; i < 255; i++) {
-      tasks.add(_checkIp("$subnet.$i"));
-    }
+    // Professional Batch Scanning to avoid OS socket limit and keep speed (max 40 in parallel)
+    const int batchSize = 40;
+    for (int i = 1; i < 255; i += batchSize) {
+      final List<Future<String?>> tasks = [];
+      for (int j = i; j < i + batchSize && j < 255; j++) {
+        tasks.add(_checkIp("$subnet.$j"));
+      }
 
-    final results = await Future.wait(tasks);
-    for (var res in results) {
-      if (res != null) return res;
+      final results = await Future.wait(tasks);
+      for (var res in results) {
+        if (res != null) return res;
+      }
     }
     return null;
   }
