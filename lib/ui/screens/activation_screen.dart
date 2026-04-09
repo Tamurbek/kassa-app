@@ -260,12 +260,45 @@ class _ActivationScreenState extends State<ActivationScreen> {
                 ),
               ),
 
+              if (_error != null && _error!.contains('Aloqa mavjud emas'))
+                Padding(
+                  padding: const EdgeInsets.only(top: 16),
+                  child: TextButton.icon(
+                    onPressed: () async {
+                      final ok = await context.read<AppState>().fixNetworkConnection();
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(ok 
+                              ? 'Tarmoq sozlamalari to\'g\'rilandi! Endi qayta urinib ko\'ring.' 
+                              : 'Sozlamalar yangilandi, lekin hali ham internetga ulanib bo\'lmayapti.'),
+                            backgroundColor: ok ? Colors.green : Colors.orange,
+                          ),
+                        );
+                      }
+                    },
+                    icon: const Icon(Icons.build_circle_rounded, size: 20),
+                    label: const Text('Tarmoqni tekshirish va tuzatish'),
+                    style: TextButton.styleFrom(foregroundColor: Colors.orange),
+                  ),
+                ),
+
               const SizedBox(height: 24),
               Text(
-                'Kodni olish uchun administratorga murojaat qiling:',
+                'Kodni olish uchun Telegram botga murojaat qiling:',
                 style: TextStyle(
                   fontSize: 12,
                   color: Theme.of(context).textTheme.bodySmall?.color,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 4),
+              Text(
+                '@SimpleSaleBot',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
                 textAlign: TextAlign.center,
               ),

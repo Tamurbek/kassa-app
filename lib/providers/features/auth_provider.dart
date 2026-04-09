@@ -131,22 +131,43 @@ class AuthProvider extends ChangeNotifier {
   }
 
   Future<void> activate(String code) async {
-    // 100% OFFLINE ACTIVATION
+    const backendUrl = "https://web-production-d2ed7.up.railway.app/verify";
+    final cleanCode = code.trim().toUpperCase();
+    
     try {
-      final cleanCode = code.trim().toUpperCase();
+      debugPrint("Attempting online activation for: $deviceId");
+      final response = await http
+          .post(
+            Uri.parse(backendUrl),
+            headers: {"Content-Type": "application/json"},
+            body: jsonEncode({
+              "device_id": deviceId,
+              "activation_code": cleanCode,
+            }),
+          )
+          .timeout(const Duration(seconds: 20));
+
+      if (response.statusCode == 200) {
+        await setActivated(true, cleanCode);
+      } else {
+        final errorMsg = response.statusCode == 404 ? "Server topilmadi" : "Kod noto'g'ri";
+        throw Exception("$errorMsg (${response.statusCode})");
+      }
+    } catch (e) {
+      debugPrint("Activation connection issue, trying offline fallback: $e");
       
-      // Algorithm: Reverse the first 8 chars of Device ID and wrap with SS- and -OK
+      // Offline fallback
       final secret = deviceId!.substring(0, 8).split('').reversed.join('');
       final expected = "SS-$secret-OK".toUpperCase();
       
       if (cleanCode == expected) {
          await setActivated(true, cleanCode);
       } else {
-         throw Exception("Aktivatsiya kodi noto'g'ri! Iltimos, qurilmangiz uchun to'g'ri kodni kiriting.");
+         if (e is TimeoutException) {
+           throw Exception("Serverdan javob kutish vaqti tugadi. Iltimos, internetni tekshiring yoki oflayn kodni kiriting.");
+         }
+         throw Exception("Aloqa mavjud emas va oflayn kod noto'g'ri!");
       }
-    } catch (e) {
-      debugPrint("Activation error: $e");
-      rethrow;
     }
   }
 
