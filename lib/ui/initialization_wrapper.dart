@@ -172,6 +172,14 @@ class _InitializationWrapperState extends State<InitializationWrapper> {
                   letterSpacing: 2,
                 ),
               ),
+              const SizedBox(height: 8),
+              Text(
+                'v${AppConstants.appVersion}',
+                style: GoogleFonts.outfit(
+                  fontSize: 12,
+                  color: Colors.white.withOpacity(0.2),
+                ),
+              ),
               const SizedBox(height: 64),
               const SizedBox(
                 width: 28,
