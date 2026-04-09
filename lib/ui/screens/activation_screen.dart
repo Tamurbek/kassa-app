@@ -239,15 +239,24 @@ class _ActivationScreenState extends State<ActivationScreen> {
                           }
                         }
                       } catch (e) {
-                      if (mounted) {
-                        setState(() {
-                           _error = e.toString().replaceAll('Exception: ', '');
-                           _isRestoring = false;
-                        });
-                        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                        if (mounted) {
+                          setState(() {
+                             _error = e.toString().replaceAll('Exception: ', '');
+                             _isRestoring = false;
+                          });
+                          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                        }
                       }
-                    }
-                  },
+                    },
+                  child: _isRestoring 
+                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                    : const Text(
+                        'FAOLLASHTIRISH',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 1.2,
+                        ),
+                      ),
                 ),
               ),
 
