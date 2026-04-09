@@ -501,7 +501,8 @@ class DatabaseService {
             } catch (e) {
                print("Migration 18 error ($table): $e");
             }
-          }
+        }
+        }
         
         if (oldVersion < 19) {
           try {

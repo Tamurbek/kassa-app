@@ -2,6 +2,9 @@ name: Build & Release (Android & Windows)
 
 on:
   push:
+    branches:
+      - main
+      - kassa-app-version
     tags:
       - 'v*'
   workflow_dispatch:
