@@ -133,34 +133,38 @@ class AuthProvider extends ChangeNotifier {
   Future<void> activate(String code) async {
     const backendUrl = "https://web-production-d2ed7.up.railway.app/verify";
     try {
+      debugPrint("Attempting online activation for: $deviceId");
       final response = await http
           .post(
             Uri.parse(backendUrl),
             headers: {"Content-Type": "application/json"},
             body: jsonEncode({
               "device_id": deviceId,
-              "activation_code": code,
+              "activation_code": code.trim().toUpperCase(),
             }),
           )
-          .timeout(const Duration(seconds: 10));
+          .timeout(const Duration(seconds: 20));
 
       if (response.statusCode == 200) {
-        await setActivated(true, code);
+        await setActivated(true, code.trim().toUpperCase());
       } else {
-        throw Exception("Faollashtirish kodi noto'g'ri!");
+        final errorMsg = response.statusCode == 404 ? "Server topilmadi" : "Kod noto'g'ri";
+        throw Exception("$errorMsg (${response.statusCode})");
       }
     } catch (e) {
-      if (e is http.ClientException || e is IOException || e is TimeoutException) {
-         // Offline check
-         final secret = deviceId!.substring(0, 8).split('').reversed.join('');
-         final expected = "SS-$secret-OK".toUpperCase();
-         if (code.toUpperCase() == expected) {
-            await setActivated(true, code);
-         } else {
-            throw Exception("Aloqa mavjud emas va oflayn kod noto'g'ri!");
-         }
+      debugPrint("Activation connection error: $e");
+      
+      // Offline check fallback for any network error
+      final secret = deviceId!.substring(0, 8).split('').reversed.join('');
+      final expected = "SS-$secret-OK".toUpperCase();
+      
+      if (code.trim().toUpperCase() == expected) {
+         await setActivated(true, code.trim().toUpperCase());
       } else {
-        rethrow;
+         if (e is TimeoutException) {
+           throw Exception("Serverdan javob kutish vaqti tugadi. Iltimos, internetni tekshiring yoki oflayn kodni kiriting.");
+         }
+         throw Exception("Aloqa mavjud emas va oflayn kod noto'g'ri!");
       }
     }
   }
