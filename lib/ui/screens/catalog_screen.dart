@@ -119,6 +119,13 @@ class _CatalogScreenState extends State<CatalogScreen>
           Row(
             children: [
               _buildActionButton(
+                icon: Icons.download_rounded,
+                label: isNarrow ? null : 'Shablon',
+                onTap: () => ExcelImportService.downloadTemplate(context),
+                color: Colors.blueGrey,
+              ),
+              const SizedBox(width: 12),
+              _buildActionButton(
                 icon: Icons.upload_file_rounded,
                 label: isNarrow ? null : 'Excel Import',
                 onTap: () => ExcelImportService.importFromExcel(context),
