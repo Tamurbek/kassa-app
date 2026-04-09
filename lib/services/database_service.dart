@@ -697,6 +697,31 @@ class DatabaseService {
   }
 
   // --- Products & Stocks ---
+  static Future<void> saveProductsBatch(List<Product> products) async {
+    final db = await database;
+    final now = DateTime.now().toIso8601String();
+    await db.transaction((txn) async {
+      final batch = txn.batch();
+      for (var product in products) {
+        batch.insert('products', {
+          'id': product.id,
+          'name': product.name,
+          'price': product.price,
+          'costPrice': product.costPrice,
+          'categoryId': product.categoryId,
+          'barcode': product.barcode,
+          'imagePath': product.imagePath,
+          'isDeleted': product.isDeleted ? 1 : 0,
+          'unit': product.unit,
+          'trackStock': product.trackStock ? 1 : 0,
+          'updatedAt': now,
+          'isSynced': 0,
+        }, conflictAlgorithm: ConflictAlgorithm.replace);
+      }
+      await batch.commit(noResult: true);
+    });
+  }
+
   static Future<void> saveProduct(Product product) async {
     final db = await database;
     await db.insert('products', {

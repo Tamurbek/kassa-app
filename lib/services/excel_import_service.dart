@@ -105,10 +105,10 @@ class ExcelImportService {
         builder: (_) => const Center(child: CircularProgressIndicator()),
       );
 
-      int count = 0;
+      List<Product> productsToSave = [];
       for (var r in rawRows) {
         String catId = mapping[r['categoryName']]!;
-        await inventory.saveProduct(Product.create(
+        productsToSave.add(Product.create(
           r['name'],
           r['price'],
           catId,
@@ -116,11 +116,12 @@ class ExcelImportService {
           costPrice: r['costPrice'],
           unit: r['unit'],
         ));
-        count++;
       }
+      
+      await inventory.saveProductsBatch(productsToSave);
 
       Navigator.pop(context); // Close indicator
-      _showSuccess(context, '$count ta mahsulot muvaffaqiyatli qo\'shildi');
+      _showSuccess(context, '${productsToSave.length} ta mahsulot muvaffaqiyatli qo\'shildi');
 
     } catch (e) {
       if (Navigator.canPop(context)) Navigator.pop(context);

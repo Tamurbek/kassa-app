@@ -71,6 +71,11 @@ class InventoryProvider extends ChangeNotifier {
     await reloadData();
   }
 
+  Future<void> saveProductsBatch(List<Product> products) async {
+    await DatabaseService.saveProductsBatch(products);
+    await reloadData();
+  }
+
   Future<void> deleteProduct(String id) async {
     await DatabaseService.deleteProduct(id);
     await reloadData();
