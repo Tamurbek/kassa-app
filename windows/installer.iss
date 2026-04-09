@@ -67,17 +67,24 @@ Filename: "{sys}\netsh.exe"; \
     Parameters: "advfirewall firewall delete rule name=""Simple Sale Business"""; \
     Flags: runhidden
 Filename: "{sys}\netsh.exe"; \
-    Parameters: "advfirewall firewall add rule name=""Simple Sale Business"" dir=in action=allow program=""{app}\{#MyAppExeName}"" enable=yes"; \
+    Parameters: "advfirewall firewall add rule name=""Simple Sale Business"" dir=in action=allow program=""{app}\{#MyAppExeName}"" enable=yes profile=any"; \
     Flags: runhidden; StatusMsg: "Tarmoq sozlamalari yangilanmoqda..."
+Filename: "{sys}\netsh.exe"; \
+    Parameters: "advfirewall firewall delete rule name=""Simple Sale Business Out"""; \
+    Flags: runhidden
+Filename: "{sys}\netsh.exe"; \
+    Parameters: "advfirewall firewall add rule name=""Simple Sale Business Out"" dir=out action=allow program=""{app}\{#MyAppExeName}"" enable=yes profile=any"; \
+    Flags: runhidden
 Filename: "{sys}\netsh.exe"; \
     Parameters: "advfirewall firewall delete rule name=""Simple Sale Sync Port"""; \
     Flags: runhidden
 Filename: "{sys}\netsh.exe"; \
-    Parameters: "advfirewall firewall add rule name=""Simple Sale Sync Port"" dir=in action=allow protocol=TCP localport=8080 enable=yes"; \
+    Parameters: "advfirewall firewall add rule name=""Simple Sale Sync Port"" dir=in action=allow protocol=TCP localport=8080 enable=yes profile=any"; \
     Flags: runhidden; StatusMsg: "Sinxronizatsiya porti ochilmoqda..."
 
 [UninstallRun]
 Filename: "{sys}\netsh.exe"; Parameters: "advfirewall firewall delete rule name=""Simple Sale Business"""; Flags: runhidden
+Filename: "{sys}\netsh.exe"; Parameters: "advfirewall firewall delete rule name=""Simple Sale Business Out"""; Flags: runhidden
 Filename: "{sys}\netsh.exe"; Parameters: "advfirewall firewall delete rule name=""Simple Sale Sync Port"""; Flags: runhidden
 
 [UninstallDelete]

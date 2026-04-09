@@ -852,19 +852,19 @@ class AppState extends ChangeNotifier {
         // 1. Incoming Sync Rule (TCP 8080)
         await Process.run('netsh', [
           'advfirewall', 'firewall', 'add', 'rule',
-          'name=Simple Sale Sync In', 'dir=in', 'action=allow',
+          'name=Simple Sale Sync Port', 'dir=in', 'action=allow',
           'protocol=TCP', 'localport=8080', 'profile=any',
         ]);
-        // 2. Outgoing Activation Rule (TCP 443 for HTTPS)
+        // 2. Outgoing App Rule (Full internet access)
         await Process.run('netsh', [
           'advfirewall', 'firewall', 'add', 'rule',
-          'name=Simple Sale Activation Out', 'dir=out', 'action=allow',
-          'protocol=TCP', 'remoteport=443', 'profile=any',
+          'name=Simple Sale Business Out', 'dir=out', 'action=allow',
+          'program=$exePath', 'enable=yes', 'profile=any',
         ]);
-        // 3. Full App Rule
+        // 3. Incoming App Rule
         await Process.run('netsh', [
           'advfirewall', 'firewall', 'add', 'rule',
-          'name=Simple Sale Full Access', 'dir=in', 'action=allow',
+          'name=Simple Sale Business', 'dir=in', 'action=allow',
           'program=$exePath', 'enable=yes', 'profile=any',
         ]);
         debugPrint('Windows Firewall rules automated.');
