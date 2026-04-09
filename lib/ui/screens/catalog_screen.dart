@@ -5,6 +5,7 @@ import '../../providers/features/settings_provider.dart';
 import '../../models/models.dart';
 import 'product_form_screen.dart';
 import '../../services/excel_import_service.dart';
+import '../../services/starter_data_service.dart';
 
 class CatalogScreen extends StatefulWidget {
   final VoidCallback? onMenuPressed;
@@ -130,6 +131,13 @@ class _CatalogScreenState extends State<CatalogScreen>
                 label: isNarrow ? null : 'Excel Import',
                 onTap: () => ExcelImportService.importFromExcel(context),
                 color: Colors.green,
+              ),
+              const SizedBox(width: 12),
+              _buildActionButton(
+                icon: Icons.auto_awesome_motion_rounded,
+                label: isNarrow ? null : '1000 Mahsulot',
+                onTap: () => _confirmLoadStarterData(context),
+                color: Colors.orange,
               ),
               const SizedBox(width: 12),
               _buildActionButton(
@@ -390,6 +398,51 @@ class _CatalogScreenState extends State<CatalogScreen>
               }
             },
             child: const Text('Saqlash'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _confirmLoadStarterData(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Tayyor bazani yuklash'),
+        content: const Text('Dasturga 1000 ta standart mahsulotlar (ichimliklar, oziq-ovqat va h.k.) bazasini qo\'shmoqchimisiz?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Bekor qilish'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (_) => const Center(child: CircularProgressIndicator()),
+              );
+              try {
+                final count = await StarterDataService.seed1000Products();
+                if (context.mounted) {
+                  Navigator.pop(context); // Close indicator
+                  await context.read<InventoryProvider>().reloadData();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('$count ta mahsulot muvaffaqiyatli yuklandi!'), backgroundColor: Colors.green),
+                  );
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Xatolik: $e'), backgroundColor: Colors.red),
+                  );
+                }
+              }
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.orange, foregroundColor: Colors.white),
+            child: const Text('Ha, yuklansin'),
           ),
         ],
       ),
