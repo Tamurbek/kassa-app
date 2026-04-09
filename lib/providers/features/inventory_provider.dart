@@ -40,16 +40,18 @@ class InventoryProvider extends ChangeNotifier {
     await reloadData();
   }
 
-  Future<void> reloadData({bool forceRecalculate = false}) async {
+  Future<void> reloadData({bool forceRecalculate = false, bool skipRecalculate = false}) async {
     try {
       _isLoading = true;
       notifyListeners();
       
-      // Force recalculate stocks if requested (e.g. from cloud sync or manual fix)
-      try {
-        await DatabaseService.recalculateStocks(force: forceRecalculate);
-      } catch (e) {
-        debugPrint('Stock recalculation error: $e');
+      if (!skipRecalculate) {
+        // Force recalculate stocks if requested (e.g. from cloud sync or manual fix)
+        try {
+          await DatabaseService.recalculateStocks(force: forceRecalculate);
+        } catch (e) {
+          debugPrint('Stock recalculation error: $e');
+        }
       }
 
       categories = await DatabaseService.getCategories();
@@ -71,9 +73,9 @@ class InventoryProvider extends ChangeNotifier {
     await reloadData();
   }
 
-  Future<void> saveProductsBatch(List<Product> products) async {
+  Future<void> saveProductsBatch(List<Product> products, {bool skipRecalculate = false}) async {
     await DatabaseService.saveProductsBatch(products);
-    await reloadData();
+    await reloadData(skipRecalculate: skipRecalculate);
   }
 
   Future<void> deleteProduct(String id) async {

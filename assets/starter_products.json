@@ -1,0 +1,8002 @@
+[
+  {
+    "name": "Patir Mahsulot \u21161",
+    "category": "Non mahsulotlari",
+    "costPrice": 43000.0,
+    "price": 64100.0,
+    "barcode": "2916428284879",
+    "unit": "dona"
+  },
+  {
+    "name": "Mars Mahsulot \u21162",
+    "category": "Qandolat",
+    "costPrice": 49500.0,
+    "price": 73900.0,
+    "barcode": "6612109608139",
+    "unit": "dona"
+  },
+  {
+    "name": "Snickers Mahsulot \u21163",
+    "category": "Qandolat",
+    "costPrice": 49500.0,
+    "price": 68100.0,
+    "barcode": "6833634350532",
+    "unit": "dona"
+  },
+  {
+    "name": "ErichKrause Mahsulot \u21164",
+    "category": "Kantselyariya",
+    "costPrice": 45500.0,
+    "price": 59100.0,
+    "barcode": "5800583249286",
+    "unit": "dona"
+  },
+  {
+    "name": "Hydrolife Mahsulot \u21165",
+    "category": "Ichimliklar",
+    "costPrice": 1500.0,
+    "price": 2000.0,
+    "barcode": "0066149151461",
+    "unit": "dona"
+  },
+  {
+    "name": "Fanta Mahsulot \u21166",
+    "category": "Ichimliklar",
+    "costPrice": 11500.0,
+    "price": 14700.0,
+    "barcode": "7941271997577",
+    "unit": "kg"
+  },
+  {
+    "name": "Buxanka Mahsulot \u21167",
+    "category": "Non mahsulotlari",
+    "costPrice": 16500.0,
+    "price": 21300.0,
+    "barcode": "0387471468942",
+    "unit": "dona"
+  },
+  {
+    "name": "Sprite Mahsulot \u21168",
+    "category": "Ichimliklar",
+    "costPrice": 44900.0,
+    "price": 66900.0,
+    "barcode": "3439733082171",
+    "unit": "dona"
+  },
+  {
+    "name": "Twix Mahsulot \u21169",
+    "category": "Qandolat",
+    "costPrice": 19200.0,
+    "price": 24400.0,
+    "barcode": "2834631602887",
+    "unit": "dona"
+  },
+  {
+    "name": "Hydrolife Mahsulot \u211610",
+    "category": "Ichimliklar",
+    "costPrice": 42200.0,
+    "price": 48200.0,
+    "barcode": "3190686197179",
+    "unit": "dona"
+  },
+  {
+    "name": "Domestos Mahsulot \u211611",
+    "category": "Maishiy kimyo",
+    "costPrice": 27300.0,
+    "price": 33600.0,
+    "barcode": "1711669056199",
+    "unit": "kg"
+  },
+  {
+    "name": "Pepsi Mahsulot \u211612",
+    "category": "Ichimliklar",
+    "costPrice": 14200.0,
+    "price": 17800.0,
+    "barcode": "4166937110663",
+    "unit": "dona"
+  },
+  {
+    "name": "Sprite Mahsulot \u211613",
+    "category": "Ichimliklar",
+    "costPrice": 43400.0,
+    "price": 59600.0,
+    "barcode": "0197787624358",
+    "unit": "dona"
+  },
+  {
+    "name": "Musaffo Mahsulot \u211614",
+    "category": "Sut mahsulotlari",
+    "costPrice": 10900.0,
+    "price": 12400.0,
+    "barcode": "0990719123832",
+    "unit": "kg"
+  },
+  {
+    "name": "Mars Mahsulot \u211615",
+    "category": "Qandolat",
+    "costPrice": 8300.0,
+    "price": 9300.0,
+    "barcode": "9743986920947",
+    "unit": "dona"
+  },
+  {
+    "name": "Buxanka Mahsulot \u211616",
+    "category": "Non mahsulotlari",
+    "costPrice": 34800.0,
+    "price": 48000.0,
+    "barcode": "5375820676654",
+    "unit": "dona"
+  },
+  {
+    "name": "Fairy Mahsulot \u211617",
+    "category": "Maishiy kimyo",
+    "costPrice": 9600.0,
+    "price": 12400.0,
+    "barcode": "4645410770265",
+    "unit": "dona"
+  },
+  {
+    "name": "Kamilka Mahsulot \u211618",
+    "category": "Sut mahsulotlari",
+    "costPrice": 15400.0,
+    "price": 19000.0,
+    "barcode": "6634606706136",
+    "unit": "dona"
+  },
+  {
+    "name": "Lochira Mahsulot \u211619",
+    "category": "Non mahsulotlari",
+    "costPrice": 38200.0,
+    "price": 55200.0,
+    "barcode": "6125897361565",
+    "unit": "dona"
+  },
+  {
+    "name": "Persil Mahsulot \u211620",
+    "category": "Maishiy kimyo",
+    "costPrice": 23700.0,
+    "price": 29600.0,
+    "barcode": "8331280648357",
+    "unit": "dona"
+  },
+  {
+    "name": "ErichKrause Mahsulot \u211621",
+    "category": "Kantselyariya",
+    "costPrice": 33900.0,
+    "price": 45300.0,
+    "barcode": "4037648859672",
+    "unit": "dona"
+  },
+  {
+    "name": "Ariel Mahsulot \u211622",
+    "category": "Maishiy kimyo",
+    "costPrice": 5300.0,
+    "price": 6700.0,
+    "barcode": "4335207508734",
+    "unit": "dona"
+  },
+  {
+    "name": "Lochira Mahsulot \u211623",
+    "category": "Non mahsulotlari",
+    "costPrice": 33400.0,
+    "price": 39000.0,
+    "barcode": "1558024600806",
+    "unit": "dona"
+  },
+  {
+    "name": "Sprite Mahsulot \u211624",
+    "category": "Ichimliklar",
+    "costPrice": 36200.0,
+    "price": 48300.0,
+    "barcode": "8077128735657",
+    "unit": "dona"
+  },
+  {
+    "name": "Centropen Mahsulot \u211625",
+    "category": "Kantselyariya",
+    "costPrice": 15100.0,
+    "price": 22400.0,
+    "barcode": "6827688998885",
+    "unit": "dona"
+  },
+  {
+    "name": "Centropen Mahsulot \u211626",
+    "category": "Kantselyariya",
+    "costPrice": 32300.0,
+    "price": 35800.0,
+    "barcode": "1152091540071",
+    "unit": "dona"
+  },
+  {
+    "name": "Twix Mahsulot \u211627",
+    "category": "Qandolat",
+    "costPrice": 49100.0,
+    "price": 54300.0,
+    "barcode": "7472216976229",
+    "unit": "kg"
+  },
+  {
+    "name": "ErichKrause Mahsulot \u211628",
+    "category": "Kantselyariya",
+    "costPrice": 41400.0,
+    "price": 53400.0,
+    "barcode": "3090292757126",
+    "unit": "kg"
+  },
+  {
+    "name": "Ahmad Tea Mahsulot \u211629",
+    "category": "Oziq-ovqat",
+    "costPrice": 44000.0,
+    "price": 57600.0,
+    "barcode": "1771810588118",
+    "unit": "dona"
+  },
+  {
+    "name": "Shebekino Mahsulot \u211630",
+    "category": "Oziq-ovqat",
+    "costPrice": 46000.0,
+    "price": 61100.0,
+    "barcode": "6090848919098",
+    "unit": "kg"
+  },
+  {
+    "name": "Bio-Sut Mahsulot \u211631",
+    "category": "Sut mahsulotlari",
+    "costPrice": 17100.0,
+    "price": 23200.0,
+    "barcode": "0137232580056",
+    "unit": "dona"
+  },
+  {
+    "name": "Patir Mahsulot \u211632",
+    "category": "Non mahsulotlari",
+    "costPrice": 27500.0,
+    "price": 37000.0,
+    "barcode": "0563786195829",
+    "unit": "kg"
+  },
+  {
+    "name": "Domestos Mahsulot \u211633",
+    "category": "Maishiy kimyo",
+    "costPrice": 16700.0,
+    "price": 20400.0,
+    "barcode": "2822695658754",
+    "unit": "dona"
+  },
+  {
+    "name": "Buxanka Mahsulot \u211634",
+    "category": "Non mahsulotlari",
+    "costPrice": 46500.0,
+    "price": 55400.0,
+    "barcode": "8414447894846",
+    "unit": "dona"
+  },
+  {
+    "name": "Shebekino Mahsulot \u211635",
+    "category": "Oziq-ovqat",
+    "costPrice": 21000.0,
+    "price": 26000.0,
+    "barcode": "9358674932504",
+    "unit": "dona"
+  },
+  {
+    "name": "Ariel Mahsulot \u211636",
+    "category": "Maishiy kimyo",
+    "costPrice": 32700.0,
+    "price": 48300.0,
+    "barcode": "8930103873813",
+    "unit": "dona"
+  },
+  {
+    "name": "Patir Mahsulot \u211637",
+    "category": "Non mahsulotlari",
+    "costPrice": 29300.0,
+    "price": 43600.0,
+    "barcode": "1704353583959",
+    "unit": "dona"
+  },
+  {
+    "name": "Lochira Mahsulot \u211638",
+    "category": "Non mahsulotlari",
+    "costPrice": 2600.0,
+    "price": 3600.0,
+    "barcode": "7107385587539",
+    "unit": "dona"
+  },
+  {
+    "name": "Domestos Mahsulot \u211639",
+    "category": "Maishiy kimyo",
+    "costPrice": 42700.0,
+    "price": 57600.0,
+    "barcode": "1465240026957",
+    "unit": "dona"
+  },
+  {
+    "name": "Coca-Cola Mahsulot \u211640",
+    "category": "Ichimliklar",
+    "costPrice": 7800.0,
+    "price": 9700.0,
+    "barcode": "1611591342752",
+    "unit": "dona"
+  },
+  {
+    "name": "Moya Semya Mahsulot \u211641",
+    "category": "Oziq-ovqat",
+    "costPrice": 36300.0,
+    "price": 46800.0,
+    "barcode": "3396485198409",
+    "unit": "dona"
+  },
+  {
+    "name": "Persil Mahsulot \u211642",
+    "category": "Maishiy kimyo",
+    "costPrice": 43200.0,
+    "price": 53600.0,
+    "barcode": "8297600476491",
+    "unit": "dona"
+  },
+  {
+    "name": "Patir Mahsulot \u211643",
+    "category": "Non mahsulotlari",
+    "costPrice": 33900.0,
+    "price": 50600.0,
+    "barcode": "4945915220534",
+    "unit": "dona"
+  },
+  {
+    "name": "Bio-Sut Mahsulot \u211644",
+    "category": "Sut mahsulotlari",
+    "costPrice": 23200.0,
+    "price": 27800.0,
+    "barcode": "3573128024499",
+    "unit": "dona"
+  },
+  {
+    "name": "Kamilka Mahsulot \u211645",
+    "category": "Sut mahsulotlari",
+    "costPrice": 9300.0,
+    "price": 12900.0,
+    "barcode": "2354818847397",
+    "unit": "dona"
+  },
+  {
+    "name": "Domestos Mahsulot \u211646",
+    "category": "Maishiy kimyo",
+    "costPrice": 28800.0,
+    "price": 32600.0,
+    "barcode": "0891931037155",
+    "unit": "dona"
+  },
+  {
+    "name": "Buxanka Mahsulot \u211647",
+    "category": "Non mahsulotlari",
+    "costPrice": 3200.0,
+    "price": 3500.0,
+    "barcode": "3191348499936",
+    "unit": "dona"
+  },
+  {
+    "name": "Deli Mahsulot \u211648",
+    "category": "Kantselyariya",
+    "costPrice": 35700.0,
+    "price": 39600.0,
+    "barcode": "9683422122245",
+    "unit": "dona"
+  },
+  {
+    "name": "Sprite Mahsulot \u211649",
+    "category": "Ichimliklar",
+    "costPrice": 14900.0,
+    "price": 21100.0,
+    "barcode": "9377750864596",
+    "unit": "dona"
+  },
+  {
+    "name": "Lochira Mahsulot \u211650",
+    "category": "Non mahsulotlari",
+    "costPrice": 43500.0,
+    "price": 64600.0,
+    "barcode": "5526110070104",
+    "unit": "dona"
+  },
+  {
+    "name": "Buxanka Mahsulot \u211651",
+    "category": "Non mahsulotlari",
+    "costPrice": 46100.0,
+    "price": 63700.0,
+    "barcode": "8893095509997",
+    "unit": "dona"
+  },
+  {
+    "name": "Shebekino Mahsulot \u211652",
+    "category": "Oziq-ovqat",
+    "costPrice": 49600.0,
+    "price": 66500.0,
+    "barcode": "9192483480477",
+    "unit": "kg"
+  },
+  {
+    "name": "Persil Mahsulot \u211653",
+    "category": "Maishiy kimyo",
+    "costPrice": 47900.0,
+    "price": 66700.0,
+    "barcode": "2893624381661",
+    "unit": "dona"
+  },
+  {
+    "name": "Patir Mahsulot \u211654",
+    "category": "Non mahsulotlari",
+    "costPrice": 1500.0,
+    "price": 1800.0,
+    "barcode": "5323374900247",
+    "unit": "kg"
+  },
+  {
+    "name": "Deli Mahsulot \u211655",
+    "category": "Kantselyariya",
+    "costPrice": 37600.0,
+    "price": 45900.0,
+    "barcode": "1095330134096",
+    "unit": "kg"
+  },
+  {
+    "name": "Twix Mahsulot \u211656",
+    "category": "Qandolat",
+    "costPrice": 17800.0,
+    "price": 21700.0,
+    "barcode": "1669438150733",
+    "unit": "dona"
+  },
+  {
+    "name": "Ahmad Tea Mahsulot \u211657",
+    "category": "Oziq-ovqat",
+    "costPrice": 38200.0,
+    "price": 52600.0,
+    "barcode": "3688595169530",
+    "unit": "dona"
+  },
+  {
+    "name": "Siyom Mahsulot \u211658",
+    "category": "Oziq-ovqat",
+    "costPrice": 4900.0,
+    "price": 7200.0,
+    "barcode": "6145039053057",
+    "unit": "dona"
+  },
+  {
+    "name": "Buxanka Mahsulot \u211659",
+    "category": "Non mahsulotlari",
+    "costPrice": 33500.0,
+    "price": 39100.0,
+    "barcode": "5550238325902",
+    "unit": "dona"
+  },
+  {
+    "name": "Buxanka Mahsulot \u211660",
+    "category": "Non mahsulotlari",
+    "costPrice": 25200.0,
+    "price": 35900.0,
+    "barcode": "0714059852863",
+    "unit": "dona"
+  },
+  {
+    "name": "Sprite Mahsulot \u211661",
+    "category": "Ichimliklar",
+    "costPrice": 5900.0,
+    "price": 6700.0,
+    "barcode": "8759592504586",
+    "unit": "dona"
+  },
+  {
+    "name": "Musaffo Mahsulot \u211662",
+    "category": "Sut mahsulotlari",
+    "costPrice": 31400.0,
+    "price": 46900.0,
+    "barcode": "7880700409859",
+    "unit": "kg"
+  },
+  {
+    "name": "Sprite Mahsulot \u211663",
+    "category": "Ichimliklar",
+    "costPrice": 17300.0,
+    "price": 21500.0,
+    "barcode": "6826197926060",
+    "unit": "dona"
+  },
+  {
+    "name": "Buxanka Mahsulot \u211664",
+    "category": "Non mahsulotlari",
+    "costPrice": 37900.0,
+    "price": 45700.0,
+    "barcode": "3822155348676",
+    "unit": "dona"
+  },
+  {
+    "name": "Alpen Gold Mahsulot \u211665",
+    "category": "Qandolat",
+    "costPrice": 7100.0,
+    "price": 10000.0,
+    "barcode": "0565925967145",
+    "unit": "dona"
+  },
+  {
+    "name": "Fanta Mahsulot \u211666",
+    "category": "Ichimliklar",
+    "costPrice": 28900.0,
+    "price": 35300.0,
+    "barcode": "8019265332246",
+    "unit": "dona"
+  },
+  {
+    "name": "Patir Mahsulot \u211667",
+    "category": "Non mahsulotlari",
+    "costPrice": 20600.0,
+    "price": 28700.0,
+    "barcode": "2506395217566",
+    "unit": "dona"
+  },
+  {
+    "name": "Lochira Mahsulot \u211668",
+    "category": "Non mahsulotlari",
+    "costPrice": 9700.0,
+    "price": 11700.0,
+    "barcode": "8358017359741",
+    "unit": "dona"
+  },
+  {
+    "name": "ErichKrause Mahsulot \u211669",
+    "category": "Kantselyariya",
+    "costPrice": 18200.0,
+    "price": 25400.0,
+    "barcode": "0881601277218",
+    "unit": "dona"
+  },
+  {
+    "name": "Kinder Mahsulot \u211670",
+    "category": "Qandolat",
+    "costPrice": 24100.0,
+    "price": 27100.0,
+    "barcode": "7224411273627",
+    "unit": "dona"
+  },
+  {
+    "name": "Colgate Mahsulot \u211671",
+    "category": "Maishiy kimyo",
+    "costPrice": 48900.0,
+    "price": 54300.0,
+    "barcode": "2296644000166",
+    "unit": "kg"
+  },
+  {
+    "name": "Tide Mahsulot \u211672",
+    "category": "Maishiy kimyo",
+    "costPrice": 49300.0,
+    "price": 55200.0,
+    "barcode": "5143973257127",
+    "unit": "dona"
+  },
+  {
+    "name": "Fairy Mahsulot \u211673",
+    "category": "Maishiy kimyo",
+    "costPrice": 35700.0,
+    "price": 44100.0,
+    "barcode": "6286609315818",
+    "unit": "dona"
+  },
+  {
+    "name": "Domestos Mahsulot \u211674",
+    "category": "Maishiy kimyo",
+    "costPrice": 46300.0,
+    "price": 63700.0,
+    "barcode": "8755547367097",
+    "unit": "kg"
+  },
+  {
+    "name": "Fanta Mahsulot \u211675",
+    "category": "Ichimliklar",
+    "costPrice": 48400.0,
+    "price": 59800.0,
+    "barcode": "9487539656514",
+    "unit": "dona"
+  },
+  {
+    "name": "ErichKrause Mahsulot \u211676",
+    "category": "Kantselyariya",
+    "costPrice": 45600.0,
+    "price": 52700.0,
+    "barcode": "0593489268312",
+    "unit": "dona"
+  },
+  {
+    "name": "Ariel Mahsulot \u211677",
+    "category": "Maishiy kimyo",
+    "costPrice": 18100.0,
+    "price": 21700.0,
+    "barcode": "4311923175648",
+    "unit": "kg"
+  },
+  {
+    "name": "Patir Mahsulot \u211678",
+    "category": "Non mahsulotlari",
+    "costPrice": 19400.0,
+    "price": 27600.0,
+    "barcode": "6789113376785",
+    "unit": "kg"
+  },
+  {
+    "name": "Patir Mahsulot \u211679",
+    "category": "Non mahsulotlari",
+    "costPrice": 29400.0,
+    "price": 39700.0,
+    "barcode": "3906184258137",
+    "unit": "dona"
+  },
+  {
+    "name": "Pepsi Mahsulot \u211680",
+    "category": "Ichimliklar",
+    "costPrice": 11200.0,
+    "price": 14500.0,
+    "barcode": "7237756900028",
+    "unit": "dona"
+  },
+  {
+    "name": "Snickers Mahsulot \u211681",
+    "category": "Qandolat",
+    "costPrice": 18000.0,
+    "price": 20700.0,
+    "barcode": "8514671907851",
+    "unit": "dona"
+  },
+  {
+    "name": "Fanta Mahsulot \u211682",
+    "category": "Ichimliklar",
+    "costPrice": 11600.0,
+    "price": 16800.0,
+    "barcode": "1074422101519",
+    "unit": "kg"
+  },
+  {
+    "name": "Fairy Mahsulot \u211683",
+    "category": "Maishiy kimyo",
+    "costPrice": 47000.0,
+    "price": 61900.0,
+    "barcode": "4411910375320",
+    "unit": "dona"
+  },
+  {
+    "name": "Alpen Gold Mahsulot \u211684",
+    "category": "Qandolat",
+    "costPrice": 33100.0,
+    "price": 37500.0,
+    "barcode": "5737199117901",
+    "unit": "dona"
+  },
+  {
+    "name": "Twix Mahsulot \u211685",
+    "category": "Qandolat",
+    "costPrice": 46100.0,
+    "price": 62800.0,
+    "barcode": "6029203291532",
+    "unit": "dona"
+  },
+  {
+    "name": "Snickers Mahsulot \u211686",
+    "category": "Qandolat",
+    "costPrice": 34800.0,
+    "price": 39700.0,
+    "barcode": "7204854356129",
+    "unit": "dona"
+  },
+  {
+    "name": "Bounty Mahsulot \u211687",
+    "category": "Qandolat",
+    "costPrice": 18400.0,
+    "price": 26800.0,
+    "barcode": "6659097283569",
+    "unit": "dona"
+  },
+  {
+    "name": "ErichKrause Mahsulot \u211688",
+    "category": "Kantselyariya",
+    "costPrice": 21100.0,
+    "price": 27400.0,
+    "barcode": "3412747974707",
+    "unit": "dona"
+  },
+  {
+    "name": "Ariel Mahsulot \u211689",
+    "category": "Maishiy kimyo",
+    "costPrice": 18600.0,
+    "price": 24900.0,
+    "barcode": "2238037899910",
+    "unit": "dona"
+  },
+  {
+    "name": "Centropen Mahsulot \u211690",
+    "category": "Kantselyariya",
+    "costPrice": 32600.0,
+    "price": 38500.0,
+    "barcode": "1144987180166",
+    "unit": "dona"
+  },
+  {
+    "name": "Fairy Mahsulot \u211691",
+    "category": "Maishiy kimyo",
+    "costPrice": 41400.0,
+    "price": 47100.0,
+    "barcode": "9039524587707",
+    "unit": "dona"
+  },
+  {
+    "name": "Twix Mahsulot \u211692",
+    "category": "Qandolat",
+    "costPrice": 44000.0,
+    "price": 58300.0,
+    "barcode": "9897066669581",
+    "unit": "dona"
+  },
+  {
+    "name": "Sprite Mahsulot \u211693",
+    "category": "Ichimliklar",
+    "costPrice": 14900.0,
+    "price": 19700.0,
+    "barcode": "6263761700977",
+    "unit": "dona"
+  },
+  {
+    "name": "Kamilka Mahsulot \u211694",
+    "category": "Sut mahsulotlari",
+    "costPrice": 9800.0,
+    "price": 12900.0,
+    "barcode": "3498976293667",
+    "unit": "dona"
+  },
+  {
+    "name": "Twix Mahsulot \u211695",
+    "category": "Qandolat",
+    "costPrice": 39700.0,
+    "price": 52900.0,
+    "barcode": "4805734942368",
+    "unit": "dona"
+  },
+  {
+    "name": "Snickers Mahsulot \u211696",
+    "category": "Qandolat",
+    "costPrice": 26300.0,
+    "price": 35300.0,
+    "barcode": "6906479686215",
+    "unit": "dona"
+  },
+  {
+    "name": "Siyom Mahsulot \u211697",
+    "category": "Oziq-ovqat",
+    "costPrice": 7100.0,
+    "price": 8600.0,
+    "barcode": "8870550554846",
+    "unit": "dona"
+  },
+  {
+    "name": "Makfa Mahsulot \u211698",
+    "category": "Oziq-ovqat",
+    "costPrice": 21900.0,
+    "price": 32700.0,
+    "barcode": "5817390814377",
+    "unit": "dona"
+  },
+  {
+    "name": "Kamilka Mahsulot \u211699",
+    "category": "Sut mahsulotlari",
+    "costPrice": 49900.0,
+    "price": 55200.0,
+    "barcode": "8665606578375",
+    "unit": "dona"
+  },
+  {
+    "name": "Mars Mahsulot \u2116100",
+    "category": "Qandolat",
+    "costPrice": 22600.0,
+    "price": 31300.0,
+    "barcode": "9599419554559",
+    "unit": "kg"
+  },
+  {
+    "name": "Coca-Cola Mahsulot \u2116101",
+    "category": "Ichimliklar",
+    "costPrice": 46500.0,
+    "price": 55700.0,
+    "barcode": "3289484381897",
+    "unit": "dona"
+  },
+  {
+    "name": "Buxanka Mahsulot \u2116102",
+    "category": "Non mahsulotlari",
+    "costPrice": 7600.0,
+    "price": 10900.0,
+    "barcode": "4169351602248",
+    "unit": "dona"
+  },
+  {
+    "name": "Centropen Mahsulot \u2116103",
+    "category": "Kantselyariya",
+    "costPrice": 14900.0,
+    "price": 18600.0,
+    "barcode": "7747569412489",
+    "unit": "dona"
+  },
+  {
+    "name": "Mars Mahsulot \u2116104",
+    "category": "Qandolat",
+    "costPrice": 5700.0,
+    "price": 6900.0,
+    "barcode": "3812704539547",
+    "unit": "dona"
+  },
+  {
+    "name": "Deli Mahsulot \u2116105",
+    "category": "Kantselyariya",
+    "costPrice": 35000.0,
+    "price": 40600.0,
+    "barcode": "8754218144502",
+    "unit": "dona"
+  },
+  {
+    "name": "Fairy Mahsulot \u2116106",
+    "category": "Maishiy kimyo",
+    "costPrice": 34700.0,
+    "price": 44400.0,
+    "barcode": "0995658409226",
+    "unit": "dona"
+  },
+  {
+    "name": "ErichKrause Mahsulot \u2116107",
+    "category": "Kantselyariya",
+    "costPrice": 35700.0,
+    "price": 47000.0,
+    "barcode": "3541523386306",
+    "unit": "kg"
+  },
+  {
+    "name": "Fanta Mahsulot \u2116108",
+    "category": "Ichimliklar",
+    "costPrice": 45800.0,
+    "price": 62800.0,
+    "barcode": "2437241777556",
+    "unit": "dona"
+  },
+  {
+    "name": "Ariel Mahsulot \u2116109",
+    "category": "Maishiy kimyo",
+    "costPrice": 1800.0,
+    "price": 2400.0,
+    "barcode": "1768772281755",
+    "unit": "dona"
+  },
+  {
+    "name": "Makfa Mahsulot \u2116110",
+    "category": "Oziq-ovqat",
+    "costPrice": 42100.0,
+    "price": 53400.0,
+    "barcode": "3761763410305",
+    "unit": "dona"
+  },
+  {
+    "name": "Lochira Mahsulot \u2116111",
+    "category": "Non mahsulotlari",
+    "costPrice": 29400.0,
+    "price": 36600.0,
+    "barcode": "6944800682133",
+    "unit": "dona"
+  },
+  {
+    "name": "Kinder Mahsulot \u2116112",
+    "category": "Qandolat",
+    "costPrice": 12300.0,
+    "price": 16500.0,
+    "barcode": "1962940639981",
+    "unit": "dona"
+  },
+  {
+    "name": "Alpen Gold Mahsulot \u2116113",
+    "category": "Qandolat",
+    "costPrice": 20400.0,
+    "price": 29200.0,
+    "barcode": "7502170572706",
+    "unit": "kg"
+  },
+  {
+    "name": "Persil Mahsulot \u2116114",
+    "category": "Maishiy kimyo",
+    "costPrice": 12000.0,
+    "price": 16900.0,
+    "barcode": "7169286433531",
+    "unit": "dona"
+  },
+  {
+    "name": "Alpen Gold Mahsulot \u2116115",
+    "category": "Qandolat",
+    "costPrice": 48400.0,
+    "price": 68700.0,
+    "barcode": "6582642885620",
+    "unit": "dona"
+  },
+  {
+    "name": "Deli Mahsulot \u2116116",
+    "category": "Kantselyariya",
+    "costPrice": 12700.0,
+    "price": 17800.0,
+    "barcode": "7105018377306",
+    "unit": "dona"
+  },
+  {
+    "name": "Centropen Mahsulot \u2116117",
+    "category": "Kantselyariya",
+    "costPrice": 11000.0,
+    "price": 15100.0,
+    "barcode": "2808104387467",
+    "unit": "dona"
+  },
+  {
+    "name": "Lactel Mahsulot \u2116118",
+    "category": "Sut mahsulotlari",
+    "costPrice": 10200.0,
+    "price": 12200.0,
+    "barcode": "6252200672832",
+    "unit": "kg"
+  },
+  {
+    "name": "Domestos Mahsulot \u2116119",
+    "category": "Maishiy kimyo",
+    "costPrice": 10100.0,
+    "price": 11100.0,
+    "barcode": "3404472379076",
+    "unit": "dona"
+  },
+  {
+    "name": "Bio-Sut Mahsulot \u2116120",
+    "category": "Sut mahsulotlari",
+    "costPrice": 7100.0,
+    "price": 10400.0,
+    "barcode": "1982389516914",
+    "unit": "dona"
+  },
+  {
+    "name": "Sprite Mahsulot \u2116121",
+    "category": "Ichimliklar",
+    "costPrice": 19900.0,
+    "price": 23600.0,
+    "barcode": "3018713089967",
+    "unit": "dona"
+  },
+  {
+    "name": "Centropen Mahsulot \u2116122",
+    "category": "Kantselyariya",
+    "costPrice": 37300.0,
+    "price": 52000.0,
+    "barcode": "1843470136243",
+    "unit": "dona"
+  },
+  {
+    "name": "Domestos Mahsulot \u2116123",
+    "category": "Maishiy kimyo",
+    "costPrice": 20500.0,
+    "price": 29900.0,
+    "barcode": "5090006873974",
+    "unit": "dona"
+  },
+  {
+    "name": "Deli Mahsulot \u2116124",
+    "category": "Kantselyariya",
+    "costPrice": 48700.0,
+    "price": 60100.0,
+    "barcode": "3991556477583",
+    "unit": "dona"
+  },
+  {
+    "name": "Patir Mahsulot \u2116125",
+    "category": "Non mahsulotlari",
+    "costPrice": 42500.0,
+    "price": 49400.0,
+    "barcode": "7501804239943",
+    "unit": "dona"
+  },
+  {
+    "name": "Colgate Mahsulot \u2116126",
+    "category": "Maishiy kimyo",
+    "costPrice": 23600.0,
+    "price": 30300.0,
+    "barcode": "8474640012565",
+    "unit": "dona"
+  },
+  {
+    "name": "Centropen Mahsulot \u2116127",
+    "category": "Kantselyariya",
+    "costPrice": 21000.0,
+    "price": 27900.0,
+    "barcode": "0777206964304",
+    "unit": "dona"
+  },
+  {
+    "name": "Fairy Mahsulot \u2116128",
+    "category": "Maishiy kimyo",
+    "costPrice": 15300.0,
+    "price": 20100.0,
+    "barcode": "8752395877381",
+    "unit": "dona"
+  },
+  {
+    "name": "Centropen Mahsulot \u2116129",
+    "category": "Kantselyariya",
+    "costPrice": 13900.0,
+    "price": 20500.0,
+    "barcode": "1514832029384",
+    "unit": "dona"
+  },
+  {
+    "name": "Patir Mahsulot \u2116130",
+    "category": "Non mahsulotlari",
+    "costPrice": 32200.0,
+    "price": 38500.0,
+    "barcode": "4348482851232",
+    "unit": "dona"
+  },
+  {
+    "name": "Dinay Mahsulot \u2116131",
+    "category": "Ichimliklar",
+    "costPrice": 44000.0,
+    "price": 61300.0,
+    "barcode": "6720233091875",
+    "unit": "dona"
+  },
+  {
+    "name": "Centropen Mahsulot \u2116132",
+    "category": "Kantselyariya",
+    "costPrice": 21200.0,
+    "price": 24600.0,
+    "barcode": "9329926770124",
+    "unit": "dona"
+  },
+  {
+    "name": "Makfa Mahsulot \u2116133",
+    "category": "Oziq-ovqat",
+    "costPrice": 7300.0,
+    "price": 8700.0,
+    "barcode": "8350669103016",
+    "unit": "dona"
+  },
+  {
+    "name": "Fairy Mahsulot \u2116134",
+    "category": "Maishiy kimyo",
+    "costPrice": 39100.0,
+    "price": 50600.0,
+    "barcode": "0363771673727",
+    "unit": "kg"
+  },
+  {
+    "name": "Lactel Mahsulot \u2116135",
+    "category": "Sut mahsulotlari",
+    "costPrice": 37200.0,
+    "price": 49700.0,
+    "barcode": "5462182001642",
+    "unit": "dona"
+  },
+  {
+    "name": "Alpen Gold Mahsulot \u2116136",
+    "category": "Qandolat",
+    "costPrice": 2000.0,
+    "price": 2200.0,
+    "barcode": "5085101346214",
+    "unit": "dona"
+  },
+  {
+    "name": "Lochira Mahsulot \u2116137",
+    "category": "Non mahsulotlari",
+    "costPrice": 15800.0,
+    "price": 18100.0,
+    "barcode": "4407587208168",
+    "unit": "dona"
+  },
+  {
+    "name": "ErichKrause Mahsulot \u2116138",
+    "category": "Kantselyariya",
+    "costPrice": 24300.0,
+    "price": 27100.0,
+    "barcode": "1231464478522",
+    "unit": "dona"
+  },
+  {
+    "name": "Lactel Mahsulot \u2116139",
+    "category": "Sut mahsulotlari",
+    "costPrice": 21500.0,
+    "price": 30200.0,
+    "barcode": "9881511140606",
+    "unit": "dona"
+  },
+  {
+    "name": "Fairy Mahsulot \u2116140",
+    "category": "Maishiy kimyo",
+    "costPrice": 3700.0,
+    "price": 5000.0,
+    "barcode": "4706141377579",
+    "unit": "dona"
+  },
+  {
+    "name": "Lactel Mahsulot \u2116141",
+    "category": "Sut mahsulotlari",
+    "costPrice": 28900.0,
+    "price": 42600.0,
+    "barcode": "7845655401351",
+    "unit": "dona"
+  },
+  {
+    "name": "Alpen Gold Mahsulot \u2116142",
+    "category": "Qandolat",
+    "costPrice": 10600.0,
+    "price": 12300.0,
+    "barcode": "1817786296049",
+    "unit": "kg"
+  },
+  {
+    "name": "ErichKrause Mahsulot \u2116143",
+    "category": "Kantselyariya",
+    "costPrice": 13900.0,
+    "price": 18000.0,
+    "barcode": "0155109739115",
+    "unit": "dona"
+  },
+  {
+    "name": "Snickers Mahsulot \u2116144",
+    "category": "Qandolat",
+    "costPrice": 30100.0,
+    "price": 35400.0,
+    "barcode": "2085468466845",
+    "unit": "dona"
+  },
+  {
+    "name": "Alpen Gold Mahsulot \u2116145",
+    "category": "Qandolat",
+    "costPrice": 30500.0,
+    "price": 33700.0,
+    "barcode": "1514295627116",
+    "unit": "dona"
+  },
+  {
+    "name": "Bio-Sut Mahsulot \u2116146",
+    "category": "Sut mahsulotlari",
+    "costPrice": 19600.0,
+    "price": 26000.0,
+    "barcode": "4963401763852",
+    "unit": "dona"
+  },
+  {
+    "name": "Twix Mahsulot \u2116147",
+    "category": "Qandolat",
+    "costPrice": 29500.0,
+    "price": 35900.0,
+    "barcode": "1548886933478",
+    "unit": "kg"
+  },
+  {
+    "name": "Tide Mahsulot \u2116148",
+    "category": "Maishiy kimyo",
+    "costPrice": 44800.0,
+    "price": 64200.0,
+    "barcode": "1893845968549",
+    "unit": "kg"
+  },
+  {
+    "name": "Lochira Mahsulot \u2116149",
+    "category": "Non mahsulotlari",
+    "costPrice": 29600.0,
+    "price": 42900.0,
+    "barcode": "2800909289451",
+    "unit": "dona"
+  },
+  {
+    "name": "Tide Mahsulot \u2116150",
+    "category": "Maishiy kimyo",
+    "costPrice": 13200.0,
+    "price": 18800.0,
+    "barcode": "3537318020837",
+    "unit": "dona"
+  },
+  {
+    "name": "Deli Mahsulot \u2116151",
+    "category": "Kantselyariya",
+    "costPrice": 4100.0,
+    "price": 5500.0,
+    "barcode": "6411107257986",
+    "unit": "dona"
+  },
+  {
+    "name": "Colgate Mahsulot \u2116152",
+    "category": "Maishiy kimyo",
+    "costPrice": 18900.0,
+    "price": 25700.0,
+    "barcode": "1978624450043",
+    "unit": "dona"
+  },
+  {
+    "name": "Deli Mahsulot \u2116153",
+    "category": "Kantselyariya",
+    "costPrice": 32300.0,
+    "price": 39800.0,
+    "barcode": "0252940076992",
+    "unit": "dona"
+  },
+  {
+    "name": "Kamilka Mahsulot \u2116154",
+    "category": "Sut mahsulotlari",
+    "costPrice": 22500.0,
+    "price": 26300.0,
+    "barcode": "4363319605221",
+    "unit": "dona"
+  },
+  {
+    "name": "Dinay Mahsulot \u2116155",
+    "category": "Ichimliklar",
+    "costPrice": 5100.0,
+    "price": 5900.0,
+    "barcode": "9901932495613",
+    "unit": "dona"
+  },
+  {
+    "name": "Alpen Gold Mahsulot \u2116156",
+    "category": "Qandolat",
+    "costPrice": 21700.0,
+    "price": 30300.0,
+    "barcode": "2355301966264",
+    "unit": "kg"
+  },
+  {
+    "name": "Shebekino Mahsulot \u2116157",
+    "category": "Oziq-ovqat",
+    "costPrice": 7700.0,
+    "price": 10200.0,
+    "barcode": "0091328407674",
+    "unit": "dona"
+  },
+  {
+    "name": "Moya Semya Mahsulot \u2116158",
+    "category": "Oziq-ovqat",
+    "costPrice": 20200.0,
+    "price": 25200.0,
+    "barcode": "7152488174745",
+    "unit": "dona"
+  },
+  {
+    "name": "Shebekino Mahsulot \u2116159",
+    "category": "Oziq-ovqat",
+    "costPrice": 19300.0,
+    "price": 23000.0,
+    "barcode": "1952094642039",
+    "unit": "dona"
+  },
+  {
+    "name": "Fanta Mahsulot \u2116160",
+    "category": "Ichimliklar",
+    "costPrice": 1700.0,
+    "price": 2300.0,
+    "barcode": "6268951507974",
+    "unit": "dona"
+  },
+  {
+    "name": "Ahmad Tea Mahsulot \u2116161",
+    "category": "Oziq-ovqat",
+    "costPrice": 23400.0,
+    "price": 26700.0,
+    "barcode": "8889992433231",
+    "unit": "dona"
+  },
+  {
+    "name": "Persil Mahsulot \u2116162",
+    "category": "Maishiy kimyo",
+    "costPrice": 46800.0,
+    "price": 59800.0,
+    "barcode": "9338156776167",
+    "unit": "dona"
+  },
+  {
+    "name": "Colgate Mahsulot \u2116163",
+    "category": "Maishiy kimyo",
+    "costPrice": 33500.0,
+    "price": 37000.0,
+    "barcode": "6314860362683",
+    "unit": "dona"
+  },
+  {
+    "name": "Centropen Mahsulot \u2116164",
+    "category": "Kantselyariya",
+    "costPrice": 20000.0,
+    "price": 24900.0,
+    "barcode": "7310083640742",
+    "unit": "dona"
+  },
+  {
+    "name": "Lochira Mahsulot \u2116165",
+    "category": "Non mahsulotlari",
+    "costPrice": 7000.0,
+    "price": 10300.0,
+    "barcode": "4632376371492",
+    "unit": "dona"
+  },
+  {
+    "name": "Moya Semya Mahsulot \u2116166",
+    "category": "Oziq-ovqat",
+    "costPrice": 42700.0,
+    "price": 57600.0,
+    "barcode": "2181595132203",
+    "unit": "dona"
+  },
+  {
+    "name": "Shebekino Mahsulot \u2116167",
+    "category": "Oziq-ovqat",
+    "costPrice": 26600.0,
+    "price": 30800.0,
+    "barcode": "3254029549848",
+    "unit": "dona"
+  },
+  {
+    "name": "Deli Mahsulot \u2116168",
+    "category": "Kantselyariya",
+    "costPrice": 38600.0,
+    "price": 50200.0,
+    "barcode": "9578071489041",
+    "unit": "dona"
+  },
+  {
+    "name": "Buxanka Mahsulot \u2116169",
+    "category": "Non mahsulotlari",
+    "costPrice": 23700.0,
+    "price": 30300.0,
+    "barcode": "2103710579015",
+    "unit": "dona"
+  },
+  {
+    "name": "Bio-Sut Mahsulot \u2116170",
+    "category": "Sut mahsulotlari",
+    "costPrice": 1400.0,
+    "price": 1700.0,
+    "barcode": "8590736942133",
+    "unit": "dona"
+  },
+  {
+    "name": "Centropen Mahsulot \u2116171",
+    "category": "Kantselyariya",
+    "costPrice": 43400.0,
+    "price": 57400.0,
+    "barcode": "7682669911737",
+    "unit": "dona"
+  },
+  {
+    "name": "Dinay Mahsulot \u2116172",
+    "category": "Ichimliklar",
+    "costPrice": 35300.0,
+    "price": 41100.0,
+    "barcode": "3385015007307",
+    "unit": "dona"
+  },
+  {
+    "name": "Mars Mahsulot \u2116173",
+    "category": "Qandolat",
+    "costPrice": 35000.0,
+    "price": 48900.0,
+    "barcode": "7457675624647",
+    "unit": "dona"
+  },
+  {
+    "name": "Snickers Mahsulot \u2116174",
+    "category": "Qandolat",
+    "costPrice": 43900.0,
+    "price": 53200.0,
+    "barcode": "0825784172917",
+    "unit": "dona"
+  },
+  {
+    "name": "Alpen Gold Mahsulot \u2116175",
+    "category": "Qandolat",
+    "costPrice": 46200.0,
+    "price": 68100.0,
+    "barcode": "6616557965487",
+    "unit": "dona"
+  },
+  {
+    "name": "Kamilka Mahsulot \u2116176",
+    "category": "Sut mahsulotlari",
+    "costPrice": 12500.0,
+    "price": 17300.0,
+    "barcode": "9791028785455",
+    "unit": "dona"
+  },
+  {
+    "name": "Centropen Mahsulot \u2116177",
+    "category": "Kantselyariya",
+    "costPrice": 15000.0,
+    "price": 19200.0,
+    "barcode": "3721506384218",
+    "unit": "dona"
+  },
+  {
+    "name": "Deli Mahsulot \u2116178",
+    "category": "Kantselyariya",
+    "costPrice": 1900.0,
+    "price": 2200.0,
+    "barcode": "8642439792957",
+    "unit": "dona"
+  },
+  {
+    "name": "Patir Mahsulot \u2116179",
+    "category": "Non mahsulotlari",
+    "costPrice": 22500.0,
+    "price": 30500.0,
+    "barcode": "2011017694258",
+    "unit": "dona"
+  },
+  {
+    "name": "Fairy Mahsulot \u2116180",
+    "category": "Maishiy kimyo",
+    "costPrice": 27800.0,
+    "price": 39900.0,
+    "barcode": "1944237476175",
+    "unit": "dona"
+  },
+  {
+    "name": "Centropen Mahsulot \u2116181",
+    "category": "Kantselyariya",
+    "costPrice": 10600.0,
+    "price": 13300.0,
+    "barcode": "8020922546031",
+    "unit": "dona"
+  },
+  {
+    "name": "Bio-Sut Mahsulot \u2116182",
+    "category": "Sut mahsulotlari",
+    "costPrice": 31700.0,
+    "price": 37100.0,
+    "barcode": "2061550581510",
+    "unit": "dona"
+  },
+  {
+    "name": "Sprite Mahsulot \u2116183",
+    "category": "Ichimliklar",
+    "costPrice": 28200.0,
+    "price": 40900.0,
+    "barcode": "6480759928548",
+    "unit": "dona"
+  },
+  {
+    "name": "Lochira Mahsulot \u2116184",
+    "category": "Non mahsulotlari",
+    "costPrice": 17500.0,
+    "price": 21000.0,
+    "barcode": "9145976386489",
+    "unit": "dona"
+  },
+  {
+    "name": "Lochira Mahsulot \u2116185",
+    "category": "Non mahsulotlari",
+    "costPrice": 33600.0,
+    "price": 45300.0,
+    "barcode": "3519114127312",
+    "unit": "dona"
+  },
+  {
+    "name": "Moya Semya Mahsulot \u2116186",
+    "category": "Oziq-ovqat",
+    "costPrice": 6900.0,
+    "price": 10200.0,
+    "barcode": "3268305194924",
+    "unit": "dona"
+  },
+  {
+    "name": "Mars Mahsulot \u2116187",
+    "category": "Qandolat",
+    "costPrice": 22300.0,
+    "price": 30000.0,
+    "barcode": "1491168705063",
+    "unit": "dona"
+  },
+  {
+    "name": "Bounty Mahsulot \u2116188",
+    "category": "Qandolat",
+    "costPrice": 4300.0,
+    "price": 4800.0,
+    "barcode": "0018685504614",
+    "unit": "kg"
+  },
+  {
+    "name": "Patir Mahsulot \u2116189",
+    "category": "Non mahsulotlari",
+    "costPrice": 17700.0,
+    "price": 21300.0,
+    "barcode": "7713097952052",
+    "unit": "kg"
+  },
+  {
+    "name": "Ariel Mahsulot \u2116190",
+    "category": "Maishiy kimyo",
+    "costPrice": 4000.0,
+    "price": 5400.0,
+    "barcode": "4261272658196",
+    "unit": "dona"
+  },
+  {
+    "name": "Kamilka Mahsulot \u2116191",
+    "category": "Sut mahsulotlari",
+    "costPrice": 37800.0,
+    "price": 53900.0,
+    "barcode": "2411057226492",
+    "unit": "dona"
+  },
+  {
+    "name": "Buxanka Mahsulot \u2116192",
+    "category": "Non mahsulotlari",
+    "costPrice": 42300.0,
+    "price": 47700.0,
+    "barcode": "4073354378284",
+    "unit": "dona"
+  },
+  {
+    "name": "Twix Mahsulot \u2116193",
+    "category": "Qandolat",
+    "costPrice": 31600.0,
+    "price": 44800.0,
+    "barcode": "5820528227608",
+    "unit": "dona"
+  },
+  {
+    "name": "Hydrolife Mahsulot \u2116194",
+    "category": "Ichimliklar",
+    "costPrice": 4600.0,
+    "price": 6600.0,
+    "barcode": "7213639112789",
+    "unit": "dona"
+  },
+  {
+    "name": "Lochira Mahsulot \u2116195",
+    "category": "Non mahsulotlari",
+    "costPrice": 23900.0,
+    "price": 34700.0,
+    "barcode": "8436414102026",
+    "unit": "dona"
+  },
+  {
+    "name": "Kamilka Mahsulot \u2116196",
+    "category": "Sut mahsulotlari",
+    "costPrice": 18300.0,
+    "price": 23700.0,
+    "barcode": "2772719051259",
+    "unit": "dona"
+  },
+  {
+    "name": "Fanta Mahsulot \u2116197",
+    "category": "Ichimliklar",
+    "costPrice": 22700.0,
+    "price": 26400.0,
+    "barcode": "9550626962005",
+    "unit": "kg"
+  },
+  {
+    "name": "Hydrolife Mahsulot \u2116198",
+    "category": "Ichimliklar",
+    "costPrice": 42700.0,
+    "price": 50300.0,
+    "barcode": "2955519464726",
+    "unit": "kg"
+  },
+  {
+    "name": "Dinay Mahsulot \u2116199",
+    "category": "Ichimliklar",
+    "costPrice": 10200.0,
+    "price": 12200.0,
+    "barcode": "2438208109257",
+    "unit": "dona"
+  },
+  {
+    "name": "Centropen Mahsulot \u2116200",
+    "category": "Kantselyariya",
+    "costPrice": 49400.0,
+    "price": 68500.0,
+    "barcode": "0191383638104",
+    "unit": "dona"
+  },
+  {
+    "name": "Buxanka Mahsulot \u2116201",
+    "category": "Non mahsulotlari",
+    "costPrice": 13400.0,
+    "price": 16100.0,
+    "barcode": "8289769849825",
+    "unit": "dona"
+  },
+  {
+    "name": "Lactel Mahsulot \u2116202",
+    "category": "Sut mahsulotlari",
+    "costPrice": 31100.0,
+    "price": 43500.0,
+    "barcode": "8422303814888",
+    "unit": "dona"
+  },
+  {
+    "name": "Alpen Gold Mahsulot \u2116203",
+    "category": "Qandolat",
+    "costPrice": 16300.0,
+    "price": 21100.0,
+    "barcode": "1716987021392",
+    "unit": "dona"
+  },
+  {
+    "name": "Makfa Mahsulot \u2116204",
+    "category": "Oziq-ovqat",
+    "costPrice": 46800.0,
+    "price": 52600.0,
+    "barcode": "5902055070988",
+    "unit": "kg"
+  },
+  {
+    "name": "Lochira Mahsulot \u2116205",
+    "category": "Non mahsulotlari",
+    "costPrice": 17600.0,
+    "price": 24800.0,
+    "barcode": "1203567396763",
+    "unit": "dona"
+  },
+  {
+    "name": "Bounty Mahsulot \u2116206",
+    "category": "Qandolat",
+    "costPrice": 39700.0,
+    "price": 58700.0,
+    "barcode": "4511598011246",
+    "unit": "dona"
+  },
+  {
+    "name": "Shebekino Mahsulot \u2116207",
+    "category": "Oziq-ovqat",
+    "costPrice": 10400.0,
+    "price": 14800.0,
+    "barcode": "4260081359753",
+    "unit": "dona"
+  },
+  {
+    "name": "Patir Mahsulot \u2116208",
+    "category": "Non mahsulotlari",
+    "costPrice": 32400.0,
+    "price": 37200.0,
+    "barcode": "2321305934595",
+    "unit": "kg"
+  },
+  {
+    "name": "Patir Mahsulot \u2116209",
+    "category": "Non mahsulotlari",
+    "costPrice": 29400.0,
+    "price": 38600.0,
+    "barcode": "2157124027375",
+    "unit": "dona"
+  },
+  {
+    "name": "Snickers Mahsulot \u2116210",
+    "category": "Qandolat",
+    "costPrice": 13700.0,
+    "price": 18400.0,
+    "barcode": "1303685442761",
+    "unit": "dona"
+  },
+  {
+    "name": "Coca-Cola Mahsulot \u2116211",
+    "category": "Ichimliklar",
+    "costPrice": 20900.0,
+    "price": 29900.0,
+    "barcode": "5671706434979",
+    "unit": "kg"
+  },
+  {
+    "name": "Musaffo Mahsulot \u2116212",
+    "category": "Sut mahsulotlari",
+    "costPrice": 16100.0,
+    "price": 22200.0,
+    "barcode": "9336373321853",
+    "unit": "dona"
+  },
+  {
+    "name": "Ariel Mahsulot \u2116213",
+    "category": "Maishiy kimyo",
+    "costPrice": 20700.0,
+    "price": 28000.0,
+    "barcode": "7295376051944",
+    "unit": "dona"
+  },
+  {
+    "name": "Bio-Sut Mahsulot \u2116214",
+    "category": "Sut mahsulotlari",
+    "costPrice": 14400.0,
+    "price": 19200.0,
+    "barcode": "6271192919237",
+    "unit": "dona"
+  },
+  {
+    "name": "Domestos Mahsulot \u2116215",
+    "category": "Maishiy kimyo",
+    "costPrice": 20400.0,
+    "price": 30200.0,
+    "barcode": "4649558087867",
+    "unit": "dona"
+  },
+  {
+    "name": "Bio-Sut Mahsulot \u2116216",
+    "category": "Sut mahsulotlari",
+    "costPrice": 44500.0,
+    "price": 49600.0,
+    "barcode": "2630319236073",
+    "unit": "dona"
+  },
+  {
+    "name": "Lochira Mahsulot \u2116217",
+    "category": "Non mahsulotlari",
+    "costPrice": 48300.0,
+    "price": 56700.0,
+    "barcode": "8510908188203",
+    "unit": "dona"
+  },
+  {
+    "name": "Fairy Mahsulot \u2116218",
+    "category": "Maishiy kimyo",
+    "costPrice": 48200.0,
+    "price": 53500.0,
+    "barcode": "1026194401911",
+    "unit": "dona"
+  },
+  {
+    "name": "Centropen Mahsulot \u2116219",
+    "category": "Kantselyariya",
+    "costPrice": 33100.0,
+    "price": 37000.0,
+    "barcode": "3162329881825",
+    "unit": "dona"
+  },
+  {
+    "name": "Lactel Mahsulot \u2116220",
+    "category": "Sut mahsulotlari",
+    "costPrice": 12700.0,
+    "price": 14200.0,
+    "barcode": "6796400654305",
+    "unit": "dona"
+  },
+  {
+    "name": "Domestos Mahsulot \u2116221",
+    "category": "Maishiy kimyo",
+    "costPrice": 24600.0,
+    "price": 34600.0,
+    "barcode": "1826645952013",
+    "unit": "dona"
+  },
+  {
+    "name": "Colgate Mahsulot \u2116222",
+    "category": "Maishiy kimyo",
+    "costPrice": 24600.0,
+    "price": 30600.0,
+    "barcode": "0061604160677",
+    "unit": "dona"
+  },
+  {
+    "name": "Tide Mahsulot \u2116223",
+    "category": "Maishiy kimyo",
+    "costPrice": 21800.0,
+    "price": 24300.0,
+    "barcode": "0729160219305",
+    "unit": "kg"
+  },
+  {
+    "name": "Hydrolife Mahsulot \u2116224",
+    "category": "Ichimliklar",
+    "costPrice": 29500.0,
+    "price": 40500.0,
+    "barcode": "4749765376929",
+    "unit": "dona"
+  },
+  {
+    "name": "Lochira Mahsulot \u2116225",
+    "category": "Non mahsulotlari",
+    "costPrice": 24900.0,
+    "price": 29900.0,
+    "barcode": "4271375906975",
+    "unit": "dona"
+  },
+  {
+    "name": "Twix Mahsulot \u2116226",
+    "category": "Qandolat",
+    "costPrice": 14800.0,
+    "price": 21500.0,
+    "barcode": "8568795840812",
+    "unit": "dona"
+  },
+  {
+    "name": "Buxanka Mahsulot \u2116227",
+    "category": "Non mahsulotlari",
+    "costPrice": 15900.0,
+    "price": 19500.0,
+    "barcode": "1292736701356",
+    "unit": "dona"
+  },
+  {
+    "name": "Kinder Mahsulot \u2116228",
+    "category": "Qandolat",
+    "costPrice": 45300.0,
+    "price": 56700.0,
+    "barcode": "2090880214939",
+    "unit": "dona"
+  },
+  {
+    "name": "Twix Mahsulot \u2116229",
+    "category": "Qandolat",
+    "costPrice": 32900.0,
+    "price": 47800.0,
+    "barcode": "6626432338928",
+    "unit": "dona"
+  },
+  {
+    "name": "Shebekino Mahsulot \u2116230",
+    "category": "Oziq-ovqat",
+    "costPrice": 25300.0,
+    "price": 32400.0,
+    "barcode": "5381555075183",
+    "unit": "kg"
+  },
+  {
+    "name": "Deli Mahsulot \u2116231",
+    "category": "Kantselyariya",
+    "costPrice": 48800.0,
+    "price": 69300.0,
+    "barcode": "6276945342313",
+    "unit": "dona"
+  },
+  {
+    "name": "Mars Mahsulot \u2116232",
+    "category": "Qandolat",
+    "costPrice": 19300.0,
+    "price": 27200.0,
+    "barcode": "2361120288340",
+    "unit": "kg"
+  },
+  {
+    "name": "Kinder Mahsulot \u2116233",
+    "category": "Qandolat",
+    "costPrice": 37600.0,
+    "price": 52800.0,
+    "barcode": "8522645458946",
+    "unit": "dona"
+  },
+  {
+    "name": "Musaffo Mahsulot \u2116234",
+    "category": "Sut mahsulotlari",
+    "costPrice": 33500.0,
+    "price": 44300.0,
+    "barcode": "7363285847445",
+    "unit": "dona"
+  },
+  {
+    "name": "Patir Mahsulot \u2116235",
+    "category": "Non mahsulotlari",
+    "costPrice": 12400.0,
+    "price": 16800.0,
+    "barcode": "5189171769235",
+    "unit": "dona"
+  },
+  {
+    "name": "Bio-Sut Mahsulot \u2116236",
+    "category": "Sut mahsulotlari",
+    "costPrice": 23900.0,
+    "price": 30300.0,
+    "barcode": "1363803031725",
+    "unit": "dona"
+  },
+  {
+    "name": "Makfa Mahsulot \u2116237",
+    "category": "Oziq-ovqat",
+    "costPrice": 7200.0,
+    "price": 10000.0,
+    "barcode": "9570198500754",
+    "unit": "dona"
+  },
+  {
+    "name": "Fanta Mahsulot \u2116238",
+    "category": "Ichimliklar",
+    "costPrice": 33600.0,
+    "price": 47300.0,
+    "barcode": "1767546862752",
+    "unit": "dona"
+  },
+  {
+    "name": "Centropen Mahsulot \u2116239",
+    "category": "Kantselyariya",
+    "costPrice": 2300.0,
+    "price": 3000.0,
+    "barcode": "1663403024954",
+    "unit": "dona"
+  },
+  {
+    "name": "Ahmad Tea Mahsulot \u2116240",
+    "category": "Oziq-ovqat",
+    "costPrice": 21400.0,
+    "price": 27900.0,
+    "barcode": "3406413005462",
+    "unit": "dona"
+  },
+  {
+    "name": "Lactel Mahsulot \u2116241",
+    "category": "Sut mahsulotlari",
+    "costPrice": 6300.0,
+    "price": 8800.0,
+    "barcode": "6879346131876",
+    "unit": "dona"
+  },
+  {
+    "name": "Bio-Sut Mahsulot \u2116242",
+    "category": "Sut mahsulotlari",
+    "costPrice": 39200.0,
+    "price": 53800.0,
+    "barcode": "7886156997747",
+    "unit": "dona"
+  },
+  {
+    "name": "Kamilka Mahsulot \u2116243",
+    "category": "Sut mahsulotlari",
+    "costPrice": 23200.0,
+    "price": 27200.0,
+    "barcode": "3434608448438",
+    "unit": "dona"
+  },
+  {
+    "name": "Snickers Mahsulot \u2116244",
+    "category": "Qandolat",
+    "costPrice": 37400.0,
+    "price": 54400.0,
+    "barcode": "6113257365401",
+    "unit": "dona"
+  },
+  {
+    "name": "Mars Mahsulot \u2116245",
+    "category": "Qandolat",
+    "costPrice": 39400.0,
+    "price": 47800.0,
+    "barcode": "0245878109943",
+    "unit": "kg"
+  },
+  {
+    "name": "Bounty Mahsulot \u2116246",
+    "category": "Qandolat",
+    "costPrice": 2700.0,
+    "price": 3600.0,
+    "barcode": "7438843564122",
+    "unit": "dona"
+  },
+  {
+    "name": "ErichKrause Mahsulot \u2116247",
+    "category": "Kantselyariya",
+    "costPrice": 2100.0,
+    "price": 2400.0,
+    "barcode": "7308336843547",
+    "unit": "dona"
+  },
+  {
+    "name": "Lactel Mahsulot \u2116248",
+    "category": "Sut mahsulotlari",
+    "costPrice": 15600.0,
+    "price": 20400.0,
+    "barcode": "8283443500871",
+    "unit": "dona"
+  },
+  {
+    "name": "Hydrolife Mahsulot \u2116249",
+    "category": "Ichimliklar",
+    "costPrice": 48300.0,
+    "price": 63700.0,
+    "barcode": "8658267070557",
+    "unit": "dona"
+  },
+  {
+    "name": "Twix Mahsulot \u2116250",
+    "category": "Qandolat",
+    "costPrice": 44800.0,
+    "price": 59900.0,
+    "barcode": "0717103809510",
+    "unit": "kg"
+  },
+  {
+    "name": "Ariel Mahsulot \u2116251",
+    "category": "Maishiy kimyo",
+    "costPrice": 16700.0,
+    "price": 20700.0,
+    "barcode": "5092097789007",
+    "unit": "kg"
+  },
+  {
+    "name": "Moya Semya Mahsulot \u2116252",
+    "category": "Oziq-ovqat",
+    "costPrice": 23600.0,
+    "price": 30200.0,
+    "barcode": "6664670096900",
+    "unit": "kg"
+  },
+  {
+    "name": "Musaffo Mahsulot \u2116253",
+    "category": "Sut mahsulotlari",
+    "costPrice": 48200.0,
+    "price": 70100.0,
+    "barcode": "0331883965740",
+    "unit": "dona"
+  },
+  {
+    "name": "Twix Mahsulot \u2116254",
+    "category": "Qandolat",
+    "costPrice": 34000.0,
+    "price": 42800.0,
+    "barcode": "5554286707795",
+    "unit": "dona"
+  },
+  {
+    "name": "Bio-Sut Mahsulot \u2116255",
+    "category": "Sut mahsulotlari",
+    "costPrice": 10300.0,
+    "price": 11600.0,
+    "barcode": "8652575083946",
+    "unit": "dona"
+  },
+  {
+    "name": "Ahmad Tea Mahsulot \u2116256",
+    "category": "Oziq-ovqat",
+    "costPrice": 21400.0,
+    "price": 24200.0,
+    "barcode": "8862452401131",
+    "unit": "dona"
+  },
+  {
+    "name": "Makfa Mahsulot \u2116257",
+    "category": "Oziq-ovqat",
+    "costPrice": 35100.0,
+    "price": 51900.0,
+    "barcode": "6638364360051",
+    "unit": "dona"
+  },
+  {
+    "name": "Patir Mahsulot \u2116258",
+    "category": "Non mahsulotlari",
+    "costPrice": 39400.0,
+    "price": 58400.0,
+    "barcode": "1986070991540",
+    "unit": "dona"
+  },
+  {
+    "name": "Alpen Gold Mahsulot \u2116259",
+    "category": "Qandolat",
+    "costPrice": 20800.0,
+    "price": 23000.0,
+    "barcode": "4002502762754",
+    "unit": "kg"
+  },
+  {
+    "name": "Tide Mahsulot \u2116260",
+    "category": "Maishiy kimyo",
+    "costPrice": 40800.0,
+    "price": 45200.0,
+    "barcode": "8733969975638",
+    "unit": "dona"
+  },
+  {
+    "name": "Patir Mahsulot \u2116261",
+    "category": "Non mahsulotlari",
+    "costPrice": 11300.0,
+    "price": 14300.0,
+    "barcode": "8597751903402",
+    "unit": "dona"
+  },
+  {
+    "name": "Musaffo Mahsulot \u2116262",
+    "category": "Sut mahsulotlari",
+    "costPrice": 48200.0,
+    "price": 63900.0,
+    "barcode": "4150877435935",
+    "unit": "dona"
+  },
+  {
+    "name": "Centropen Mahsulot \u2116263",
+    "category": "Kantselyariya",
+    "costPrice": 5300.0,
+    "price": 7200.0,
+    "barcode": "5998120766853",
+    "unit": "kg"
+  },
+  {
+    "name": "Musaffo Mahsulot \u2116264",
+    "category": "Sut mahsulotlari",
+    "costPrice": 33300.0,
+    "price": 39300.0,
+    "barcode": "5039309049642",
+    "unit": "dona"
+  },
+  {
+    "name": "ErichKrause Mahsulot \u2116265",
+    "category": "Kantselyariya",
+    "costPrice": 30200.0,
+    "price": 36600.0,
+    "barcode": "6666640059612",
+    "unit": "dona"
+  },
+  {
+    "name": "Buxanka Mahsulot \u2116266",
+    "category": "Non mahsulotlari",
+    "costPrice": 10200.0,
+    "price": 13200.0,
+    "barcode": "6706096275111",
+    "unit": "dona"
+  },
+  {
+    "name": "Musaffo Mahsulot \u2116267",
+    "category": "Sut mahsulotlari",
+    "costPrice": 5500.0,
+    "price": 7700.0,
+    "barcode": "2719327756906",
+    "unit": "dona"
+  },
+  {
+    "name": "Tide Mahsulot \u2116268",
+    "category": "Maishiy kimyo",
+    "costPrice": 20900.0,
+    "price": 30200.0,
+    "barcode": "5368355583595",
+    "unit": "dona"
+  },
+  {
+    "name": "Buxanka Mahsulot \u2116269",
+    "category": "Non mahsulotlari",
+    "costPrice": 26500.0,
+    "price": 35900.0,
+    "barcode": "0034203400023",
+    "unit": "dona"
+  },
+  {
+    "name": "Hydrolife Mahsulot \u2116270",
+    "category": "Ichimliklar",
+    "costPrice": 7700.0,
+    "price": 10700.0,
+    "barcode": "8362642737925",
+    "unit": "dona"
+  },
+  {
+    "name": "Alpen Gold Mahsulot \u2116271",
+    "category": "Qandolat",
+    "costPrice": 44700.0,
+    "price": 62800.0,
+    "barcode": "5707993333966",
+    "unit": "dona"
+  },
+  {
+    "name": "Patir Mahsulot \u2116272",
+    "category": "Non mahsulotlari",
+    "costPrice": 1100.0,
+    "price": 1300.0,
+    "barcode": "1594830200545",
+    "unit": "kg"
+  },
+  {
+    "name": "Centropen Mahsulot \u2116273",
+    "category": "Kantselyariya",
+    "costPrice": 34100.0,
+    "price": 44400.0,
+    "barcode": "3789085422095",
+    "unit": "dona"
+  },
+  {
+    "name": "Patir Mahsulot \u2116274",
+    "category": "Non mahsulotlari",
+    "costPrice": 40600.0,
+    "price": 58200.0,
+    "barcode": "4505316828717",
+    "unit": "dona"
+  },
+  {
+    "name": "Mars Mahsulot \u2116275",
+    "category": "Qandolat",
+    "costPrice": 44500.0,
+    "price": 49700.0,
+    "barcode": "0877295201617",
+    "unit": "kg"
+  },
+  {
+    "name": "Colgate Mahsulot \u2116276",
+    "category": "Maishiy kimyo",
+    "costPrice": 31500.0,
+    "price": 36300.0,
+    "barcode": "4328288261472",
+    "unit": "dona"
+  },
+  {
+    "name": "Lactel Mahsulot \u2116277",
+    "category": "Sut mahsulotlari",
+    "costPrice": 32900.0,
+    "price": 46000.0,
+    "barcode": "5724300987838",
+    "unit": "dona"
+  },
+  {
+    "name": "Ariel Mahsulot \u2116278",
+    "category": "Maishiy kimyo",
+    "costPrice": 39400.0,
+    "price": 52300.0,
+    "barcode": "3116621537985",
+    "unit": "dona"
+  },
+  {
+    "name": "Ariel Mahsulot \u2116279",
+    "category": "Maishiy kimyo",
+    "costPrice": 33700.0,
+    "price": 49100.0,
+    "barcode": "3121895438258",
+    "unit": "dona"
+  },
+  {
+    "name": "Ahmad Tea Mahsulot \u2116280",
+    "category": "Oziq-ovqat",
+    "costPrice": 46100.0,
+    "price": 68900.0,
+    "barcode": "8124806308374",
+    "unit": "kg"
+  },
+  {
+    "name": "Mars Mahsulot \u2116281",
+    "category": "Qandolat",
+    "costPrice": 11300.0,
+    "price": 13700.0,
+    "barcode": "9681464145172",
+    "unit": "dona"
+  },
+  {
+    "name": "Bio-Sut Mahsulot \u2116282",
+    "category": "Sut mahsulotlari",
+    "costPrice": 42500.0,
+    "price": 47000.0,
+    "barcode": "5687701141947",
+    "unit": "dona"
+  },
+  {
+    "name": "Coca-Cola Mahsulot \u2116283",
+    "category": "Ichimliklar",
+    "costPrice": 41400.0,
+    "price": 47200.0,
+    "barcode": "3233054274675",
+    "unit": "dona"
+  },
+  {
+    "name": "Musaffo Mahsulot \u2116284",
+    "category": "Sut mahsulotlari",
+    "costPrice": 26500.0,
+    "price": 35000.0,
+    "barcode": "9112244360475",
+    "unit": "kg"
+  },
+  {
+    "name": "Siyom Mahsulot \u2116285",
+    "category": "Oziq-ovqat",
+    "costPrice": 44300.0,
+    "price": 58200.0,
+    "barcode": "6867878777479",
+    "unit": "dona"
+  },
+  {
+    "name": "Alpen Gold Mahsulot \u2116286",
+    "category": "Qandolat",
+    "costPrice": 41600.0,
+    "price": 47900.0,
+    "barcode": "2731829350764",
+    "unit": "dona"
+  },
+  {
+    "name": "Patir Mahsulot \u2116287",
+    "category": "Non mahsulotlari",
+    "costPrice": 46200.0,
+    "price": 64000.0,
+    "barcode": "7020942899248",
+    "unit": "dona"
+  },
+  {
+    "name": "Bounty Mahsulot \u2116288",
+    "category": "Qandolat",
+    "costPrice": 19700.0,
+    "price": 26900.0,
+    "barcode": "1511283090599",
+    "unit": "kg"
+  },
+  {
+    "name": "Deli Mahsulot \u2116289",
+    "category": "Kantselyariya",
+    "costPrice": 43500.0,
+    "price": 64300.0,
+    "barcode": "8218902092129",
+    "unit": "dona"
+  },
+  {
+    "name": "Makfa Mahsulot \u2116290",
+    "category": "Oziq-ovqat",
+    "costPrice": 7500.0,
+    "price": 10300.0,
+    "barcode": "7908172654341",
+    "unit": "dona"
+  },
+  {
+    "name": "Bounty Mahsulot \u2116291",
+    "category": "Qandolat",
+    "costPrice": 23300.0,
+    "price": 33600.0,
+    "barcode": "5241412337079",
+    "unit": "dona"
+  },
+  {
+    "name": "Bio-Sut Mahsulot \u2116292",
+    "category": "Sut mahsulotlari",
+    "costPrice": 26700.0,
+    "price": 29700.0,
+    "barcode": "3123688379248",
+    "unit": "dona"
+  },
+  {
+    "name": "Siyom Mahsulot \u2116293",
+    "category": "Oziq-ovqat",
+    "costPrice": 2000.0,
+    "price": 2900.0,
+    "barcode": "7525756609361",
+    "unit": "dona"
+  },
+  {
+    "name": "Bounty Mahsulot \u2116294",
+    "category": "Qandolat",
+    "costPrice": 31800.0,
+    "price": 35100.0,
+    "barcode": "9339081399618",
+    "unit": "dona"
+  },
+  {
+    "name": "Musaffo Mahsulot \u2116295",
+    "category": "Sut mahsulotlari",
+    "costPrice": 5100.0,
+    "price": 6100.0,
+    "barcode": "6417221448246",
+    "unit": "dona"
+  },
+  {
+    "name": "Dinay Mahsulot \u2116296",
+    "category": "Ichimliklar",
+    "costPrice": 37200.0,
+    "price": 45600.0,
+    "barcode": "2570910908895",
+    "unit": "dona"
+  },
+  {
+    "name": "Makfa Mahsulot \u2116297",
+    "category": "Oziq-ovqat",
+    "costPrice": 48100.0,
+    "price": 55700.0,
+    "barcode": "4251923141595",
+    "unit": "dona"
+  },
+  {
+    "name": "Patir Mahsulot \u2116298",
+    "category": "Non mahsulotlari",
+    "costPrice": 26800.0,
+    "price": 32700.0,
+    "barcode": "3238727897591",
+    "unit": "kg"
+  },
+  {
+    "name": "Tide Mahsulot \u2116299",
+    "category": "Maishiy kimyo",
+    "costPrice": 18500.0,
+    "price": 25400.0,
+    "barcode": "0594813720195",
+    "unit": "kg"
+  },
+  {
+    "name": "Shebekino Mahsulot \u2116300",
+    "category": "Oziq-ovqat",
+    "costPrice": 36300.0,
+    "price": 44100.0,
+    "barcode": "3112635798725",
+    "unit": "dona"
+  },
+  {
+    "name": "Hydrolife Mahsulot \u2116301",
+    "category": "Ichimliklar",
+    "costPrice": 24000.0,
+    "price": 32700.0,
+    "barcode": "8349620577193",
+    "unit": "kg"
+  },
+  {
+    "name": "Moya Semya Mahsulot \u2116302",
+    "category": "Oziq-ovqat",
+    "costPrice": 40800.0,
+    "price": 51300.0,
+    "barcode": "7363821305818",
+    "unit": "dona"
+  },
+  {
+    "name": "Domestos Mahsulot \u2116303",
+    "category": "Maishiy kimyo",
+    "costPrice": 12400.0,
+    "price": 16900.0,
+    "barcode": "5151553440431",
+    "unit": "dona"
+  },
+  {
+    "name": "Domestos Mahsulot \u2116304",
+    "category": "Maishiy kimyo",
+    "costPrice": 1600.0,
+    "price": 1900.0,
+    "barcode": "7601561599402",
+    "unit": "dona"
+  },
+  {
+    "name": "Musaffo Mahsulot \u2116305",
+    "category": "Sut mahsulotlari",
+    "costPrice": 41300.0,
+    "price": 51100.0,
+    "barcode": "5432099001709",
+    "unit": "dona"
+  },
+  {
+    "name": "Persil Mahsulot \u2116306",
+    "category": "Maishiy kimyo",
+    "costPrice": 13900.0,
+    "price": 16600.0,
+    "barcode": "2180470254519",
+    "unit": "dona"
+  },
+  {
+    "name": "Pepsi Mahsulot \u2116307",
+    "category": "Ichimliklar",
+    "costPrice": 34400.0,
+    "price": 40500.0,
+    "barcode": "5586136620733",
+    "unit": "dona"
+  },
+  {
+    "name": "Lochira Mahsulot \u2116308",
+    "category": "Non mahsulotlari",
+    "costPrice": 47900.0,
+    "price": 70100.0,
+    "barcode": "0990904820033",
+    "unit": "dona"
+  },
+  {
+    "name": "Pepsi Mahsulot \u2116309",
+    "category": "Ichimliklar",
+    "costPrice": 43400.0,
+    "price": 64100.0,
+    "barcode": "8724555989497",
+    "unit": "dona"
+  },
+  {
+    "name": "Makfa Mahsulot \u2116310",
+    "category": "Oziq-ovqat",
+    "costPrice": 28900.0,
+    "price": 41600.0,
+    "barcode": "6474932153135",
+    "unit": "dona"
+  },
+  {
+    "name": "Dinay Mahsulot \u2116311",
+    "category": "Ichimliklar",
+    "costPrice": 42500.0,
+    "price": 52700.0,
+    "barcode": "3905942343755",
+    "unit": "dona"
+  },
+  {
+    "name": "Persil Mahsulot \u2116312",
+    "category": "Maishiy kimyo",
+    "costPrice": 5300.0,
+    "price": 7400.0,
+    "barcode": "4352561798671",
+    "unit": "dona"
+  },
+  {
+    "name": "Twix Mahsulot \u2116313",
+    "category": "Qandolat",
+    "costPrice": 48900.0,
+    "price": 69000.0,
+    "barcode": "8993507945762",
+    "unit": "dona"
+  },
+  {
+    "name": "Musaffo Mahsulot \u2116314",
+    "category": "Sut mahsulotlari",
+    "costPrice": 40500.0,
+    "price": 56700.0,
+    "barcode": "0503198895268",
+    "unit": "dona"
+  },
+  {
+    "name": "Kamilka Mahsulot \u2116315",
+    "category": "Sut mahsulotlari",
+    "costPrice": 7400.0,
+    "price": 8600.0,
+    "barcode": "6894491825333",
+    "unit": "dona"
+  },
+  {
+    "name": "Patir Mahsulot \u2116316",
+    "category": "Non mahsulotlari",
+    "costPrice": 35800.0,
+    "price": 51700.0,
+    "barcode": "3248316153590",
+    "unit": "dona"
+  },
+  {
+    "name": "Centropen Mahsulot \u2116317",
+    "category": "Kantselyariya",
+    "costPrice": 18900.0,
+    "price": 25300.0,
+    "barcode": "7922318229539",
+    "unit": "kg"
+  },
+  {
+    "name": "Tide Mahsulot \u2116318",
+    "category": "Maishiy kimyo",
+    "costPrice": 1800.0,
+    "price": 2000.0,
+    "barcode": "2976419915030",
+    "unit": "dona"
+  },
+  {
+    "name": "Dinay Mahsulot \u2116319",
+    "category": "Ichimliklar",
+    "costPrice": 11400.0,
+    "price": 15100.0,
+    "barcode": "1682603367506",
+    "unit": "dona"
+  },
+  {
+    "name": "Mars Mahsulot \u2116320",
+    "category": "Qandolat",
+    "costPrice": 27100.0,
+    "price": 34900.0,
+    "barcode": "9555301302453",
+    "unit": "dona"
+  },
+  {
+    "name": "Lactel Mahsulot \u2116321",
+    "category": "Sut mahsulotlari",
+    "costPrice": 6100.0,
+    "price": 8700.0,
+    "barcode": "8851042431650",
+    "unit": "dona"
+  },
+  {
+    "name": "Domestos Mahsulot \u2116322",
+    "category": "Maishiy kimyo",
+    "costPrice": 23300.0,
+    "price": 31900.0,
+    "barcode": "8130544573953",
+    "unit": "dona"
+  },
+  {
+    "name": "Twix Mahsulot \u2116323",
+    "category": "Qandolat",
+    "costPrice": 34200.0,
+    "price": 51000.0,
+    "barcode": "5446996200667",
+    "unit": "dona"
+  },
+  {
+    "name": "Ahmad Tea Mahsulot \u2116324",
+    "category": "Oziq-ovqat",
+    "costPrice": 29200.0,
+    "price": 32200.0,
+    "barcode": "4386937185101",
+    "unit": "dona"
+  },
+  {
+    "name": "Persil Mahsulot \u2116325",
+    "category": "Maishiy kimyo",
+    "costPrice": 40300.0,
+    "price": 56200.0,
+    "barcode": "7138804218749",
+    "unit": "dona"
+  },
+  {
+    "name": "Sprite Mahsulot \u2116326",
+    "category": "Ichimliklar",
+    "costPrice": 6400.0,
+    "price": 7700.0,
+    "barcode": "8277199464433",
+    "unit": "dona"
+  },
+  {
+    "name": "Kinder Mahsulot \u2116327",
+    "category": "Qandolat",
+    "costPrice": 15000.0,
+    "price": 20500.0,
+    "barcode": "6792483337916",
+    "unit": "kg"
+  },
+  {
+    "name": "Buxanka Mahsulot \u2116328",
+    "category": "Non mahsulotlari",
+    "costPrice": 12600.0,
+    "price": 14400.0,
+    "barcode": "7208844836652",
+    "unit": "dona"
+  },
+  {
+    "name": "ErichKrause Mahsulot \u2116329",
+    "category": "Kantselyariya",
+    "costPrice": 48000.0,
+    "price": 69000.0,
+    "barcode": "5473080912431",
+    "unit": "dona"
+  },
+  {
+    "name": "Hydrolife Mahsulot \u2116330",
+    "category": "Ichimliklar",
+    "costPrice": 36100.0,
+    "price": 40000.0,
+    "barcode": "8489963870921",
+    "unit": "kg"
+  },
+  {
+    "name": "Persil Mahsulot \u2116331",
+    "category": "Maishiy kimyo",
+    "costPrice": 3000.0,
+    "price": 3900.0,
+    "barcode": "8108508073480",
+    "unit": "dona"
+  },
+  {
+    "name": "Patir Mahsulot \u2116332",
+    "category": "Non mahsulotlari",
+    "costPrice": 27500.0,
+    "price": 40900.0,
+    "barcode": "3354068303985",
+    "unit": "dona"
+  },
+  {
+    "name": "Makfa Mahsulot \u2116333",
+    "category": "Oziq-ovqat",
+    "costPrice": 37400.0,
+    "price": 47800.0,
+    "barcode": "4466348393375",
+    "unit": "kg"
+  },
+  {
+    "name": "Lochira Mahsulot \u2116334",
+    "category": "Non mahsulotlari",
+    "costPrice": 20200.0,
+    "price": 27700.0,
+    "barcode": "5358263846741",
+    "unit": "kg"
+  },
+  {
+    "name": "Centropen Mahsulot \u2116335",
+    "category": "Kantselyariya",
+    "costPrice": 37800.0,
+    "price": 47700.0,
+    "barcode": "3611071741798",
+    "unit": "dona"
+  },
+  {
+    "name": "Lochira Mahsulot \u2116336",
+    "category": "Non mahsulotlari",
+    "costPrice": 40000.0,
+    "price": 53100.0,
+    "barcode": "3895457326397",
+    "unit": "dona"
+  },
+  {
+    "name": "Domestos Mahsulot \u2116337",
+    "category": "Maishiy kimyo",
+    "costPrice": 15200.0,
+    "price": 19700.0,
+    "barcode": "1401128133301",
+    "unit": "kg"
+  },
+  {
+    "name": "Colgate Mahsulot \u2116338",
+    "category": "Maishiy kimyo",
+    "costPrice": 18000.0,
+    "price": 22500.0,
+    "barcode": "5679996246086",
+    "unit": "dona"
+  },
+  {
+    "name": "Mars Mahsulot \u2116339",
+    "category": "Qandolat",
+    "costPrice": 15800.0,
+    "price": 20000.0,
+    "barcode": "4873556672717",
+    "unit": "dona"
+  },
+  {
+    "name": "Deli Mahsulot \u2116340",
+    "category": "Kantselyariya",
+    "costPrice": 8000.0,
+    "price": 10200.0,
+    "barcode": "2333479910232",
+    "unit": "dona"
+  },
+  {
+    "name": "Dinay Mahsulot \u2116341",
+    "category": "Ichimliklar",
+    "costPrice": 38900.0,
+    "price": 43100.0,
+    "barcode": "9612338531387",
+    "unit": "dona"
+  },
+  {
+    "name": "Ariel Mahsulot \u2116342",
+    "category": "Maishiy kimyo",
+    "costPrice": 35600.0,
+    "price": 42100.0,
+    "barcode": "1232527104261",
+    "unit": "dona"
+  },
+  {
+    "name": "Bio-Sut Mahsulot \u2116343",
+    "category": "Sut mahsulotlari",
+    "costPrice": 10400.0,
+    "price": 11800.0,
+    "barcode": "8931776956648",
+    "unit": "dona"
+  },
+  {
+    "name": "Bounty Mahsulot \u2116344",
+    "category": "Qandolat",
+    "costPrice": 18700.0,
+    "price": 26000.0,
+    "barcode": "7999854593687",
+    "unit": "kg"
+  },
+  {
+    "name": "Siyom Mahsulot \u2116345",
+    "category": "Oziq-ovqat",
+    "costPrice": 39300.0,
+    "price": 51400.0,
+    "barcode": "6718433604794",
+    "unit": "dona"
+  },
+  {
+    "name": "Coca-Cola Mahsulot \u2116346",
+    "category": "Ichimliklar",
+    "costPrice": 26000.0,
+    "price": 37000.0,
+    "barcode": "0194937766537",
+    "unit": "kg"
+  },
+  {
+    "name": "Ariel Mahsulot \u2116347",
+    "category": "Maishiy kimyo",
+    "costPrice": 2000.0,
+    "price": 2900.0,
+    "barcode": "3411983229768",
+    "unit": "dona"
+  },
+  {
+    "name": "Twix Mahsulot \u2116348",
+    "category": "Qandolat",
+    "costPrice": 6900.0,
+    "price": 9400.0,
+    "barcode": "4975855241925",
+    "unit": "dona"
+  },
+  {
+    "name": "Patir Mahsulot \u2116349",
+    "category": "Non mahsulotlari",
+    "costPrice": 20600.0,
+    "price": 27800.0,
+    "barcode": "5280775362836",
+    "unit": "kg"
+  },
+  {
+    "name": "Dinay Mahsulot \u2116350",
+    "category": "Ichimliklar",
+    "costPrice": 24900.0,
+    "price": 35200.0,
+    "barcode": "0092965068016",
+    "unit": "dona"
+  },
+  {
+    "name": "Ahmad Tea Mahsulot \u2116351",
+    "category": "Oziq-ovqat",
+    "costPrice": 24700.0,
+    "price": 28200.0,
+    "barcode": "4702373805419",
+    "unit": "dona"
+  },
+  {
+    "name": "Ahmad Tea Mahsulot \u2116352",
+    "category": "Oziq-ovqat",
+    "costPrice": 4600.0,
+    "price": 6300.0,
+    "barcode": "3790237369627",
+    "unit": "dona"
+  },
+  {
+    "name": "Kinder Mahsulot \u2116353",
+    "category": "Qandolat",
+    "costPrice": 40900.0,
+    "price": 59800.0,
+    "barcode": "4490920439327",
+    "unit": "dona"
+  },
+  {
+    "name": "Musaffo Mahsulot \u2116354",
+    "category": "Sut mahsulotlari",
+    "costPrice": 29300.0,
+    "price": 39100.0,
+    "barcode": "7581731111190",
+    "unit": "dona"
+  },
+  {
+    "name": "Dinay Mahsulot \u2116355",
+    "category": "Ichimliklar",
+    "costPrice": 12900.0,
+    "price": 18200.0,
+    "barcode": "0862867981532",
+    "unit": "dona"
+  },
+  {
+    "name": "Bio-Sut Mahsulot \u2116356",
+    "category": "Sut mahsulotlari",
+    "costPrice": 35100.0,
+    "price": 50600.0,
+    "barcode": "6069975813911",
+    "unit": "dona"
+  },
+  {
+    "name": "Patir Mahsulot \u2116357",
+    "category": "Non mahsulotlari",
+    "costPrice": 17600.0,
+    "price": 22000.0,
+    "barcode": "3107319367941",
+    "unit": "dona"
+  },
+  {
+    "name": "ErichKrause Mahsulot \u2116358",
+    "category": "Kantselyariya",
+    "costPrice": 21100.0,
+    "price": 26400.0,
+    "barcode": "3682616202354",
+    "unit": "dona"
+  },
+  {
+    "name": "Dinay Mahsulot \u2116359",
+    "category": "Ichimliklar",
+    "costPrice": 13800.0,
+    "price": 16000.0,
+    "barcode": "8528714431139",
+    "unit": "dona"
+  },
+  {
+    "name": "Lochira Mahsulot \u2116360",
+    "category": "Non mahsulotlari",
+    "costPrice": 16200.0,
+    "price": 18000.0,
+    "barcode": "4190102784557",
+    "unit": "dona"
+  },
+  {
+    "name": "Lactel Mahsulot \u2116361",
+    "category": "Sut mahsulotlari",
+    "costPrice": 39300.0,
+    "price": 43300.0,
+    "barcode": "1251193148101",
+    "unit": "kg"
+  },
+  {
+    "name": "Hydrolife Mahsulot \u2116362",
+    "category": "Ichimliklar",
+    "costPrice": 23300.0,
+    "price": 28900.0,
+    "barcode": "7165127635830",
+    "unit": "dona"
+  },
+  {
+    "name": "Twix Mahsulot \u2116363",
+    "category": "Qandolat",
+    "costPrice": 15000.0,
+    "price": 17300.0,
+    "barcode": "2374627724387",
+    "unit": "dona"
+  },
+  {
+    "name": "Ahmad Tea Mahsulot \u2116364",
+    "category": "Oziq-ovqat",
+    "costPrice": 19800.0,
+    "price": 29200.0,
+    "barcode": "1898449049522",
+    "unit": "dona"
+  },
+  {
+    "name": "Buxanka Mahsulot \u2116365",
+    "category": "Non mahsulotlari",
+    "costPrice": 16000.0,
+    "price": 23900.0,
+    "barcode": "9137609650879",
+    "unit": "dona"
+  },
+  {
+    "name": "Moya Semya Mahsulot \u2116366",
+    "category": "Oziq-ovqat",
+    "costPrice": 40800.0,
+    "price": 47800.0,
+    "barcode": "5785815435921",
+    "unit": "kg"
+  },
+  {
+    "name": "Colgate Mahsulot \u2116367",
+    "category": "Maishiy kimyo",
+    "costPrice": 21600.0,
+    "price": 24400.0,
+    "barcode": "8348927272084",
+    "unit": "dona"
+  },
+  {
+    "name": "Kamilka Mahsulot \u2116368",
+    "category": "Sut mahsulotlari",
+    "costPrice": 47600.0,
+    "price": 54700.0,
+    "barcode": "5428553599724",
+    "unit": "dona"
+  },
+  {
+    "name": "Mars Mahsulot \u2116369",
+    "category": "Qandolat",
+    "costPrice": 46600.0,
+    "price": 66200.0,
+    "barcode": "0912257973131",
+    "unit": "kg"
+  },
+  {
+    "name": "Bounty Mahsulot \u2116370",
+    "category": "Qandolat",
+    "costPrice": 40300.0,
+    "price": 49900.0,
+    "barcode": "8720122159665",
+    "unit": "kg"
+  },
+  {
+    "name": "Coca-Cola Mahsulot \u2116371",
+    "category": "Ichimliklar",
+    "costPrice": 3900.0,
+    "price": 4400.0,
+    "barcode": "4670461507991",
+    "unit": "kg"
+  },
+  {
+    "name": "Makfa Mahsulot \u2116372",
+    "category": "Oziq-ovqat",
+    "costPrice": 20700.0,
+    "price": 25400.0,
+    "barcode": "8614486006023",
+    "unit": "dona"
+  },
+  {
+    "name": "ErichKrause Mahsulot \u2116373",
+    "category": "Kantselyariya",
+    "costPrice": 18000.0,
+    "price": 21300.0,
+    "barcode": "3968979085265",
+    "unit": "dona"
+  },
+  {
+    "name": "Persil Mahsulot \u2116374",
+    "category": "Maishiy kimyo",
+    "costPrice": 45700.0,
+    "price": 59600.0,
+    "barcode": "7897611444695",
+    "unit": "dona"
+  },
+  {
+    "name": "Coca-Cola Mahsulot \u2116375",
+    "category": "Ichimliklar",
+    "costPrice": 44400.0,
+    "price": 54900.0,
+    "barcode": "2629822775122",
+    "unit": "dona"
+  },
+  {
+    "name": "Alpen Gold Mahsulot \u2116376",
+    "category": "Qandolat",
+    "costPrice": 29200.0,
+    "price": 36800.0,
+    "barcode": "3517376414228",
+    "unit": "kg"
+  },
+  {
+    "name": "Pepsi Mahsulot \u2116377",
+    "category": "Ichimliklar",
+    "costPrice": 21700.0,
+    "price": 29100.0,
+    "barcode": "0849145992354",
+    "unit": "dona"
+  },
+  {
+    "name": "Pepsi Mahsulot \u2116378",
+    "category": "Ichimliklar",
+    "costPrice": 35800.0,
+    "price": 52300.0,
+    "barcode": "7013129119150",
+    "unit": "dona"
+  },
+  {
+    "name": "Twix Mahsulot \u2116379",
+    "category": "Qandolat",
+    "costPrice": 12100.0,
+    "price": 14700.0,
+    "barcode": "3247021335490",
+    "unit": "dona"
+  },
+  {
+    "name": "Colgate Mahsulot \u2116380",
+    "category": "Maishiy kimyo",
+    "costPrice": 17000.0,
+    "price": 19000.0,
+    "barcode": "0949065154792",
+    "unit": "dona"
+  },
+  {
+    "name": "Lochira Mahsulot \u2116381",
+    "category": "Non mahsulotlari",
+    "costPrice": 14600.0,
+    "price": 18900.0,
+    "barcode": "1959347538665",
+    "unit": "dona"
+  },
+  {
+    "name": "Bounty Mahsulot \u2116382",
+    "category": "Qandolat",
+    "costPrice": 39300.0,
+    "price": 49500.0,
+    "barcode": "1943333615843",
+    "unit": "dona"
+  },
+  {
+    "name": "Musaffo Mahsulot \u2116383",
+    "category": "Sut mahsulotlari",
+    "costPrice": 13400.0,
+    "price": 16100.0,
+    "barcode": "7942610606185",
+    "unit": "dona"
+  },
+  {
+    "name": "Coca-Cola Mahsulot \u2116384",
+    "category": "Ichimliklar",
+    "costPrice": 6000.0,
+    "price": 8600.0,
+    "barcode": "5946331075041",
+    "unit": "dona"
+  },
+  {
+    "name": "Tide Mahsulot \u2116385",
+    "category": "Maishiy kimyo",
+    "costPrice": 21300.0,
+    "price": 23600.0,
+    "barcode": "3600329176162",
+    "unit": "dona"
+  },
+  {
+    "name": "Shebekino Mahsulot \u2116386",
+    "category": "Oziq-ovqat",
+    "costPrice": 34700.0,
+    "price": 51900.0,
+    "barcode": "9675080711048",
+    "unit": "dona"
+  },
+  {
+    "name": "ErichKrause Mahsulot \u2116387",
+    "category": "Kantselyariya",
+    "costPrice": 31400.0,
+    "price": 44500.0,
+    "barcode": "5699942379902",
+    "unit": "dona"
+  },
+  {
+    "name": "Hydrolife Mahsulot \u2116388",
+    "category": "Ichimliklar",
+    "costPrice": 18300.0,
+    "price": 27000.0,
+    "barcode": "7549534558504",
+    "unit": "dona"
+  },
+  {
+    "name": "Shebekino Mahsulot \u2116389",
+    "category": "Oziq-ovqat",
+    "costPrice": 29200.0,
+    "price": 41800.0,
+    "barcode": "4354186801089",
+    "unit": "kg"
+  },
+  {
+    "name": "Bounty Mahsulot \u2116390",
+    "category": "Qandolat",
+    "costPrice": 1000.0,
+    "price": 1300.0,
+    "barcode": "7711964521256",
+    "unit": "dona"
+  },
+  {
+    "name": "ErichKrause Mahsulot \u2116391",
+    "category": "Kantselyariya",
+    "costPrice": 45000.0,
+    "price": 56900.0,
+    "barcode": "4281851609425",
+    "unit": "kg"
+  },
+  {
+    "name": "Shebekino Mahsulot \u2116392",
+    "category": "Oziq-ovqat",
+    "costPrice": 38000.0,
+    "price": 48200.0,
+    "barcode": "7830595848689",
+    "unit": "dona"
+  },
+  {
+    "name": "Ahmad Tea Mahsulot \u2116393",
+    "category": "Oziq-ovqat",
+    "costPrice": 8200.0,
+    "price": 11800.0,
+    "barcode": "7709435903022",
+    "unit": "dona"
+  },
+  {
+    "name": "Makfa Mahsulot \u2116394",
+    "category": "Oziq-ovqat",
+    "costPrice": 4100.0,
+    "price": 6100.0,
+    "barcode": "4103339501228",
+    "unit": "dona"
+  },
+  {
+    "name": "Lochira Mahsulot \u2116395",
+    "category": "Non mahsulotlari",
+    "costPrice": 36100.0,
+    "price": 49100.0,
+    "barcode": "9437032076368",
+    "unit": "dona"
+  },
+  {
+    "name": "Patir Mahsulot \u2116396",
+    "category": "Non mahsulotlari",
+    "costPrice": 24000.0,
+    "price": 33300.0,
+    "barcode": "3532026986128",
+    "unit": "dona"
+  },
+  {
+    "name": "Kinder Mahsulot \u2116397",
+    "category": "Qandolat",
+    "costPrice": 40100.0,
+    "price": 44900.0,
+    "barcode": "3126103143770",
+    "unit": "dona"
+  },
+  {
+    "name": "Domestos Mahsulot \u2116398",
+    "category": "Maishiy kimyo",
+    "costPrice": 1900.0,
+    "price": 2700.0,
+    "barcode": "0979598764598",
+    "unit": "dona"
+  },
+  {
+    "name": "Coca-Cola Mahsulot \u2116399",
+    "category": "Ichimliklar",
+    "costPrice": 46600.0,
+    "price": 51800.0,
+    "barcode": "2492997689851",
+    "unit": "dona"
+  },
+  {
+    "name": "Dinay Mahsulot \u2116400",
+    "category": "Ichimliklar",
+    "costPrice": 31800.0,
+    "price": 41200.0,
+    "barcode": "4988020524922",
+    "unit": "kg"
+  },
+  {
+    "name": "ErichKrause Mahsulot \u2116401",
+    "category": "Kantselyariya",
+    "costPrice": 32300.0,
+    "price": 37300.0,
+    "barcode": "0566133253272",
+    "unit": "dona"
+  },
+  {
+    "name": "Mars Mahsulot \u2116402",
+    "category": "Qandolat",
+    "costPrice": 37100.0,
+    "price": 48100.0,
+    "barcode": "1632597912259",
+    "unit": "dona"
+  },
+  {
+    "name": "Ahmad Tea Mahsulot \u2116403",
+    "category": "Oziq-ovqat",
+    "costPrice": 29700.0,
+    "price": 33700.0,
+    "barcode": "6592037769428",
+    "unit": "dona"
+  },
+  {
+    "name": "Ariel Mahsulot \u2116404",
+    "category": "Maishiy kimyo",
+    "costPrice": 36500.0,
+    "price": 42600.0,
+    "barcode": "6210233268701",
+    "unit": "dona"
+  },
+  {
+    "name": "Siyom Mahsulot \u2116405",
+    "category": "Oziq-ovqat",
+    "costPrice": 38100.0,
+    "price": 52300.0,
+    "barcode": "7988905426159",
+    "unit": "dona"
+  },
+  {
+    "name": "Fairy Mahsulot \u2116406",
+    "category": "Maishiy kimyo",
+    "costPrice": 36700.0,
+    "price": 47400.0,
+    "barcode": "4847895121097",
+    "unit": "kg"
+  },
+  {
+    "name": "Lochira Mahsulot \u2116407",
+    "category": "Non mahsulotlari",
+    "costPrice": 5900.0,
+    "price": 7700.0,
+    "barcode": "6556916895570",
+    "unit": "dona"
+  },
+  {
+    "name": "Kamilka Mahsulot \u2116408",
+    "category": "Sut mahsulotlari",
+    "costPrice": 33600.0,
+    "price": 48500.0,
+    "barcode": "7019821140972",
+    "unit": "kg"
+  },
+  {
+    "name": "Persil Mahsulot \u2116409",
+    "category": "Maishiy kimyo",
+    "costPrice": 14900.0,
+    "price": 18100.0,
+    "barcode": "5471871730106",
+    "unit": "dona"
+  },
+  {
+    "name": "Buxanka Mahsulot \u2116410",
+    "category": "Non mahsulotlari",
+    "costPrice": 46600.0,
+    "price": 58800.0,
+    "barcode": "0394591163741",
+    "unit": "kg"
+  },
+  {
+    "name": "Musaffo Mahsulot \u2116411",
+    "category": "Sut mahsulotlari",
+    "costPrice": 4600.0,
+    "price": 6200.0,
+    "barcode": "3240522208950",
+    "unit": "dona"
+  },
+  {
+    "name": "Twix Mahsulot \u2116412",
+    "category": "Qandolat",
+    "costPrice": 4800.0,
+    "price": 6800.0,
+    "barcode": "2136068710422",
+    "unit": "kg"
+  },
+  {
+    "name": "Ahmad Tea Mahsulot \u2116413",
+    "category": "Oziq-ovqat",
+    "costPrice": 13200.0,
+    "price": 15800.0,
+    "barcode": "6764875220703",
+    "unit": "dona"
+  },
+  {
+    "name": "Moya Semya Mahsulot \u2116414",
+    "category": "Oziq-ovqat",
+    "costPrice": 31900.0,
+    "price": 41800.0,
+    "barcode": "2931197106642",
+    "unit": "kg"
+  },
+  {
+    "name": "Ariel Mahsulot \u2116415",
+    "category": "Maishiy kimyo",
+    "costPrice": 2300.0,
+    "price": 2700.0,
+    "barcode": "8131231394920",
+    "unit": "dona"
+  },
+  {
+    "name": "Moya Semya Mahsulot \u2116416",
+    "category": "Oziq-ovqat",
+    "costPrice": 2600.0,
+    "price": 3800.0,
+    "barcode": "7181254481406",
+    "unit": "kg"
+  },
+  {
+    "name": "Alpen Gold Mahsulot \u2116417",
+    "category": "Qandolat",
+    "costPrice": 26300.0,
+    "price": 36300.0,
+    "barcode": "9415961672542",
+    "unit": "kg"
+  },
+  {
+    "name": "Deli Mahsulot \u2116418",
+    "category": "Kantselyariya",
+    "costPrice": 18200.0,
+    "price": 21600.0,
+    "barcode": "5891871864434",
+    "unit": "dona"
+  },
+  {
+    "name": "Buxanka Mahsulot \u2116419",
+    "category": "Non mahsulotlari",
+    "costPrice": 24000.0,
+    "price": 29300.0,
+    "barcode": "0387886392562",
+    "unit": "kg"
+  },
+  {
+    "name": "Colgate Mahsulot \u2116420",
+    "category": "Maishiy kimyo",
+    "costPrice": 12800.0,
+    "price": 14800.0,
+    "barcode": "2519142228218",
+    "unit": "dona"
+  },
+  {
+    "name": "Tide Mahsulot \u2116421",
+    "category": "Maishiy kimyo",
+    "costPrice": 6700.0,
+    "price": 7800.0,
+    "barcode": "7350988193023",
+    "unit": "dona"
+  },
+  {
+    "name": "Tide Mahsulot \u2116422",
+    "category": "Maishiy kimyo",
+    "costPrice": 14400.0,
+    "price": 20200.0,
+    "barcode": "4174653521738",
+    "unit": "dona"
+  },
+  {
+    "name": "Bio-Sut Mahsulot \u2116423",
+    "category": "Sut mahsulotlari",
+    "costPrice": 35800.0,
+    "price": 42500.0,
+    "barcode": "2077936525225",
+    "unit": "dona"
+  },
+  {
+    "name": "Sprite Mahsulot \u2116424",
+    "category": "Ichimliklar",
+    "costPrice": 49000.0,
+    "price": 59100.0,
+    "barcode": "8961635633383",
+    "unit": "dona"
+  },
+  {
+    "name": "Coca-Cola Mahsulot \u2116425",
+    "category": "Ichimliklar",
+    "costPrice": 34500.0,
+    "price": 50900.0,
+    "barcode": "0369426373915",
+    "unit": "dona"
+  },
+  {
+    "name": "Lochira Mahsulot \u2116426",
+    "category": "Non mahsulotlari",
+    "costPrice": 18800.0,
+    "price": 24400.0,
+    "barcode": "2833411125113",
+    "unit": "dona"
+  },
+  {
+    "name": "Dinay Mahsulot \u2116427",
+    "category": "Ichimliklar",
+    "costPrice": 48200.0,
+    "price": 62200.0,
+    "barcode": "7061400402447",
+    "unit": "kg"
+  },
+  {
+    "name": "Snickers Mahsulot \u2116428",
+    "category": "Qandolat",
+    "costPrice": 40300.0,
+    "price": 49400.0,
+    "barcode": "0846124135492",
+    "unit": "dona"
+  },
+  {
+    "name": "Twix Mahsulot \u2116429",
+    "category": "Qandolat",
+    "costPrice": 43100.0,
+    "price": 60800.0,
+    "barcode": "7751525510962",
+    "unit": "dona"
+  },
+  {
+    "name": "Centropen Mahsulot \u2116430",
+    "category": "Kantselyariya",
+    "costPrice": 3800.0,
+    "price": 4900.0,
+    "barcode": "0343960288957",
+    "unit": "dona"
+  },
+  {
+    "name": "Makfa Mahsulot \u2116431",
+    "category": "Oziq-ovqat",
+    "costPrice": 32900.0,
+    "price": 42500.0,
+    "barcode": "2549859152364",
+    "unit": "dona"
+  },
+  {
+    "name": "Persil Mahsulot \u2116432",
+    "category": "Maishiy kimyo",
+    "costPrice": 10000.0,
+    "price": 14100.0,
+    "barcode": "4840398574750",
+    "unit": "dona"
+  },
+  {
+    "name": "Buxanka Mahsulot \u2116433",
+    "category": "Non mahsulotlari",
+    "costPrice": 35800.0,
+    "price": 46500.0,
+    "barcode": "5131236053459",
+    "unit": "dona"
+  },
+  {
+    "name": "Hydrolife Mahsulot \u2116434",
+    "category": "Ichimliklar",
+    "costPrice": 33500.0,
+    "price": 39300.0,
+    "barcode": "7445532848408",
+    "unit": "dona"
+  },
+  {
+    "name": "Domestos Mahsulot \u2116435",
+    "category": "Maishiy kimyo",
+    "costPrice": 24500.0,
+    "price": 35400.0,
+    "barcode": "4518719437867",
+    "unit": "kg"
+  },
+  {
+    "name": "Shebekino Mahsulot \u2116436",
+    "category": "Oziq-ovqat",
+    "costPrice": 44700.0,
+    "price": 66100.0,
+    "barcode": "0699802039816",
+    "unit": "dona"
+  },
+  {
+    "name": "Bio-Sut Mahsulot \u2116437",
+    "category": "Sut mahsulotlari",
+    "costPrice": 41200.0,
+    "price": 57700.0,
+    "barcode": "6702404497480",
+    "unit": "dona"
+  },
+  {
+    "name": "Musaffo Mahsulot \u2116438",
+    "category": "Sut mahsulotlari",
+    "costPrice": 15500.0,
+    "price": 21200.0,
+    "barcode": "7374723975498",
+    "unit": "dona"
+  },
+  {
+    "name": "Twix Mahsulot \u2116439",
+    "category": "Qandolat",
+    "costPrice": 9800.0,
+    "price": 12100.0,
+    "barcode": "6934189754313",
+    "unit": "kg"
+  },
+  {
+    "name": "Coca-Cola Mahsulot \u2116440",
+    "category": "Ichimliklar",
+    "costPrice": 19900.0,
+    "price": 28700.0,
+    "barcode": "2211993355894",
+    "unit": "dona"
+  },
+  {
+    "name": "Colgate Mahsulot \u2116441",
+    "category": "Maishiy kimyo",
+    "costPrice": 7300.0,
+    "price": 10000.0,
+    "barcode": "9799182725505",
+    "unit": "kg"
+  },
+  {
+    "name": "Makfa Mahsulot \u2116442",
+    "category": "Oziq-ovqat",
+    "costPrice": 13100.0,
+    "price": 15500.0,
+    "barcode": "3621086321744",
+    "unit": "dona"
+  },
+  {
+    "name": "ErichKrause Mahsulot \u2116443",
+    "category": "Kantselyariya",
+    "costPrice": 13400.0,
+    "price": 16000.0,
+    "barcode": "3257817905597",
+    "unit": "dona"
+  },
+  {
+    "name": "Coca-Cola Mahsulot \u2116444",
+    "category": "Ichimliklar",
+    "costPrice": 9900.0,
+    "price": 13600.0,
+    "barcode": "8685322279437",
+    "unit": "dona"
+  },
+  {
+    "name": "Dinay Mahsulot \u2116445",
+    "category": "Ichimliklar",
+    "costPrice": 38500.0,
+    "price": 52900.0,
+    "barcode": "1537892822158",
+    "unit": "dona"
+  },
+  {
+    "name": "Bio-Sut Mahsulot \u2116446",
+    "category": "Sut mahsulotlari",
+    "costPrice": 49900.0,
+    "price": 56300.0,
+    "barcode": "3619466221500",
+    "unit": "dona"
+  },
+  {
+    "name": "Lochira Mahsulot \u2116447",
+    "category": "Non mahsulotlari",
+    "costPrice": 2900.0,
+    "price": 4000.0,
+    "barcode": "7283682050326",
+    "unit": "dona"
+  },
+  {
+    "name": "Twix Mahsulot \u2116448",
+    "category": "Qandolat",
+    "costPrice": 26400.0,
+    "price": 32400.0,
+    "barcode": "2723250143936",
+    "unit": "dona"
+  },
+  {
+    "name": "Centropen Mahsulot \u2116449",
+    "category": "Kantselyariya",
+    "costPrice": 13700.0,
+    "price": 18500.0,
+    "barcode": "5848371991168",
+    "unit": "dona"
+  },
+  {
+    "name": "Lactel Mahsulot \u2116450",
+    "category": "Sut mahsulotlari",
+    "costPrice": 5500.0,
+    "price": 6500.0,
+    "barcode": "4719314826674",
+    "unit": "dona"
+  },
+  {
+    "name": "Centropen Mahsulot \u2116451",
+    "category": "Kantselyariya",
+    "costPrice": 35000.0,
+    "price": 44600.0,
+    "barcode": "6015459857630",
+    "unit": "dona"
+  },
+  {
+    "name": "Domestos Mahsulot \u2116452",
+    "category": "Maishiy kimyo",
+    "costPrice": 6800.0,
+    "price": 9000.0,
+    "barcode": "2475299025128",
+    "unit": "dona"
+  },
+  {
+    "name": "Siyom Mahsulot \u2116453",
+    "category": "Oziq-ovqat",
+    "costPrice": 44000.0,
+    "price": 51100.0,
+    "barcode": "5431582307948",
+    "unit": "dona"
+  },
+  {
+    "name": "Deli Mahsulot \u2116454",
+    "category": "Kantselyariya",
+    "costPrice": 8100.0,
+    "price": 10500.0,
+    "barcode": "2389414750657",
+    "unit": "dona"
+  },
+  {
+    "name": "Moya Semya Mahsulot \u2116455",
+    "category": "Oziq-ovqat",
+    "costPrice": 44800.0,
+    "price": 49800.0,
+    "barcode": "5812975397217",
+    "unit": "kg"
+  },
+  {
+    "name": "Alpen Gold Mahsulot \u2116456",
+    "category": "Qandolat",
+    "costPrice": 4500.0,
+    "price": 5200.0,
+    "barcode": "4882976163663",
+    "unit": "dona"
+  },
+  {
+    "name": "Shebekino Mahsulot \u2116457",
+    "category": "Oziq-ovqat",
+    "costPrice": 35100.0,
+    "price": 52300.0,
+    "barcode": "2468966731998",
+    "unit": "dona"
+  },
+  {
+    "name": "Pepsi Mahsulot \u2116458",
+    "category": "Ichimliklar",
+    "costPrice": 39800.0,
+    "price": 49100.0,
+    "barcode": "0513975280892",
+    "unit": "dona"
+  },
+  {
+    "name": "Ariel Mahsulot \u2116459",
+    "category": "Maishiy kimyo",
+    "costPrice": 47600.0,
+    "price": 60500.0,
+    "barcode": "0772916126047",
+    "unit": "dona"
+  },
+  {
+    "name": "Ahmad Tea Mahsulot \u2116460",
+    "category": "Oziq-ovqat",
+    "costPrice": 27600.0,
+    "price": 40500.0,
+    "barcode": "0657996518897",
+    "unit": "kg"
+  },
+  {
+    "name": "Deli Mahsulot \u2116461",
+    "category": "Kantselyariya",
+    "costPrice": 15500.0,
+    "price": 18600.0,
+    "barcode": "8551701849814",
+    "unit": "dona"
+  },
+  {
+    "name": "Buxanka Mahsulot \u2116462",
+    "category": "Non mahsulotlari",
+    "costPrice": 34800.0,
+    "price": 42000.0,
+    "barcode": "2037417036898",
+    "unit": "dona"
+  },
+  {
+    "name": "Sprite Mahsulot \u2116463",
+    "category": "Ichimliklar",
+    "costPrice": 40400.0,
+    "price": 47200.0,
+    "barcode": "7843632627263",
+    "unit": "dona"
+  },
+  {
+    "name": "Fairy Mahsulot \u2116464",
+    "category": "Maishiy kimyo",
+    "costPrice": 46100.0,
+    "price": 66900.0,
+    "barcode": "7400419913116",
+    "unit": "dona"
+  },
+  {
+    "name": "Makfa Mahsulot \u2116465",
+    "category": "Oziq-ovqat",
+    "costPrice": 18200.0,
+    "price": 24500.0,
+    "barcode": "7856152299963",
+    "unit": "dona"
+  },
+  {
+    "name": "Moya Semya Mahsulot \u2116466",
+    "category": "Oziq-ovqat",
+    "costPrice": 30400.0,
+    "price": 33400.0,
+    "barcode": "8481753605326",
+    "unit": "dona"
+  },
+  {
+    "name": "Twix Mahsulot \u2116467",
+    "category": "Qandolat",
+    "costPrice": 21400.0,
+    "price": 24500.0,
+    "barcode": "5098986411429",
+    "unit": "dona"
+  },
+  {
+    "name": "Moya Semya Mahsulot \u2116468",
+    "category": "Oziq-ovqat",
+    "costPrice": 24400.0,
+    "price": 32300.0,
+    "barcode": "4327206475159",
+    "unit": "dona"
+  },
+  {
+    "name": "Snickers Mahsulot \u2116469",
+    "category": "Qandolat",
+    "costPrice": 46400.0,
+    "price": 56500.0,
+    "barcode": "8974362281421",
+    "unit": "dona"
+  },
+  {
+    "name": "Mars Mahsulot \u2116470",
+    "category": "Qandolat",
+    "costPrice": 44000.0,
+    "price": 58200.0,
+    "barcode": "8636679377354",
+    "unit": "dona"
+  },
+  {
+    "name": "Tide Mahsulot \u2116471",
+    "category": "Maishiy kimyo",
+    "costPrice": 19300.0,
+    "price": 25600.0,
+    "barcode": "7648466651067",
+    "unit": "dona"
+  },
+  {
+    "name": "Musaffo Mahsulot \u2116472",
+    "category": "Sut mahsulotlari",
+    "costPrice": 38200.0,
+    "price": 47300.0,
+    "barcode": "8882878058418",
+    "unit": "kg"
+  },
+  {
+    "name": "Colgate Mahsulot \u2116473",
+    "category": "Maishiy kimyo",
+    "costPrice": 21300.0,
+    "price": 28400.0,
+    "barcode": "8953914684975",
+    "unit": "dona"
+  },
+  {
+    "name": "Musaffo Mahsulot \u2116474",
+    "category": "Sut mahsulotlari",
+    "costPrice": 28300.0,
+    "price": 34000.0,
+    "barcode": "7560408646013",
+    "unit": "kg"
+  },
+  {
+    "name": "Coca-Cola Mahsulot \u2116475",
+    "category": "Ichimliklar",
+    "costPrice": 20100.0,
+    "price": 24600.0,
+    "barcode": "3457043501993",
+    "unit": "kg"
+  },
+  {
+    "name": "Kamilka Mahsulot \u2116476",
+    "category": "Sut mahsulotlari",
+    "costPrice": 33800.0,
+    "price": 44500.0,
+    "barcode": "8366688523819",
+    "unit": "dona"
+  },
+  {
+    "name": "Deli Mahsulot \u2116477",
+    "category": "Kantselyariya",
+    "costPrice": 20200.0,
+    "price": 27000.0,
+    "barcode": "7574315481927",
+    "unit": "kg"
+  },
+  {
+    "name": "Hydrolife Mahsulot \u2116478",
+    "category": "Ichimliklar",
+    "costPrice": 4700.0,
+    "price": 6600.0,
+    "barcode": "2160118207621",
+    "unit": "dona"
+  },
+  {
+    "name": "Twix Mahsulot \u2116479",
+    "category": "Qandolat",
+    "costPrice": 32400.0,
+    "price": 41900.0,
+    "barcode": "3334099285328",
+    "unit": "dona"
+  },
+  {
+    "name": "Lochira Mahsulot \u2116480",
+    "category": "Non mahsulotlari",
+    "costPrice": 8300.0,
+    "price": 10200.0,
+    "barcode": "8089933651299",
+    "unit": "dona"
+  },
+  {
+    "name": "Tide Mahsulot \u2116481",
+    "category": "Maishiy kimyo",
+    "costPrice": 16100.0,
+    "price": 18100.0,
+    "barcode": "2019827527749",
+    "unit": "dona"
+  },
+  {
+    "name": "Hydrolife Mahsulot \u2116482",
+    "category": "Ichimliklar",
+    "costPrice": 23500.0,
+    "price": 31000.0,
+    "barcode": "3515831097117",
+    "unit": "dona"
+  },
+  {
+    "name": "Sprite Mahsulot \u2116483",
+    "category": "Ichimliklar",
+    "costPrice": 35500.0,
+    "price": 44800.0,
+    "barcode": "2553282341596",
+    "unit": "kg"
+  },
+  {
+    "name": "Patir Mahsulot \u2116484",
+    "category": "Non mahsulotlari",
+    "costPrice": 44200.0,
+    "price": 54100.0,
+    "barcode": "2215241973999",
+    "unit": "dona"
+  },
+  {
+    "name": "Deli Mahsulot \u2116485",
+    "category": "Kantselyariya",
+    "costPrice": 48800.0,
+    "price": 61600.0,
+    "barcode": "2901340080397",
+    "unit": "dona"
+  },
+  {
+    "name": "Colgate Mahsulot \u2116486",
+    "category": "Maishiy kimyo",
+    "costPrice": 15400.0,
+    "price": 22500.0,
+    "barcode": "7544251106503",
+    "unit": "dona"
+  },
+  {
+    "name": "Ariel Mahsulot \u2116487",
+    "category": "Maishiy kimyo",
+    "costPrice": 31200.0,
+    "price": 40000.0,
+    "barcode": "8034879522474",
+    "unit": "dona"
+  },
+  {
+    "name": "Makfa Mahsulot \u2116488",
+    "category": "Oziq-ovqat",
+    "costPrice": 49800.0,
+    "price": 65700.0,
+    "barcode": "4395685062759",
+    "unit": "dona"
+  },
+  {
+    "name": "Hydrolife Mahsulot \u2116489",
+    "category": "Ichimliklar",
+    "costPrice": 6400.0,
+    "price": 7900.0,
+    "barcode": "4192953011304",
+    "unit": "kg"
+  },
+  {
+    "name": "Twix Mahsulot \u2116490",
+    "category": "Qandolat",
+    "costPrice": 26500.0,
+    "price": 31700.0,
+    "barcode": "8366533055465",
+    "unit": "dona"
+  },
+  {
+    "name": "Coca-Cola Mahsulot \u2116491",
+    "category": "Ichimliklar",
+    "costPrice": 22900.0,
+    "price": 31900.0,
+    "barcode": "1706353696038",
+    "unit": "dona"
+  },
+  {
+    "name": "Alpen Gold Mahsulot \u2116492",
+    "category": "Qandolat",
+    "costPrice": 44800.0,
+    "price": 50100.0,
+    "barcode": "1008592354719",
+    "unit": "dona"
+  },
+  {
+    "name": "Ahmad Tea Mahsulot \u2116493",
+    "category": "Oziq-ovqat",
+    "costPrice": 24500.0,
+    "price": 33700.0,
+    "barcode": "5003390802591",
+    "unit": "kg"
+  },
+  {
+    "name": "Tide Mahsulot \u2116494",
+    "category": "Maishiy kimyo",
+    "costPrice": 39900.0,
+    "price": 49100.0,
+    "barcode": "6990493583808",
+    "unit": "dona"
+  },
+  {
+    "name": "Lochira Mahsulot \u2116495",
+    "category": "Non mahsulotlari",
+    "costPrice": 37600.0,
+    "price": 50800.0,
+    "barcode": "5701557062016",
+    "unit": "dona"
+  },
+  {
+    "name": "Bounty Mahsulot \u2116496",
+    "category": "Qandolat",
+    "costPrice": 24700.0,
+    "price": 33700.0,
+    "barcode": "2991981575880",
+    "unit": "dona"
+  },
+  {
+    "name": "Musaffo Mahsulot \u2116497",
+    "category": "Sut mahsulotlari",
+    "costPrice": 48200.0,
+    "price": 62600.0,
+    "barcode": "7218952426285",
+    "unit": "dona"
+  },
+  {
+    "name": "Hydrolife Mahsulot \u2116498",
+    "category": "Ichimliklar",
+    "costPrice": 34600.0,
+    "price": 41200.0,
+    "barcode": "6004313089144",
+    "unit": "dona"
+  },
+  {
+    "name": "Buxanka Mahsulot \u2116499",
+    "category": "Non mahsulotlari",
+    "costPrice": 30500.0,
+    "price": 33700.0,
+    "barcode": "3656128844175",
+    "unit": "kg"
+  },
+  {
+    "name": "Deli Mahsulot \u2116500",
+    "category": "Kantselyariya",
+    "costPrice": 23000.0,
+    "price": 34400.0,
+    "barcode": "1086450106159",
+    "unit": "dona"
+  },
+  {
+    "name": "Persil Mahsulot \u2116501",
+    "category": "Maishiy kimyo",
+    "costPrice": 2100.0,
+    "price": 2800.0,
+    "barcode": "0082898332028",
+    "unit": "dona"
+  },
+  {
+    "name": "Snickers Mahsulot \u2116502",
+    "category": "Qandolat",
+    "costPrice": 20200.0,
+    "price": 24900.0,
+    "barcode": "1167989341516",
+    "unit": "dona"
+  },
+  {
+    "name": "Makfa Mahsulot \u2116503",
+    "category": "Oziq-ovqat",
+    "costPrice": 21000.0,
+    "price": 23100.0,
+    "barcode": "0840878349014",
+    "unit": "dona"
+  },
+  {
+    "name": "Buxanka Mahsulot \u2116504",
+    "category": "Non mahsulotlari",
+    "costPrice": 34600.0,
+    "price": 48800.0,
+    "barcode": "5465232798174",
+    "unit": "dona"
+  },
+  {
+    "name": "Deli Mahsulot \u2116505",
+    "category": "Kantselyariya",
+    "costPrice": 24400.0,
+    "price": 33900.0,
+    "barcode": "4152692240610",
+    "unit": "dona"
+  },
+  {
+    "name": "Tide Mahsulot \u2116506",
+    "category": "Maishiy kimyo",
+    "costPrice": 49100.0,
+    "price": 54300.0,
+    "barcode": "1937228311800",
+    "unit": "kg"
+  },
+  {
+    "name": "Ariel Mahsulot \u2116507",
+    "category": "Maishiy kimyo",
+    "costPrice": 22900.0,
+    "price": 28400.0,
+    "barcode": "8993122812210",
+    "unit": "dona"
+  },
+  {
+    "name": "Moya Semya Mahsulot \u2116508",
+    "category": "Oziq-ovqat",
+    "costPrice": 45400.0,
+    "price": 55000.0,
+    "barcode": "7741841565992",
+    "unit": "dona"
+  },
+  {
+    "name": "Fanta Mahsulot \u2116509",
+    "category": "Ichimliklar",
+    "costPrice": 3200.0,
+    "price": 4500.0,
+    "barcode": "9606751620273",
+    "unit": "dona"
+  },
+  {
+    "name": "Persil Mahsulot \u2116510",
+    "category": "Maishiy kimyo",
+    "costPrice": 10400.0,
+    "price": 15100.0,
+    "barcode": "3481619252083",
+    "unit": "dona"
+  },
+  {
+    "name": "Ahmad Tea Mahsulot \u2116511",
+    "category": "Oziq-ovqat",
+    "costPrice": 26400.0,
+    "price": 33900.0,
+    "barcode": "7940476800597",
+    "unit": "dona"
+  },
+  {
+    "name": "Ariel Mahsulot \u2116512",
+    "category": "Maishiy kimyo",
+    "costPrice": 48200.0,
+    "price": 58100.0,
+    "barcode": "3595060181468",
+    "unit": "kg"
+  },
+  {
+    "name": "Moya Semya Mahsulot \u2116513",
+    "category": "Oziq-ovqat",
+    "costPrice": 34900.0,
+    "price": 43400.0,
+    "barcode": "4577100440829",
+    "unit": "dona"
+  },
+  {
+    "name": "Tide Mahsulot \u2116514",
+    "category": "Maishiy kimyo",
+    "costPrice": 17300.0,
+    "price": 24200.0,
+    "barcode": "9715666694085",
+    "unit": "dona"
+  },
+  {
+    "name": "Twix Mahsulot \u2116515",
+    "category": "Qandolat",
+    "costPrice": 39300.0,
+    "price": 54300.0,
+    "barcode": "0494788408024",
+    "unit": "dona"
+  },
+  {
+    "name": "Lactel Mahsulot \u2116516",
+    "category": "Sut mahsulotlari",
+    "costPrice": 27400.0,
+    "price": 40400.0,
+    "barcode": "3904008973213",
+    "unit": "dona"
+  },
+  {
+    "name": "Lochira Mahsulot \u2116517",
+    "category": "Non mahsulotlari",
+    "costPrice": 46300.0,
+    "price": 56000.0,
+    "barcode": "1360995897575",
+    "unit": "dona"
+  },
+  {
+    "name": "Musaffo Mahsulot \u2116518",
+    "category": "Sut mahsulotlari",
+    "costPrice": 5300.0,
+    "price": 7200.0,
+    "barcode": "7981361155644",
+    "unit": "dona"
+  },
+  {
+    "name": "Bio-Sut Mahsulot \u2116519",
+    "category": "Sut mahsulotlari",
+    "costPrice": 16000.0,
+    "price": 20300.0,
+    "barcode": "9782091622271",
+    "unit": "dona"
+  },
+  {
+    "name": "Tide Mahsulot \u2116520",
+    "category": "Maishiy kimyo",
+    "costPrice": 34500.0,
+    "price": 38900.0,
+    "barcode": "2655749704196",
+    "unit": "dona"
+  },
+  {
+    "name": "Deli Mahsulot \u2116521",
+    "category": "Kantselyariya",
+    "costPrice": 32800.0,
+    "price": 47600.0,
+    "barcode": "0433115813744",
+    "unit": "dona"
+  },
+  {
+    "name": "Centropen Mahsulot \u2116522",
+    "category": "Kantselyariya",
+    "costPrice": 11600.0,
+    "price": 17300.0,
+    "barcode": "2640913502913",
+    "unit": "dona"
+  },
+  {
+    "name": "Musaffo Mahsulot \u2116523",
+    "category": "Sut mahsulotlari",
+    "costPrice": 27100.0,
+    "price": 30400.0,
+    "barcode": "3067994792594",
+    "unit": "dona"
+  },
+  {
+    "name": "Kamilka Mahsulot \u2116524",
+    "category": "Sut mahsulotlari",
+    "costPrice": 38100.0,
+    "price": 52000.0,
+    "barcode": "8698277090950",
+    "unit": "dona"
+  },
+  {
+    "name": "Kamilka Mahsulot \u2116525",
+    "category": "Sut mahsulotlari",
+    "costPrice": 22900.0,
+    "price": 28700.0,
+    "barcode": "3825524821536",
+    "unit": "dona"
+  },
+  {
+    "name": "Ariel Mahsulot \u2116526",
+    "category": "Maishiy kimyo",
+    "costPrice": 19700.0,
+    "price": 24200.0,
+    "barcode": "4807594049555",
+    "unit": "dona"
+  },
+  {
+    "name": "Lactel Mahsulot \u2116527",
+    "category": "Sut mahsulotlari",
+    "costPrice": 5600.0,
+    "price": 7000.0,
+    "barcode": "8949954052339",
+    "unit": "dona"
+  },
+  {
+    "name": "Snickers Mahsulot \u2116528",
+    "category": "Qandolat",
+    "costPrice": 31300.0,
+    "price": 41700.0,
+    "barcode": "9227184289072",
+    "unit": "dona"
+  },
+  {
+    "name": "Hydrolife Mahsulot \u2116529",
+    "category": "Ichimliklar",
+    "costPrice": 2100.0,
+    "price": 2400.0,
+    "barcode": "3594847623950",
+    "unit": "dona"
+  },
+  {
+    "name": "Lochira Mahsulot \u2116530",
+    "category": "Non mahsulotlari",
+    "costPrice": 8400.0,
+    "price": 10000.0,
+    "barcode": "6030807933119",
+    "unit": "dona"
+  },
+  {
+    "name": "Ahmad Tea Mahsulot \u2116531",
+    "category": "Oziq-ovqat",
+    "costPrice": 3500.0,
+    "price": 4500.0,
+    "barcode": "4179425093451",
+    "unit": "kg"
+  },
+  {
+    "name": "Ahmad Tea Mahsulot \u2116532",
+    "category": "Oziq-ovqat",
+    "costPrice": 11000.0,
+    "price": 15200.0,
+    "barcode": "0793856934962",
+    "unit": "dona"
+  },
+  {
+    "name": "Coca-Cola Mahsulot \u2116533",
+    "category": "Ichimliklar",
+    "costPrice": 28400.0,
+    "price": 38900.0,
+    "barcode": "9630172993291",
+    "unit": "dona"
+  },
+  {
+    "name": "Bounty Mahsulot \u2116534",
+    "category": "Qandolat",
+    "costPrice": 47100.0,
+    "price": 69600.0,
+    "barcode": "1510758461940",
+    "unit": "dona"
+  },
+  {
+    "name": "ErichKrause Mahsulot \u2116535",
+    "category": "Kantselyariya",
+    "costPrice": 6400.0,
+    "price": 7500.0,
+    "barcode": "4096670409056",
+    "unit": "dona"
+  },
+  {
+    "name": "Bounty Mahsulot \u2116536",
+    "category": "Qandolat",
+    "costPrice": 42600.0,
+    "price": 54900.0,
+    "barcode": "1549240926734",
+    "unit": "dona"
+  },
+  {
+    "name": "Makfa Mahsulot \u2116537",
+    "category": "Oziq-ovqat",
+    "costPrice": 14600.0,
+    "price": 17100.0,
+    "barcode": "9898191627077",
+    "unit": "dona"
+  },
+  {
+    "name": "Domestos Mahsulot \u2116538",
+    "category": "Maishiy kimyo",
+    "costPrice": 38700.0,
+    "price": 49300.0,
+    "barcode": "0435902455278",
+    "unit": "dona"
+  },
+  {
+    "name": "Centropen Mahsulot \u2116539",
+    "category": "Kantselyariya",
+    "costPrice": 32100.0,
+    "price": 37900.0,
+    "barcode": "2764186676145",
+    "unit": "dona"
+  },
+  {
+    "name": "Lochira Mahsulot \u2116540",
+    "category": "Non mahsulotlari",
+    "costPrice": 40800.0,
+    "price": 45100.0,
+    "barcode": "0030477648428",
+    "unit": "dona"
+  },
+  {
+    "name": "Colgate Mahsulot \u2116541",
+    "category": "Maishiy kimyo",
+    "costPrice": 2600.0,
+    "price": 3300.0,
+    "barcode": "9968731932502",
+    "unit": "dona"
+  },
+  {
+    "name": "Kinder Mahsulot \u2116542",
+    "category": "Qandolat",
+    "costPrice": 27400.0,
+    "price": 39300.0,
+    "barcode": "9932978774243",
+    "unit": "dona"
+  },
+  {
+    "name": "Domestos Mahsulot \u2116543",
+    "category": "Maishiy kimyo",
+    "costPrice": 49900.0,
+    "price": 67700.0,
+    "barcode": "6497346282038",
+    "unit": "dona"
+  },
+  {
+    "name": "Twix Mahsulot \u2116544",
+    "category": "Qandolat",
+    "costPrice": 22200.0,
+    "price": 27500.0,
+    "barcode": "5299301113133",
+    "unit": "kg"
+  },
+  {
+    "name": "Buxanka Mahsulot \u2116545",
+    "category": "Non mahsulotlari",
+    "costPrice": 48800.0,
+    "price": 58000.0,
+    "barcode": "1555461273045",
+    "unit": "kg"
+  },
+  {
+    "name": "Makfa Mahsulot \u2116546",
+    "category": "Oziq-ovqat",
+    "costPrice": 38600.0,
+    "price": 49700.0,
+    "barcode": "3478830752702",
+    "unit": "dona"
+  },
+  {
+    "name": "Shebekino Mahsulot \u2116547",
+    "category": "Oziq-ovqat",
+    "costPrice": 41100.0,
+    "price": 57000.0,
+    "barcode": "2530473703325",
+    "unit": "dona"
+  },
+  {
+    "name": "Moya Semya Mahsulot \u2116548",
+    "category": "Oziq-ovqat",
+    "costPrice": 21300.0,
+    "price": 29500.0,
+    "barcode": "8331081234130",
+    "unit": "dona"
+  },
+  {
+    "name": "Persil Mahsulot \u2116549",
+    "category": "Maishiy kimyo",
+    "costPrice": 7900.0,
+    "price": 9000.0,
+    "barcode": "1497129081029",
+    "unit": "dona"
+  },
+  {
+    "name": "Deli Mahsulot \u2116550",
+    "category": "Kantselyariya",
+    "costPrice": 48800.0,
+    "price": 69000.0,
+    "barcode": "6903557956901",
+    "unit": "dona"
+  },
+  {
+    "name": "Shebekino Mahsulot \u2116551",
+    "category": "Oziq-ovqat",
+    "costPrice": 37000.0,
+    "price": 42400.0,
+    "barcode": "8387197111262",
+    "unit": "dona"
+  },
+  {
+    "name": "ErichKrause Mahsulot \u2116552",
+    "category": "Kantselyariya",
+    "costPrice": 35200.0,
+    "price": 40200.0,
+    "barcode": "6593229871471",
+    "unit": "dona"
+  },
+  {
+    "name": "Ahmad Tea Mahsulot \u2116553",
+    "category": "Oziq-ovqat",
+    "costPrice": 24600.0,
+    "price": 29200.0,
+    "barcode": "2023864757401",
+    "unit": "dona"
+  },
+  {
+    "name": "Pepsi Mahsulot \u2116554",
+    "category": "Ichimliklar",
+    "costPrice": 19600.0,
+    "price": 27500.0,
+    "barcode": "3539299936024",
+    "unit": "dona"
+  },
+  {
+    "name": "Bio-Sut Mahsulot \u2116555",
+    "category": "Sut mahsulotlari",
+    "costPrice": 13700.0,
+    "price": 19600.0,
+    "barcode": "7113950101346",
+    "unit": "dona"
+  },
+  {
+    "name": "Patir Mahsulot \u2116556",
+    "category": "Non mahsulotlari",
+    "costPrice": 8500.0,
+    "price": 11200.0,
+    "barcode": "1174951603625",
+    "unit": "dona"
+  },
+  {
+    "name": "Colgate Mahsulot \u2116557",
+    "category": "Maishiy kimyo",
+    "costPrice": 7700.0,
+    "price": 8500.0,
+    "barcode": "4554766891912",
+    "unit": "dona"
+  },
+  {
+    "name": "Coca-Cola Mahsulot \u2116558",
+    "category": "Ichimliklar",
+    "costPrice": 46300.0,
+    "price": 53100.0,
+    "barcode": "2552148612513",
+    "unit": "dona"
+  },
+  {
+    "name": "Lochira Mahsulot \u2116559",
+    "category": "Non mahsulotlari",
+    "costPrice": 16900.0,
+    "price": 23200.0,
+    "barcode": "7613255110464",
+    "unit": "kg"
+  },
+  {
+    "name": "Persil Mahsulot \u2116560",
+    "category": "Maishiy kimyo",
+    "costPrice": 43800.0,
+    "price": 64400.0,
+    "barcode": "2964257221360",
+    "unit": "dona"
+  },
+  {
+    "name": "Patir Mahsulot \u2116561",
+    "category": "Non mahsulotlari",
+    "costPrice": 16000.0,
+    "price": 21800.0,
+    "barcode": "0770437127802",
+    "unit": "kg"
+  },
+  {
+    "name": "Bio-Sut Mahsulot \u2116562",
+    "category": "Sut mahsulotlari",
+    "costPrice": 24800.0,
+    "price": 29500.0,
+    "barcode": "9514604763998",
+    "unit": "dona"
+  },
+  {
+    "name": "Coca-Cola Mahsulot \u2116563",
+    "category": "Ichimliklar",
+    "costPrice": 28700.0,
+    "price": 38100.0,
+    "barcode": "6528138193274",
+    "unit": "dona"
+  },
+  {
+    "name": "Musaffo Mahsulot \u2116564",
+    "category": "Sut mahsulotlari",
+    "costPrice": 10300.0,
+    "price": 13600.0,
+    "barcode": "2623819416887",
+    "unit": "dona"
+  },
+  {
+    "name": "Buxanka Mahsulot \u2116565",
+    "category": "Non mahsulotlari",
+    "costPrice": 30400.0,
+    "price": 41900.0,
+    "barcode": "4571462129108",
+    "unit": "dona"
+  },
+  {
+    "name": "Coca-Cola Mahsulot \u2116566",
+    "category": "Ichimliklar",
+    "costPrice": 32300.0,
+    "price": 38000.0,
+    "barcode": "6710589520172",
+    "unit": "dona"
+  },
+  {
+    "name": "Twix Mahsulot \u2116567",
+    "category": "Qandolat",
+    "costPrice": 28100.0,
+    "price": 40700.0,
+    "barcode": "5726373502345",
+    "unit": "dona"
+  },
+  {
+    "name": "Siyom Mahsulot \u2116568",
+    "category": "Oziq-ovqat",
+    "costPrice": 1500.0,
+    "price": 1700.0,
+    "barcode": "9896676146822",
+    "unit": "dona"
+  },
+  {
+    "name": "Patir Mahsulot \u2116569",
+    "category": "Non mahsulotlari",
+    "costPrice": 8400.0,
+    "price": 10600.0,
+    "barcode": "1329508142229",
+    "unit": "dona"
+  },
+  {
+    "name": "Buxanka Mahsulot \u2116570",
+    "category": "Non mahsulotlari",
+    "costPrice": 44800.0,
+    "price": 64600.0,
+    "barcode": "0221112792152",
+    "unit": "dona"
+  },
+  {
+    "name": "Siyom Mahsulot \u2116571",
+    "category": "Oziq-ovqat",
+    "costPrice": 29500.0,
+    "price": 42600.0,
+    "barcode": "9067803208574",
+    "unit": "dona"
+  },
+  {
+    "name": "Centropen Mahsulot \u2116572",
+    "category": "Kantselyariya",
+    "costPrice": 6300.0,
+    "price": 7400.0,
+    "barcode": "7366135542079",
+    "unit": "kg"
+  },
+  {
+    "name": "Kinder Mahsulot \u2116573",
+    "category": "Qandolat",
+    "costPrice": 8700.0,
+    "price": 11000.0,
+    "barcode": "5913179702646",
+    "unit": "dona"
+  },
+  {
+    "name": "Ariel Mahsulot \u2116574",
+    "category": "Maishiy kimyo",
+    "costPrice": 16900.0,
+    "price": 21500.0,
+    "barcode": "5054177068422",
+    "unit": "dona"
+  },
+  {
+    "name": "Moya Semya Mahsulot \u2116575",
+    "category": "Oziq-ovqat",
+    "costPrice": 13200.0,
+    "price": 17900.0,
+    "barcode": "4740531050349",
+    "unit": "dona"
+  },
+  {
+    "name": "Ahmad Tea Mahsulot \u2116576",
+    "category": "Oziq-ovqat",
+    "costPrice": 2000.0,
+    "price": 2500.0,
+    "barcode": "2175282093535",
+    "unit": "kg"
+  },
+  {
+    "name": "Bio-Sut Mahsulot \u2116577",
+    "category": "Sut mahsulotlari",
+    "costPrice": 40400.0,
+    "price": 44600.0,
+    "barcode": "5356222499561",
+    "unit": "dona"
+  },
+  {
+    "name": "Tide Mahsulot \u2116578",
+    "category": "Maishiy kimyo",
+    "costPrice": 38000.0,
+    "price": 47300.0,
+    "barcode": "8855930383355",
+    "unit": "kg"
+  },
+  {
+    "name": "Kinder Mahsulot \u2116579",
+    "category": "Qandolat",
+    "costPrice": 13800.0,
+    "price": 16900.0,
+    "barcode": "2112835205902",
+    "unit": "dona"
+  },
+  {
+    "name": "Persil Mahsulot \u2116580",
+    "category": "Maishiy kimyo",
+    "costPrice": 44600.0,
+    "price": 64100.0,
+    "barcode": "6003340747980",
+    "unit": "dona"
+  },
+  {
+    "name": "ErichKrause Mahsulot \u2116581",
+    "category": "Kantselyariya",
+    "costPrice": 29600.0,
+    "price": 38300.0,
+    "barcode": "6873801506764",
+    "unit": "kg"
+  },
+  {
+    "name": "Makfa Mahsulot \u2116582",
+    "category": "Oziq-ovqat",
+    "costPrice": 49500.0,
+    "price": 65100.0,
+    "barcode": "6096134823396",
+    "unit": "dona"
+  },
+  {
+    "name": "Deli Mahsulot \u2116583",
+    "category": "Kantselyariya",
+    "costPrice": 27700.0,
+    "price": 30900.0,
+    "barcode": "6146748902687",
+    "unit": "dona"
+  },
+  {
+    "name": "Siyom Mahsulot \u2116584",
+    "category": "Oziq-ovqat",
+    "costPrice": 43300.0,
+    "price": 49100.0,
+    "barcode": "6482533033185",
+    "unit": "dona"
+  },
+  {
+    "name": "Centropen Mahsulot \u2116585",
+    "category": "Kantselyariya",
+    "costPrice": 17100.0,
+    "price": 21400.0,
+    "barcode": "3579814919577",
+    "unit": "dona"
+  },
+  {
+    "name": "ErichKrause Mahsulot \u2116586",
+    "category": "Kantselyariya",
+    "costPrice": 11800.0,
+    "price": 15600.0,
+    "barcode": "7990453493740",
+    "unit": "dona"
+  },
+  {
+    "name": "Siyom Mahsulot \u2116587",
+    "category": "Oziq-ovqat",
+    "costPrice": 32400.0,
+    "price": 43500.0,
+    "barcode": "6035046640324",
+    "unit": "dona"
+  },
+  {
+    "name": "Bio-Sut Mahsulot \u2116588",
+    "category": "Sut mahsulotlari",
+    "costPrice": 20600.0,
+    "price": 22800.0,
+    "barcode": "3870651353252",
+    "unit": "dona"
+  },
+  {
+    "name": "Fairy Mahsulot \u2116589",
+    "category": "Maishiy kimyo",
+    "costPrice": 31900.0,
+    "price": 42600.0,
+    "barcode": "5245584020498",
+    "unit": "dona"
+  },
+  {
+    "name": "Makfa Mahsulot \u2116590",
+    "category": "Oziq-ovqat",
+    "costPrice": 41000.0,
+    "price": 60300.0,
+    "barcode": "3373873286216",
+    "unit": "dona"
+  },
+  {
+    "name": "Persil Mahsulot \u2116591",
+    "category": "Maishiy kimyo",
+    "costPrice": 24800.0,
+    "price": 30400.0,
+    "barcode": "4063954903698",
+    "unit": "dona"
+  },
+  {
+    "name": "Fairy Mahsulot \u2116592",
+    "category": "Maishiy kimyo",
+    "costPrice": 22600.0,
+    "price": 26300.0,
+    "barcode": "1089747427647",
+    "unit": "dona"
+  },
+  {
+    "name": "Fanta Mahsulot \u2116593",
+    "category": "Ichimliklar",
+    "costPrice": 40700.0,
+    "price": 53700.0,
+    "barcode": "2875255720371",
+    "unit": "dona"
+  },
+  {
+    "name": "Makfa Mahsulot \u2116594",
+    "category": "Oziq-ovqat",
+    "costPrice": 24200.0,
+    "price": 27300.0,
+    "barcode": "1595778972522",
+    "unit": "dona"
+  },
+  {
+    "name": "Centropen Mahsulot \u2116595",
+    "category": "Kantselyariya",
+    "costPrice": 39800.0,
+    "price": 51200.0,
+    "barcode": "1865656236834",
+    "unit": "dona"
+  },
+  {
+    "name": "Colgate Mahsulot \u2116596",
+    "category": "Maishiy kimyo",
+    "costPrice": 42800.0,
+    "price": 51800.0,
+    "barcode": "4719680675306",
+    "unit": "dona"
+  },
+  {
+    "name": "Dinay Mahsulot \u2116597",
+    "category": "Ichimliklar",
+    "costPrice": 3400.0,
+    "price": 3800.0,
+    "barcode": "5327050692311",
+    "unit": "dona"
+  },
+  {
+    "name": "Patir Mahsulot \u2116598",
+    "category": "Non mahsulotlari",
+    "costPrice": 6600.0,
+    "price": 8400.0,
+    "barcode": "4156764471929",
+    "unit": "dona"
+  },
+  {
+    "name": "ErichKrause Mahsulot \u2116599",
+    "category": "Kantselyariya",
+    "costPrice": 20400.0,
+    "price": 26400.0,
+    "barcode": "6100141591669",
+    "unit": "dona"
+  },
+  {
+    "name": "Bio-Sut Mahsulot \u2116600",
+    "category": "Sut mahsulotlari",
+    "costPrice": 2100.0,
+    "price": 2500.0,
+    "barcode": "1128448549843",
+    "unit": "dona"
+  },
+  {
+    "name": "ErichKrause Mahsulot \u2116601",
+    "category": "Kantselyariya",
+    "costPrice": 47100.0,
+    "price": 59400.0,
+    "barcode": "2520696460603",
+    "unit": "dona"
+  },
+  {
+    "name": "Hydrolife Mahsulot \u2116602",
+    "category": "Ichimliklar",
+    "costPrice": 31400.0,
+    "price": 35500.0,
+    "barcode": "2021004613116",
+    "unit": "kg"
+  },
+  {
+    "name": "Lactel Mahsulot \u2116603",
+    "category": "Sut mahsulotlari",
+    "costPrice": 26400.0,
+    "price": 39300.0,
+    "barcode": "3686605447977",
+    "unit": "dona"
+  },
+  {
+    "name": "Persil Mahsulot \u2116604",
+    "category": "Maishiy kimyo",
+    "costPrice": 28700.0,
+    "price": 40200.0,
+    "barcode": "5438546921781",
+    "unit": "dona"
+  },
+  {
+    "name": "Colgate Mahsulot \u2116605",
+    "category": "Maishiy kimyo",
+    "costPrice": 23400.0,
+    "price": 32200.0,
+    "barcode": "8234364537478",
+    "unit": "dona"
+  },
+  {
+    "name": "Persil Mahsulot \u2116606",
+    "category": "Maishiy kimyo",
+    "costPrice": 9300.0,
+    "price": 10600.0,
+    "barcode": "3065466576194",
+    "unit": "dona"
+  },
+  {
+    "name": "Centropen Mahsulot \u2116607",
+    "category": "Kantselyariya",
+    "costPrice": 28000.0,
+    "price": 39000.0,
+    "barcode": "0168562263527",
+    "unit": "dona"
+  },
+  {
+    "name": "Deli Mahsulot \u2116608",
+    "category": "Kantselyariya",
+    "costPrice": 21100.0,
+    "price": 27800.0,
+    "barcode": "3241802133936",
+    "unit": "kg"
+  },
+  {
+    "name": "Kamilka Mahsulot \u2116609",
+    "category": "Sut mahsulotlari",
+    "costPrice": 13900.0,
+    "price": 16000.0,
+    "barcode": "1944469742082",
+    "unit": "dona"
+  },
+  {
+    "name": "Ariel Mahsulot \u2116610",
+    "category": "Maishiy kimyo",
+    "costPrice": 17600.0,
+    "price": 20700.0,
+    "barcode": "0111209352769",
+    "unit": "dona"
+  },
+  {
+    "name": "Bounty Mahsulot \u2116611",
+    "category": "Qandolat",
+    "costPrice": 20500.0,
+    "price": 26500.0,
+    "barcode": "3599405142571",
+    "unit": "dona"
+  },
+  {
+    "name": "Dinay Mahsulot \u2116612",
+    "category": "Ichimliklar",
+    "costPrice": 42700.0,
+    "price": 62100.0,
+    "barcode": "7891081182588",
+    "unit": "dona"
+  },
+  {
+    "name": "Domestos Mahsulot \u2116613",
+    "category": "Maishiy kimyo",
+    "costPrice": 38800.0,
+    "price": 57900.0,
+    "barcode": "2105747123519",
+    "unit": "kg"
+  },
+  {
+    "name": "Kinder Mahsulot \u2116614",
+    "category": "Qandolat",
+    "costPrice": 36400.0,
+    "price": 43700.0,
+    "barcode": "3603079929193",
+    "unit": "dona"
+  },
+  {
+    "name": "Snickers Mahsulot \u2116615",
+    "category": "Qandolat",
+    "costPrice": 28000.0,
+    "price": 39400.0,
+    "barcode": "7756282255625",
+    "unit": "dona"
+  },
+  {
+    "name": "ErichKrause Mahsulot \u2116616",
+    "category": "Kantselyariya",
+    "costPrice": 16300.0,
+    "price": 24100.0,
+    "barcode": "0344782065887",
+    "unit": "kg"
+  },
+  {
+    "name": "Bounty Mahsulot \u2116617",
+    "category": "Qandolat",
+    "costPrice": 37500.0,
+    "price": 44900.0,
+    "barcode": "6100962275991",
+    "unit": "dona"
+  },
+  {
+    "name": "Lochira Mahsulot \u2116618",
+    "category": "Non mahsulotlari",
+    "costPrice": 37300.0,
+    "price": 47800.0,
+    "barcode": "1035776386382",
+    "unit": "dona"
+  },
+  {
+    "name": "Shebekino Mahsulot \u2116619",
+    "category": "Oziq-ovqat",
+    "costPrice": 9600.0,
+    "price": 11400.0,
+    "barcode": "2406613988857",
+    "unit": "dona"
+  },
+  {
+    "name": "Moya Semya Mahsulot \u2116620",
+    "category": "Oziq-ovqat",
+    "costPrice": 3400.0,
+    "price": 3800.0,
+    "barcode": "0664234836093",
+    "unit": "dona"
+  },
+  {
+    "name": "Siyom Mahsulot \u2116621",
+    "category": "Oziq-ovqat",
+    "costPrice": 41500.0,
+    "price": 58500.0,
+    "barcode": "6606641678402",
+    "unit": "kg"
+  },
+  {
+    "name": "Hydrolife Mahsulot \u2116622",
+    "category": "Ichimliklar",
+    "costPrice": 41600.0,
+    "price": 61100.0,
+    "barcode": "1770712217743",
+    "unit": "dona"
+  },
+  {
+    "name": "Patir Mahsulot \u2116623",
+    "category": "Non mahsulotlari",
+    "costPrice": 40200.0,
+    "price": 48300.0,
+    "barcode": "1355553603526",
+    "unit": "kg"
+  },
+  {
+    "name": "Lactel Mahsulot \u2116624",
+    "category": "Sut mahsulotlari",
+    "costPrice": 34500.0,
+    "price": 46200.0,
+    "barcode": "9811301032414",
+    "unit": "dona"
+  },
+  {
+    "name": "Pepsi Mahsulot \u2116625",
+    "category": "Ichimliklar",
+    "costPrice": 42900.0,
+    "price": 53600.0,
+    "barcode": "6032054099149",
+    "unit": "dona"
+  },
+  {
+    "name": "Lactel Mahsulot \u2116626",
+    "category": "Sut mahsulotlari",
+    "costPrice": 34000.0,
+    "price": 43100.0,
+    "barcode": "1154630719365",
+    "unit": "dona"
+  },
+  {
+    "name": "Buxanka Mahsulot \u2116627",
+    "category": "Non mahsulotlari",
+    "costPrice": 22700.0,
+    "price": 33900.0,
+    "barcode": "0470755906968",
+    "unit": "dona"
+  },
+  {
+    "name": "Mars Mahsulot \u2116628",
+    "category": "Qandolat",
+    "costPrice": 1500.0,
+    "price": 1600.0,
+    "barcode": "3827409466436",
+    "unit": "dona"
+  },
+  {
+    "name": "Lochira Mahsulot \u2116629",
+    "category": "Non mahsulotlari",
+    "costPrice": 29600.0,
+    "price": 43800.0,
+    "barcode": "3460576655509",
+    "unit": "dona"
+  },
+  {
+    "name": "ErichKrause Mahsulot \u2116630",
+    "category": "Kantselyariya",
+    "costPrice": 32500.0,
+    "price": 39900.0,
+    "barcode": "5888546467147",
+    "unit": "dona"
+  },
+  {
+    "name": "Fanta Mahsulot \u2116631",
+    "category": "Ichimliklar",
+    "costPrice": 2900.0,
+    "price": 3800.0,
+    "barcode": "9715480700285",
+    "unit": "dona"
+  },
+  {
+    "name": "Makfa Mahsulot \u2116632",
+    "category": "Oziq-ovqat",
+    "costPrice": 11000.0,
+    "price": 12400.0,
+    "barcode": "8059966716846",
+    "unit": "kg"
+  },
+  {
+    "name": "Shebekino Mahsulot \u2116633",
+    "category": "Oziq-ovqat",
+    "costPrice": 11500.0,
+    "price": 16500.0,
+    "barcode": "1028323934985",
+    "unit": "dona"
+  },
+  {
+    "name": "Coca-Cola Mahsulot \u2116634",
+    "category": "Ichimliklar",
+    "costPrice": 23600.0,
+    "price": 28800.0,
+    "barcode": "1436882926972",
+    "unit": "kg"
+  },
+  {
+    "name": "Pepsi Mahsulot \u2116635",
+    "category": "Ichimliklar",
+    "costPrice": 21700.0,
+    "price": 30700.0,
+    "barcode": "6959741987917",
+    "unit": "dona"
+  },
+  {
+    "name": "Siyom Mahsulot \u2116636",
+    "category": "Oziq-ovqat",
+    "costPrice": 4000.0,
+    "price": 5500.0,
+    "barcode": "1244648934274",
+    "unit": "kg"
+  },
+  {
+    "name": "Moya Semya Mahsulot \u2116637",
+    "category": "Oziq-ovqat",
+    "costPrice": 4600.0,
+    "price": 6500.0,
+    "barcode": "6283116768243",
+    "unit": "dona"
+  },
+  {
+    "name": "Coca-Cola Mahsulot \u2116638",
+    "category": "Ichimliklar",
+    "costPrice": 20300.0,
+    "price": 25500.0,
+    "barcode": "4323903492822",
+    "unit": "dona"
+  },
+  {
+    "name": "Persil Mahsulot \u2116639",
+    "category": "Maishiy kimyo",
+    "costPrice": 13700.0,
+    "price": 19300.0,
+    "barcode": "8312547464657",
+    "unit": "dona"
+  },
+  {
+    "name": "Tide Mahsulot \u2116640",
+    "category": "Maishiy kimyo",
+    "costPrice": 16800.0,
+    "price": 25100.0,
+    "barcode": "2274378155666",
+    "unit": "dona"
+  },
+  {
+    "name": "Shebekino Mahsulot \u2116641",
+    "category": "Oziq-ovqat",
+    "costPrice": 4600.0,
+    "price": 5300.0,
+    "barcode": "1136197592491",
+    "unit": "dona"
+  },
+  {
+    "name": "Patir Mahsulot \u2116642",
+    "category": "Non mahsulotlari",
+    "costPrice": 44500.0,
+    "price": 57600.0,
+    "barcode": "9752784473815",
+    "unit": "dona"
+  },
+  {
+    "name": "Buxanka Mahsulot \u2116643",
+    "category": "Non mahsulotlari",
+    "costPrice": 28000.0,
+    "price": 32600.0,
+    "barcode": "9268362284441",
+    "unit": "dona"
+  },
+  {
+    "name": "Moya Semya Mahsulot \u2116644",
+    "category": "Oziq-ovqat",
+    "costPrice": 7400.0,
+    "price": 9700.0,
+    "barcode": "4830943294542",
+    "unit": "dona"
+  },
+  {
+    "name": "Alpen Gold Mahsulot \u2116645",
+    "category": "Qandolat",
+    "costPrice": 49000.0,
+    "price": 71400.0,
+    "barcode": "9927974272090",
+    "unit": "dona"
+  },
+  {
+    "name": "Hydrolife Mahsulot \u2116646",
+    "category": "Ichimliklar",
+    "costPrice": 8400.0,
+    "price": 9800.0,
+    "barcode": "6536914911282",
+    "unit": "dona"
+  },
+  {
+    "name": "ErichKrause Mahsulot \u2116647",
+    "category": "Kantselyariya",
+    "costPrice": 6700.0,
+    "price": 7300.0,
+    "barcode": "2186296223142",
+    "unit": "dona"
+  },
+  {
+    "name": "Snickers Mahsulot \u2116648",
+    "category": "Qandolat",
+    "costPrice": 18000.0,
+    "price": 24600.0,
+    "barcode": "8078958346599",
+    "unit": "dona"
+  },
+  {
+    "name": "Buxanka Mahsulot \u2116649",
+    "category": "Non mahsulotlari",
+    "costPrice": 10200.0,
+    "price": 11400.0,
+    "barcode": "5143255884086",
+    "unit": "dona"
+  },
+  {
+    "name": "Colgate Mahsulot \u2116650",
+    "category": "Maishiy kimyo",
+    "costPrice": 45800.0,
+    "price": 55300.0,
+    "barcode": "8911224688061",
+    "unit": "kg"
+  },
+  {
+    "name": "Pepsi Mahsulot \u2116651",
+    "category": "Ichimliklar",
+    "costPrice": 42400.0,
+    "price": 56100.0,
+    "barcode": "8943412552660",
+    "unit": "kg"
+  },
+  {
+    "name": "Bounty Mahsulot \u2116652",
+    "category": "Qandolat",
+    "costPrice": 34300.0,
+    "price": 44400.0,
+    "barcode": "7492144066095",
+    "unit": "dona"
+  },
+  {
+    "name": "Centropen Mahsulot \u2116653",
+    "category": "Kantselyariya",
+    "costPrice": 15400.0,
+    "price": 19500.0,
+    "barcode": "7173154251024",
+    "unit": "kg"
+  },
+  {
+    "name": "Buxanka Mahsulot \u2116654",
+    "category": "Non mahsulotlari",
+    "costPrice": 23200.0,
+    "price": 33700.0,
+    "barcode": "1341907506585",
+    "unit": "dona"
+  },
+  {
+    "name": "Lochira Mahsulot \u2116655",
+    "category": "Non mahsulotlari",
+    "costPrice": 35200.0,
+    "price": 48700.0,
+    "barcode": "9389400905084",
+    "unit": "kg"
+  },
+  {
+    "name": "ErichKrause Mahsulot \u2116656",
+    "category": "Kantselyariya",
+    "costPrice": 26500.0,
+    "price": 32600.0,
+    "barcode": "9263836767266",
+    "unit": "dona"
+  },
+  {
+    "name": "Fairy Mahsulot \u2116657",
+    "category": "Maishiy kimyo",
+    "costPrice": 27000.0,
+    "price": 35800.0,
+    "barcode": "4129437709079",
+    "unit": "dona"
+  },
+  {
+    "name": "Moya Semya Mahsulot \u2116658",
+    "category": "Oziq-ovqat",
+    "costPrice": 16900.0,
+    "price": 22000.0,
+    "barcode": "2311737964870",
+    "unit": "dona"
+  },
+  {
+    "name": "Ahmad Tea Mahsulot \u2116659",
+    "category": "Oziq-ovqat",
+    "costPrice": 47100.0,
+    "price": 54100.0,
+    "barcode": "7922632641763",
+    "unit": "dona"
+  },
+  {
+    "name": "Lochira Mahsulot \u2116660",
+    "category": "Non mahsulotlari",
+    "costPrice": 45700.0,
+    "price": 61000.0,
+    "barcode": "6354722900684",
+    "unit": "dona"
+  },
+  {
+    "name": "Ahmad Tea Mahsulot \u2116661",
+    "category": "Oziq-ovqat",
+    "costPrice": 27300.0,
+    "price": 33800.0,
+    "barcode": "8217873413579",
+    "unit": "dona"
+  },
+  {
+    "name": "Kinder Mahsulot \u2116662",
+    "category": "Qandolat",
+    "costPrice": 39900.0,
+    "price": 44100.0,
+    "barcode": "7356076292746",
+    "unit": "dona"
+  },
+  {
+    "name": "Patir Mahsulot \u2116663",
+    "category": "Non mahsulotlari",
+    "costPrice": 17900.0,
+    "price": 26700.0,
+    "barcode": "2999555223480",
+    "unit": "dona"
+  },
+  {
+    "name": "Pepsi Mahsulot \u2116664",
+    "category": "Ichimliklar",
+    "costPrice": 18300.0,
+    "price": 23500.0,
+    "barcode": "3061996869276",
+    "unit": "dona"
+  },
+  {
+    "name": "Bio-Sut Mahsulot \u2116665",
+    "category": "Sut mahsulotlari",
+    "costPrice": 27300.0,
+    "price": 37600.0,
+    "barcode": "3336265840353",
+    "unit": "dona"
+  },
+  {
+    "name": "Centropen Mahsulot \u2116666",
+    "category": "Kantselyariya",
+    "costPrice": 16000.0,
+    "price": 19700.0,
+    "barcode": "5700620170544",
+    "unit": "dona"
+  },
+  {
+    "name": "Siyom Mahsulot \u2116667",
+    "category": "Oziq-ovqat",
+    "costPrice": 40500.0,
+    "price": 58100.0,
+    "barcode": "0680200685539",
+    "unit": "dona"
+  },
+  {
+    "name": "Domestos Mahsulot \u2116668",
+    "category": "Maishiy kimyo",
+    "costPrice": 11500.0,
+    "price": 13200.0,
+    "barcode": "2009853061328",
+    "unit": "dona"
+  },
+  {
+    "name": "Buxanka Mahsulot \u2116669",
+    "category": "Non mahsulotlari",
+    "costPrice": 7700.0,
+    "price": 10700.0,
+    "barcode": "9915021900009",
+    "unit": "dona"
+  },
+  {
+    "name": "Pepsi Mahsulot \u2116670",
+    "category": "Ichimliklar",
+    "costPrice": 45300.0,
+    "price": 50800.0,
+    "barcode": "1097997248904",
+    "unit": "dona"
+  },
+  {
+    "name": "Deli Mahsulot \u2116671",
+    "category": "Kantselyariya",
+    "costPrice": 40300.0,
+    "price": 53100.0,
+    "barcode": "6044328942259",
+    "unit": "dona"
+  },
+  {
+    "name": "ErichKrause Mahsulot \u2116672",
+    "category": "Kantselyariya",
+    "costPrice": 32400.0,
+    "price": 46300.0,
+    "barcode": "5732639881934",
+    "unit": "dona"
+  },
+  {
+    "name": "Makfa Mahsulot \u2116673",
+    "category": "Oziq-ovqat",
+    "costPrice": 39200.0,
+    "price": 48800.0,
+    "barcode": "3095782808352",
+    "unit": "dona"
+  },
+  {
+    "name": "Musaffo Mahsulot \u2116674",
+    "category": "Sut mahsulotlari",
+    "costPrice": 8400.0,
+    "price": 10300.0,
+    "barcode": "9942440757932",
+    "unit": "dona"
+  },
+  {
+    "name": "Hydrolife Mahsulot \u2116675",
+    "category": "Ichimliklar",
+    "costPrice": 45700.0,
+    "price": 53300.0,
+    "barcode": "9127837361946",
+    "unit": "dona"
+  },
+  {
+    "name": "Dinay Mahsulot \u2116676",
+    "category": "Ichimliklar",
+    "costPrice": 5200.0,
+    "price": 7300.0,
+    "barcode": "6053370445631",
+    "unit": "kg"
+  },
+  {
+    "name": "Lactel Mahsulot \u2116677",
+    "category": "Sut mahsulotlari",
+    "costPrice": 25200.0,
+    "price": 31200.0,
+    "barcode": "6899873777799",
+    "unit": "dona"
+  },
+  {
+    "name": "Shebekino Mahsulot \u2116678",
+    "category": "Oziq-ovqat",
+    "costPrice": 6100.0,
+    "price": 8300.0,
+    "barcode": "8780216336841",
+    "unit": "dona"
+  },
+  {
+    "name": "Deli Mahsulot \u2116679",
+    "category": "Kantselyariya",
+    "costPrice": 6300.0,
+    "price": 7400.0,
+    "barcode": "2320995489854",
+    "unit": "dona"
+  },
+  {
+    "name": "Makfa Mahsulot \u2116680",
+    "category": "Oziq-ovqat",
+    "costPrice": 16500.0,
+    "price": 24300.0,
+    "barcode": "0308542346059",
+    "unit": "dona"
+  },
+  {
+    "name": "Patir Mahsulot \u2116681",
+    "category": "Non mahsulotlari",
+    "costPrice": 35400.0,
+    "price": 44900.0,
+    "barcode": "3868473333246",
+    "unit": "dona"
+  },
+  {
+    "name": "Deli Mahsulot \u2116682",
+    "category": "Kantselyariya",
+    "costPrice": 8200.0,
+    "price": 11900.0,
+    "barcode": "9048172469992",
+    "unit": "dona"
+  },
+  {
+    "name": "ErichKrause Mahsulot \u2116683",
+    "category": "Kantselyariya",
+    "costPrice": 36800.0,
+    "price": 50100.0,
+    "barcode": "8645939363748",
+    "unit": "dona"
+  },
+  {
+    "name": "Coca-Cola Mahsulot \u2116684",
+    "category": "Ichimliklar",
+    "costPrice": 20300.0,
+    "price": 28100.0,
+    "barcode": "4069546814340",
+    "unit": "dona"
+  },
+  {
+    "name": "Ariel Mahsulot \u2116685",
+    "category": "Maishiy kimyo",
+    "costPrice": 32700.0,
+    "price": 48100.0,
+    "barcode": "7225340659152",
+    "unit": "dona"
+  },
+  {
+    "name": "Bounty Mahsulot \u2116686",
+    "category": "Qandolat",
+    "costPrice": 32500.0,
+    "price": 44000.0,
+    "barcode": "1958971727319",
+    "unit": "dona"
+  },
+  {
+    "name": "Snickers Mahsulot \u2116687",
+    "category": "Qandolat",
+    "costPrice": 10700.0,
+    "price": 15900.0,
+    "barcode": "5427858099001",
+    "unit": "dona"
+  },
+  {
+    "name": "Centropen Mahsulot \u2116688",
+    "category": "Kantselyariya",
+    "costPrice": 29300.0,
+    "price": 42700.0,
+    "barcode": "1126487518504",
+    "unit": "dona"
+  },
+  {
+    "name": "Buxanka Mahsulot \u2116689",
+    "category": "Non mahsulotlari",
+    "costPrice": 2200.0,
+    "price": 2600.0,
+    "barcode": "9738701612784",
+    "unit": "dona"
+  },
+  {
+    "name": "Fanta Mahsulot \u2116690",
+    "category": "Ichimliklar",
+    "costPrice": 6300.0,
+    "price": 7300.0,
+    "barcode": "6213335507802",
+    "unit": "dona"
+  },
+  {
+    "name": "Buxanka Mahsulot \u2116691",
+    "category": "Non mahsulotlari",
+    "costPrice": 31300.0,
+    "price": 38100.0,
+    "barcode": "1461034888731",
+    "unit": "dona"
+  },
+  {
+    "name": "Snickers Mahsulot \u2116692",
+    "category": "Qandolat",
+    "costPrice": 26700.0,
+    "price": 39300.0,
+    "barcode": "4363379319668",
+    "unit": "dona"
+  },
+  {
+    "name": "Lactel Mahsulot \u2116693",
+    "category": "Sut mahsulotlari",
+    "costPrice": 21400.0,
+    "price": 31600.0,
+    "barcode": "1479109312748",
+    "unit": "dona"
+  },
+  {
+    "name": "Kamilka Mahsulot \u2116694",
+    "category": "Sut mahsulotlari",
+    "costPrice": 19200.0,
+    "price": 21200.0,
+    "barcode": "2418738850301",
+    "unit": "dona"
+  },
+  {
+    "name": "Persil Mahsulot \u2116695",
+    "category": "Maishiy kimyo",
+    "costPrice": 16600.0,
+    "price": 23000.0,
+    "barcode": "4529247146372",
+    "unit": "dona"
+  },
+  {
+    "name": "Centropen Mahsulot \u2116696",
+    "category": "Kantselyariya",
+    "costPrice": 37800.0,
+    "price": 45400.0,
+    "barcode": "8964365568539",
+    "unit": "dona"
+  },
+  {
+    "name": "Centropen Mahsulot \u2116697",
+    "category": "Kantselyariya",
+    "costPrice": 42200.0,
+    "price": 60200.0,
+    "barcode": "4194786546219",
+    "unit": "kg"
+  },
+  {
+    "name": "Dinay Mahsulot \u2116698",
+    "category": "Ichimliklar",
+    "costPrice": 5200.0,
+    "price": 6500.0,
+    "barcode": "3923735540411",
+    "unit": "dona"
+  },
+  {
+    "name": "Bio-Sut Mahsulot \u2116699",
+    "category": "Sut mahsulotlari",
+    "costPrice": 27200.0,
+    "price": 40400.0,
+    "barcode": "1542860390657",
+    "unit": "dona"
+  },
+  {
+    "name": "Fanta Mahsulot \u2116700",
+    "category": "Ichimliklar",
+    "costPrice": 28500.0,
+    "price": 40900.0,
+    "barcode": "7527869004067",
+    "unit": "kg"
+  },
+  {
+    "name": "Dinay Mahsulot \u2116701",
+    "category": "Ichimliklar",
+    "costPrice": 38900.0,
+    "price": 45900.0,
+    "barcode": "0000778736382",
+    "unit": "dona"
+  },
+  {
+    "name": "Dinay Mahsulot \u2116702",
+    "category": "Ichimliklar",
+    "costPrice": 15900.0,
+    "price": 19500.0,
+    "barcode": "1566531443084",
+    "unit": "dona"
+  },
+  {
+    "name": "Sprite Mahsulot \u2116703",
+    "category": "Ichimliklar",
+    "costPrice": 20600.0,
+    "price": 24800.0,
+    "barcode": "1802242043364",
+    "unit": "kg"
+  },
+  {
+    "name": "Musaffo Mahsulot \u2116704",
+    "category": "Sut mahsulotlari",
+    "costPrice": 25500.0,
+    "price": 35500.0,
+    "barcode": "6574481715417",
+    "unit": "dona"
+  },
+  {
+    "name": "Alpen Gold Mahsulot \u2116705",
+    "category": "Qandolat",
+    "costPrice": 41100.0,
+    "price": 51100.0,
+    "barcode": "9974716396958",
+    "unit": "dona"
+  },
+  {
+    "name": "Buxanka Mahsulot \u2116706",
+    "category": "Non mahsulotlari",
+    "costPrice": 23900.0,
+    "price": 34500.0,
+    "barcode": "9633802213366",
+    "unit": "dona"
+  },
+  {
+    "name": "Tide Mahsulot \u2116707",
+    "category": "Maishiy kimyo",
+    "costPrice": 8500.0,
+    "price": 11200.0,
+    "barcode": "1595551945141",
+    "unit": "kg"
+  },
+  {
+    "name": "Deli Mahsulot \u2116708",
+    "category": "Kantselyariya",
+    "costPrice": 14800.0,
+    "price": 17800.0,
+    "barcode": "6795409278806",
+    "unit": "kg"
+  },
+  {
+    "name": "Siyom Mahsulot \u2116709",
+    "category": "Oziq-ovqat",
+    "costPrice": 27600.0,
+    "price": 31700.0,
+    "barcode": "7140984031270",
+    "unit": "dona"
+  },
+  {
+    "name": "Centropen Mahsulot \u2116710",
+    "category": "Kantselyariya",
+    "costPrice": 30200.0,
+    "price": 35600.0,
+    "barcode": "5295501441118",
+    "unit": "dona"
+  },
+  {
+    "name": "Coca-Cola Mahsulot \u2116711",
+    "category": "Ichimliklar",
+    "costPrice": 49900.0,
+    "price": 72000.0,
+    "barcode": "4330445735342",
+    "unit": "kg"
+  },
+  {
+    "name": "Bio-Sut Mahsulot \u2116712",
+    "category": "Sut mahsulotlari",
+    "costPrice": 35000.0,
+    "price": 50400.0,
+    "barcode": "3906972120252",
+    "unit": "dona"
+  },
+  {
+    "name": "Sprite Mahsulot \u2116713",
+    "category": "Ichimliklar",
+    "costPrice": 3900.0,
+    "price": 5800.0,
+    "barcode": "2195996544887",
+    "unit": "dona"
+  },
+  {
+    "name": "Dinay Mahsulot \u2116714",
+    "category": "Ichimliklar",
+    "costPrice": 9500.0,
+    "price": 13400.0,
+    "barcode": "1447120438196",
+    "unit": "dona"
+  },
+  {
+    "name": "Fairy Mahsulot \u2116715",
+    "category": "Maishiy kimyo",
+    "costPrice": 27000.0,
+    "price": 40200.0,
+    "barcode": "4379112258018",
+    "unit": "dona"
+  },
+  {
+    "name": "ErichKrause Mahsulot \u2116716",
+    "category": "Kantselyariya",
+    "costPrice": 7700.0,
+    "price": 10600.0,
+    "barcode": "1488049855450",
+    "unit": "dona"
+  },
+  {
+    "name": "Bio-Sut Mahsulot \u2116717",
+    "category": "Sut mahsulotlari",
+    "costPrice": 9300.0,
+    "price": 12500.0,
+    "barcode": "1915079111285",
+    "unit": "kg"
+  },
+  {
+    "name": "Buxanka Mahsulot \u2116718",
+    "category": "Non mahsulotlari",
+    "costPrice": 10700.0,
+    "price": 12500.0,
+    "barcode": "0398087567153",
+    "unit": "dona"
+  },
+  {
+    "name": "Colgate Mahsulot \u2116719",
+    "category": "Maishiy kimyo",
+    "costPrice": 31100.0,
+    "price": 45900.0,
+    "barcode": "6462139041937",
+    "unit": "dona"
+  },
+  {
+    "name": "Bounty Mahsulot \u2116720",
+    "category": "Qandolat",
+    "costPrice": 26500.0,
+    "price": 32200.0,
+    "barcode": "9743750740929",
+    "unit": "dona"
+  },
+  {
+    "name": "Shebekino Mahsulot \u2116721",
+    "category": "Oziq-ovqat",
+    "costPrice": 18200.0,
+    "price": 25500.0,
+    "barcode": "2428232423437",
+    "unit": "dona"
+  },
+  {
+    "name": "Domestos Mahsulot \u2116722",
+    "category": "Maishiy kimyo",
+    "costPrice": 6800.0,
+    "price": 9600.0,
+    "barcode": "3892353372574",
+    "unit": "dona"
+  },
+  {
+    "name": "Mars Mahsulot \u2116723",
+    "category": "Qandolat",
+    "costPrice": 47800.0,
+    "price": 62600.0,
+    "barcode": "3266924455791",
+    "unit": "dona"
+  },
+  {
+    "name": "Coca-Cola Mahsulot \u2116724",
+    "category": "Ichimliklar",
+    "costPrice": 33800.0,
+    "price": 48000.0,
+    "barcode": "3763944838607",
+    "unit": "dona"
+  },
+  {
+    "name": "Mars Mahsulot \u2116725",
+    "category": "Qandolat",
+    "costPrice": 41400.0,
+    "price": 60000.0,
+    "barcode": "2102437011314",
+    "unit": "dona"
+  },
+  {
+    "name": "Domestos Mahsulot \u2116726",
+    "category": "Maishiy kimyo",
+    "costPrice": 6900.0,
+    "price": 9700.0,
+    "barcode": "5532623077065",
+    "unit": "dona"
+  },
+  {
+    "name": "Buxanka Mahsulot \u2116727",
+    "category": "Non mahsulotlari",
+    "costPrice": 6200.0,
+    "price": 8400.0,
+    "barcode": "0108447989385",
+    "unit": "kg"
+  },
+  {
+    "name": "Coca-Cola Mahsulot \u2116728",
+    "category": "Ichimliklar",
+    "costPrice": 23500.0,
+    "price": 33100.0,
+    "barcode": "5451035812745",
+    "unit": "dona"
+  },
+  {
+    "name": "Moya Semya Mahsulot \u2116729",
+    "category": "Oziq-ovqat",
+    "costPrice": 2400.0,
+    "price": 3400.0,
+    "barcode": "0569979701924",
+    "unit": "dona"
+  },
+  {
+    "name": "ErichKrause Mahsulot \u2116730",
+    "category": "Kantselyariya",
+    "costPrice": 49800.0,
+    "price": 59400.0,
+    "barcode": "2120265546174",
+    "unit": "dona"
+  },
+  {
+    "name": "Twix Mahsulot \u2116731",
+    "category": "Qandolat",
+    "costPrice": 44900.0,
+    "price": 57700.0,
+    "barcode": "3890110144599",
+    "unit": "dona"
+  },
+  {
+    "name": "Deli Mahsulot \u2116732",
+    "category": "Kantselyariya",
+    "costPrice": 5800.0,
+    "price": 6900.0,
+    "barcode": "0703920306423",
+    "unit": "dona"
+  },
+  {
+    "name": "Fairy Mahsulot \u2116733",
+    "category": "Maishiy kimyo",
+    "costPrice": 10400.0,
+    "price": 11700.0,
+    "barcode": "5881863219085",
+    "unit": "kg"
+  },
+  {
+    "name": "Ahmad Tea Mahsulot \u2116734",
+    "category": "Oziq-ovqat",
+    "costPrice": 2000.0,
+    "price": 2700.0,
+    "barcode": "3409827800591",
+    "unit": "dona"
+  },
+  {
+    "name": "Kamilka Mahsulot \u2116735",
+    "category": "Sut mahsulotlari",
+    "costPrice": 17600.0,
+    "price": 23500.0,
+    "barcode": "7005582683005",
+    "unit": "dona"
+  },
+  {
+    "name": "Siyom Mahsulot \u2116736",
+    "category": "Oziq-ovqat",
+    "costPrice": 40500.0,
+    "price": 56400.0,
+    "barcode": "3900637599207",
+    "unit": "kg"
+  },
+  {
+    "name": "Fairy Mahsulot \u2116737",
+    "category": "Maishiy kimyo",
+    "costPrice": 18400.0,
+    "price": 23500.0,
+    "barcode": "3148615883252",
+    "unit": "kg"
+  },
+  {
+    "name": "Twix Mahsulot \u2116738",
+    "category": "Qandolat",
+    "costPrice": 47000.0,
+    "price": 63700.0,
+    "barcode": "0305585396576",
+    "unit": "dona"
+  },
+  {
+    "name": "Kamilka Mahsulot \u2116739",
+    "category": "Sut mahsulotlari",
+    "costPrice": 23200.0,
+    "price": 29100.0,
+    "barcode": "4232018604179",
+    "unit": "dona"
+  },
+  {
+    "name": "Fairy Mahsulot \u2116740",
+    "category": "Maishiy kimyo",
+    "costPrice": 44700.0,
+    "price": 58400.0,
+    "barcode": "4341782594421",
+    "unit": "dona"
+  },
+  {
+    "name": "Tide Mahsulot \u2116741",
+    "category": "Maishiy kimyo",
+    "costPrice": 27800.0,
+    "price": 39800.0,
+    "barcode": "8981416926272",
+    "unit": "dona"
+  },
+  {
+    "name": "Fanta Mahsulot \u2116742",
+    "category": "Ichimliklar",
+    "costPrice": 12500.0,
+    "price": 15600.0,
+    "barcode": "1100537503897",
+    "unit": "dona"
+  },
+  {
+    "name": "Deli Mahsulot \u2116743",
+    "category": "Kantselyariya",
+    "costPrice": 11100.0,
+    "price": 12400.0,
+    "barcode": "6215843347666",
+    "unit": "dona"
+  },
+  {
+    "name": "Pepsi Mahsulot \u2116744",
+    "category": "Ichimliklar",
+    "costPrice": 3800.0,
+    "price": 4200.0,
+    "barcode": "1387981706335",
+    "unit": "dona"
+  },
+  {
+    "name": "Mars Mahsulot \u2116745",
+    "category": "Qandolat",
+    "costPrice": 22100.0,
+    "price": 32000.0,
+    "barcode": "6723149408367",
+    "unit": "kg"
+  },
+  {
+    "name": "Twix Mahsulot \u2116746",
+    "category": "Qandolat",
+    "costPrice": 22600.0,
+    "price": 30000.0,
+    "barcode": "1209225648851",
+    "unit": "kg"
+  },
+  {
+    "name": "Colgate Mahsulot \u2116747",
+    "category": "Maishiy kimyo",
+    "costPrice": 8100.0,
+    "price": 9600.0,
+    "barcode": "3423210821538",
+    "unit": "dona"
+  },
+  {
+    "name": "Shebekino Mahsulot \u2116748",
+    "category": "Oziq-ovqat",
+    "costPrice": 33600.0,
+    "price": 46900.0,
+    "barcode": "2814033127591",
+    "unit": "dona"
+  },
+  {
+    "name": "Pepsi Mahsulot \u2116749",
+    "category": "Ichimliklar",
+    "costPrice": 40200.0,
+    "price": 59400.0,
+    "barcode": "2275113827586",
+    "unit": "dona"
+  },
+  {
+    "name": "Siyom Mahsulot \u2116750",
+    "category": "Oziq-ovqat",
+    "costPrice": 43400.0,
+    "price": 54200.0,
+    "barcode": "4596522702984",
+    "unit": "dona"
+  },
+  {
+    "name": "Lactel Mahsulot \u2116751",
+    "category": "Sut mahsulotlari",
+    "costPrice": 6000.0,
+    "price": 8700.0,
+    "barcode": "4341491729561",
+    "unit": "dona"
+  },
+  {
+    "name": "Snickers Mahsulot \u2116752",
+    "category": "Qandolat",
+    "costPrice": 23200.0,
+    "price": 33100.0,
+    "barcode": "3522782153246",
+    "unit": "dona"
+  },
+  {
+    "name": "Deli Mahsulot \u2116753",
+    "category": "Kantselyariya",
+    "costPrice": 42000.0,
+    "price": 56900.0,
+    "barcode": "5399964665534",
+    "unit": "dona"
+  },
+  {
+    "name": "Lochira Mahsulot \u2116754",
+    "category": "Non mahsulotlari",
+    "costPrice": 35700.0,
+    "price": 41700.0,
+    "barcode": "3424576584519",
+    "unit": "dona"
+  },
+  {
+    "name": "Deli Mahsulot \u2116755",
+    "category": "Kantselyariya",
+    "costPrice": 7900.0,
+    "price": 11000.0,
+    "barcode": "6851122089320",
+    "unit": "dona"
+  },
+  {
+    "name": "Moya Semya Mahsulot \u2116756",
+    "category": "Oziq-ovqat",
+    "costPrice": 44400.0,
+    "price": 59900.0,
+    "barcode": "4685616705685",
+    "unit": "dona"
+  },
+  {
+    "name": "Moya Semya Mahsulot \u2116757",
+    "category": "Oziq-ovqat",
+    "costPrice": 20200.0,
+    "price": 27900.0,
+    "barcode": "4416562327413",
+    "unit": "dona"
+  },
+  {
+    "name": "Buxanka Mahsulot \u2116758",
+    "category": "Non mahsulotlari",
+    "costPrice": 47700.0,
+    "price": 55300.0,
+    "barcode": "2946512322907",
+    "unit": "dona"
+  },
+  {
+    "name": "Lochira Mahsulot \u2116759",
+    "category": "Non mahsulotlari",
+    "costPrice": 10000.0,
+    "price": 13400.0,
+    "barcode": "3516507132133",
+    "unit": "kg"
+  },
+  {
+    "name": "Makfa Mahsulot \u2116760",
+    "category": "Oziq-ovqat",
+    "costPrice": 25100.0,
+    "price": 37500.0,
+    "barcode": "3668051639067",
+    "unit": "dona"
+  },
+  {
+    "name": "Colgate Mahsulot \u2116761",
+    "category": "Maishiy kimyo",
+    "costPrice": 4700.0,
+    "price": 6500.0,
+    "barcode": "3144795170875",
+    "unit": "dona"
+  },
+  {
+    "name": "Centropen Mahsulot \u2116762",
+    "category": "Kantselyariya",
+    "costPrice": 42000.0,
+    "price": 50100.0,
+    "barcode": "3953079532007",
+    "unit": "dona"
+  },
+  {
+    "name": "Hydrolife Mahsulot \u2116763",
+    "category": "Ichimliklar",
+    "costPrice": 1000.0,
+    "price": 1300.0,
+    "barcode": "3080411220116",
+    "unit": "kg"
+  },
+  {
+    "name": "Kamilka Mahsulot \u2116764",
+    "category": "Sut mahsulotlari",
+    "costPrice": 31700.0,
+    "price": 45900.0,
+    "barcode": "8350457565094",
+    "unit": "dona"
+  },
+  {
+    "name": "ErichKrause Mahsulot \u2116765",
+    "category": "Kantselyariya",
+    "costPrice": 28600.0,
+    "price": 36900.0,
+    "barcode": "7859721650703",
+    "unit": "kg"
+  },
+  {
+    "name": "ErichKrause Mahsulot \u2116766",
+    "category": "Kantselyariya",
+    "costPrice": 1600.0,
+    "price": 1900.0,
+    "barcode": "9580168853511",
+    "unit": "dona"
+  },
+  {
+    "name": "Centropen Mahsulot \u2116767",
+    "category": "Kantselyariya",
+    "costPrice": 38900.0,
+    "price": 56700.0,
+    "barcode": "7785457139572",
+    "unit": "dona"
+  },
+  {
+    "name": "Persil Mahsulot \u2116768",
+    "category": "Maishiy kimyo",
+    "costPrice": 9900.0,
+    "price": 12900.0,
+    "barcode": "8998275631741",
+    "unit": "dona"
+  },
+  {
+    "name": "Centropen Mahsulot \u2116769",
+    "category": "Kantselyariya",
+    "costPrice": 47400.0,
+    "price": 70300.0,
+    "barcode": "6532152482540",
+    "unit": "dona"
+  },
+  {
+    "name": "Deli Mahsulot \u2116770",
+    "category": "Kantselyariya",
+    "costPrice": 5500.0,
+    "price": 6500.0,
+    "barcode": "9817126996900",
+    "unit": "dona"
+  },
+  {
+    "name": "Alpen Gold Mahsulot \u2116771",
+    "category": "Qandolat",
+    "costPrice": 15800.0,
+    "price": 22800.0,
+    "barcode": "9254733879222",
+    "unit": "dona"
+  },
+  {
+    "name": "Ahmad Tea Mahsulot \u2116772",
+    "category": "Oziq-ovqat",
+    "costPrice": 30400.0,
+    "price": 36100.0,
+    "barcode": "3191642063530",
+    "unit": "dona"
+  },
+  {
+    "name": "Deli Mahsulot \u2116773",
+    "category": "Kantselyariya",
+    "costPrice": 33600.0,
+    "price": 42800.0,
+    "barcode": "6624347900649",
+    "unit": "kg"
+  },
+  {
+    "name": "Centropen Mahsulot \u2116774",
+    "category": "Kantselyariya",
+    "costPrice": 21300.0,
+    "price": 28500.0,
+    "barcode": "4604658900717",
+    "unit": "dona"
+  },
+  {
+    "name": "Siyom Mahsulot \u2116775",
+    "category": "Oziq-ovqat",
+    "costPrice": 39900.0,
+    "price": 45100.0,
+    "barcode": "2570510013512",
+    "unit": "dona"
+  },
+  {
+    "name": "Hydrolife Mahsulot \u2116776",
+    "category": "Ichimliklar",
+    "costPrice": 35400.0,
+    "price": 52600.0,
+    "barcode": "0977510323482",
+    "unit": "dona"
+  },
+  {
+    "name": "Bio-Sut Mahsulot \u2116777",
+    "category": "Sut mahsulotlari",
+    "costPrice": 15700.0,
+    "price": 20900.0,
+    "barcode": "9995406592667",
+    "unit": "dona"
+  },
+  {
+    "name": "Siyom Mahsulot \u2116778",
+    "category": "Oziq-ovqat",
+    "costPrice": 45300.0,
+    "price": 51800.0,
+    "barcode": "9373069283869",
+    "unit": "dona"
+  },
+  {
+    "name": "Lochira Mahsulot \u2116779",
+    "category": "Non mahsulotlari",
+    "costPrice": 14500.0,
+    "price": 21300.0,
+    "barcode": "8266210409577",
+    "unit": "dona"
+  },
+  {
+    "name": "Lactel Mahsulot \u2116780",
+    "category": "Sut mahsulotlari",
+    "costPrice": 48500.0,
+    "price": 63000.0,
+    "barcode": "1925237098397",
+    "unit": "dona"
+  },
+  {
+    "name": "ErichKrause Mahsulot \u2116781",
+    "category": "Kantselyariya",
+    "costPrice": 37500.0,
+    "price": 46500.0,
+    "barcode": "1376666117039",
+    "unit": "dona"
+  },
+  {
+    "name": "Hydrolife Mahsulot \u2116782",
+    "category": "Ichimliklar",
+    "costPrice": 7000.0,
+    "price": 8900.0,
+    "barcode": "4166397095189",
+    "unit": "dona"
+  },
+  {
+    "name": "Buxanka Mahsulot \u2116783",
+    "category": "Non mahsulotlari",
+    "costPrice": 42900.0,
+    "price": 61300.0,
+    "barcode": "0983594201573",
+    "unit": "dona"
+  },
+  {
+    "name": "ErichKrause Mahsulot \u2116784",
+    "category": "Kantselyariya",
+    "costPrice": 32800.0,
+    "price": 36500.0,
+    "barcode": "4490690049776",
+    "unit": "dona"
+  },
+  {
+    "name": "Fairy Mahsulot \u2116785",
+    "category": "Maishiy kimyo",
+    "costPrice": 3700.0,
+    "price": 5300.0,
+    "barcode": "3755282428827",
+    "unit": "kg"
+  },
+  {
+    "name": "Bounty Mahsulot \u2116786",
+    "category": "Qandolat",
+    "costPrice": 44900.0,
+    "price": 63300.0,
+    "barcode": "7354698439955",
+    "unit": "kg"
+  },
+  {
+    "name": "Dinay Mahsulot \u2116787",
+    "category": "Ichimliklar",
+    "costPrice": 43700.0,
+    "price": 61100.0,
+    "barcode": "6390789777341",
+    "unit": "dona"
+  },
+  {
+    "name": "ErichKrause Mahsulot \u2116788",
+    "category": "Kantselyariya",
+    "costPrice": 42600.0,
+    "price": 49200.0,
+    "barcode": "9782834617777",
+    "unit": "dona"
+  },
+  {
+    "name": "Buxanka Mahsulot \u2116789",
+    "category": "Non mahsulotlari",
+    "costPrice": 5900.0,
+    "price": 7800.0,
+    "barcode": "2162357541576",
+    "unit": "dona"
+  },
+  {
+    "name": "Kamilka Mahsulot \u2116790",
+    "category": "Sut mahsulotlari",
+    "costPrice": 22600.0,
+    "price": 33600.0,
+    "barcode": "2085718545088",
+    "unit": "kg"
+  },
+  {
+    "name": "Ariel Mahsulot \u2116791",
+    "category": "Maishiy kimyo",
+    "costPrice": 47100.0,
+    "price": 65400.0,
+    "barcode": "0035544423953",
+    "unit": "kg"
+  },
+  {
+    "name": "Shebekino Mahsulot \u2116792",
+    "category": "Oziq-ovqat",
+    "costPrice": 47800.0,
+    "price": 52600.0,
+    "barcode": "6333227317068",
+    "unit": "kg"
+  },
+  {
+    "name": "Pepsi Mahsulot \u2116793",
+    "category": "Ichimliklar",
+    "costPrice": 17700.0,
+    "price": 21500.0,
+    "barcode": "0563553213253",
+    "unit": "dona"
+  },
+  {
+    "name": "Pepsi Mahsulot \u2116794",
+    "category": "Ichimliklar",
+    "costPrice": 45600.0,
+    "price": 65500.0,
+    "barcode": "3577642896426",
+    "unit": "dona"
+  },
+  {
+    "name": "Patir Mahsulot \u2116795",
+    "category": "Non mahsulotlari",
+    "costPrice": 18300.0,
+    "price": 27400.0,
+    "barcode": "5364667257275",
+    "unit": "dona"
+  },
+  {
+    "name": "Sprite Mahsulot \u2116796",
+    "category": "Ichimliklar",
+    "costPrice": 34900.0,
+    "price": 46600.0,
+    "barcode": "7344352652896",
+    "unit": "kg"
+  },
+  {
+    "name": "ErichKrause Mahsulot \u2116797",
+    "category": "Kantselyariya",
+    "costPrice": 17000.0,
+    "price": 23400.0,
+    "barcode": "7841990715257",
+    "unit": "kg"
+  },
+  {
+    "name": "Colgate Mahsulot \u2116798",
+    "category": "Maishiy kimyo",
+    "costPrice": 43500.0,
+    "price": 64100.0,
+    "barcode": "5963528290325",
+    "unit": "dona"
+  },
+  {
+    "name": "Mars Mahsulot \u2116799",
+    "category": "Qandolat",
+    "costPrice": 25000.0,
+    "price": 37200.0,
+    "barcode": "9661347055636",
+    "unit": "dona"
+  },
+  {
+    "name": "Bounty Mahsulot \u2116800",
+    "category": "Qandolat",
+    "costPrice": 17100.0,
+    "price": 19000.0,
+    "barcode": "7707092909469",
+    "unit": "kg"
+  },
+  {
+    "name": "Moya Semya Mahsulot \u2116801",
+    "category": "Oziq-ovqat",
+    "costPrice": 6500.0,
+    "price": 9100.0,
+    "barcode": "3416569862738",
+    "unit": "dona"
+  },
+  {
+    "name": "Coca-Cola Mahsulot \u2116802",
+    "category": "Ichimliklar",
+    "costPrice": 22800.0,
+    "price": 33800.0,
+    "barcode": "8168073939285",
+    "unit": "dona"
+  },
+  {
+    "name": "Buxanka Mahsulot \u2116803",
+    "category": "Non mahsulotlari",
+    "costPrice": 23400.0,
+    "price": 30800.0,
+    "barcode": "5167403972761",
+    "unit": "dona"
+  },
+  {
+    "name": "Colgate Mahsulot \u2116804",
+    "category": "Maishiy kimyo",
+    "costPrice": 33800.0,
+    "price": 49600.0,
+    "barcode": "9559092216825",
+    "unit": "kg"
+  },
+  {
+    "name": "Kamilka Mahsulot \u2116805",
+    "category": "Sut mahsulotlari",
+    "costPrice": 25000.0,
+    "price": 31400.0,
+    "barcode": "9863777201091",
+    "unit": "dona"
+  },
+  {
+    "name": "Hydrolife Mahsulot \u2116806",
+    "category": "Ichimliklar",
+    "costPrice": 47600.0,
+    "price": 61700.0,
+    "barcode": "4880782387781",
+    "unit": "kg"
+  },
+  {
+    "name": "Tide Mahsulot \u2116807",
+    "category": "Maishiy kimyo",
+    "costPrice": 19400.0,
+    "price": 22600.0,
+    "barcode": "4638907824866",
+    "unit": "dona"
+  },
+  {
+    "name": "Kamilka Mahsulot \u2116808",
+    "category": "Sut mahsulotlari",
+    "costPrice": 20400.0,
+    "price": 24200.0,
+    "barcode": "3953722089858",
+    "unit": "dona"
+  },
+  {
+    "name": "Musaffo Mahsulot \u2116809",
+    "category": "Sut mahsulotlari",
+    "costPrice": 49600.0,
+    "price": 60000.0,
+    "barcode": "9574813833131",
+    "unit": "dona"
+  },
+  {
+    "name": "ErichKrause Mahsulot \u2116810",
+    "category": "Kantselyariya",
+    "costPrice": 23200.0,
+    "price": 32900.0,
+    "barcode": "6799818345124",
+    "unit": "dona"
+  },
+  {
+    "name": "Centropen Mahsulot \u2116811",
+    "category": "Kantselyariya",
+    "costPrice": 21400.0,
+    "price": 30200.0,
+    "barcode": "8894918826217",
+    "unit": "kg"
+  },
+  {
+    "name": "Ahmad Tea Mahsulot \u2116812",
+    "category": "Oziq-ovqat",
+    "costPrice": 27100.0,
+    "price": 35800.0,
+    "barcode": "1382185593131",
+    "unit": "dona"
+  },
+  {
+    "name": "Patir Mahsulot \u2116813",
+    "category": "Non mahsulotlari",
+    "costPrice": 21700.0,
+    "price": 32300.0,
+    "barcode": "8331605269542",
+    "unit": "dona"
+  },
+  {
+    "name": "Persil Mahsulot \u2116814",
+    "category": "Maishiy kimyo",
+    "costPrice": 13100.0,
+    "price": 17800.0,
+    "barcode": "3376097470575",
+    "unit": "kg"
+  },
+  {
+    "name": "Centropen Mahsulot \u2116815",
+    "category": "Kantselyariya",
+    "costPrice": 42300.0,
+    "price": 48700.0,
+    "barcode": "5326505928251",
+    "unit": "dona"
+  },
+  {
+    "name": "Ariel Mahsulot \u2116816",
+    "category": "Maishiy kimyo",
+    "costPrice": 7000.0,
+    "price": 9900.0,
+    "barcode": "7029752800457",
+    "unit": "kg"
+  },
+  {
+    "name": "Bounty Mahsulot \u2116817",
+    "category": "Qandolat",
+    "costPrice": 33900.0,
+    "price": 41400.0,
+    "barcode": "4891139599064",
+    "unit": "dona"
+  },
+  {
+    "name": "Fairy Mahsulot \u2116818",
+    "category": "Maishiy kimyo",
+    "costPrice": 36400.0,
+    "price": 48100.0,
+    "barcode": "0568550056333",
+    "unit": "dona"
+  },
+  {
+    "name": "Tide Mahsulot \u2116819",
+    "category": "Maishiy kimyo",
+    "costPrice": 34600.0,
+    "price": 51300.0,
+    "barcode": "8638640214101",
+    "unit": "dona"
+  },
+  {
+    "name": "Buxanka Mahsulot \u2116820",
+    "category": "Non mahsulotlari",
+    "costPrice": 37900.0,
+    "price": 52900.0,
+    "barcode": "3580304514266",
+    "unit": "dona"
+  },
+  {
+    "name": "ErichKrause Mahsulot \u2116821",
+    "category": "Kantselyariya",
+    "costPrice": 43400.0,
+    "price": 55100.0,
+    "barcode": "8224153615028",
+    "unit": "dona"
+  },
+  {
+    "name": "Buxanka Mahsulot \u2116822",
+    "category": "Non mahsulotlari",
+    "costPrice": 15700.0,
+    "price": 19100.0,
+    "barcode": "0694388244402",
+    "unit": "dona"
+  },
+  {
+    "name": "Moya Semya Mahsulot \u2116823",
+    "category": "Oziq-ovqat",
+    "costPrice": 14000.0,
+    "price": 16200.0,
+    "barcode": "2501737462775",
+    "unit": "dona"
+  },
+  {
+    "name": "Lactel Mahsulot \u2116824",
+    "category": "Sut mahsulotlari",
+    "costPrice": 48600.0,
+    "price": 60500.0,
+    "barcode": "0693470892010",
+    "unit": "dona"
+  },
+  {
+    "name": "Alpen Gold Mahsulot \u2116825",
+    "category": "Qandolat",
+    "costPrice": 4300.0,
+    "price": 5900.0,
+    "barcode": "8268966557300",
+    "unit": "dona"
+  },
+  {
+    "name": "Ahmad Tea Mahsulot \u2116826",
+    "category": "Oziq-ovqat",
+    "costPrice": 36900.0,
+    "price": 46500.0,
+    "barcode": "2097840484172",
+    "unit": "dona"
+  },
+  {
+    "name": "Patir Mahsulot \u2116827",
+    "category": "Non mahsulotlari",
+    "costPrice": 15900.0,
+    "price": 22100.0,
+    "barcode": "8873535615660",
+    "unit": "kg"
+  },
+  {
+    "name": "Ariel Mahsulot \u2116828",
+    "category": "Maishiy kimyo",
+    "costPrice": 32800.0,
+    "price": 36300.0,
+    "barcode": "2434316026877",
+    "unit": "dona"
+  },
+  {
+    "name": "Sprite Mahsulot \u2116829",
+    "category": "Ichimliklar",
+    "costPrice": 2000.0,
+    "price": 2200.0,
+    "barcode": "7959470702066",
+    "unit": "kg"
+  },
+  {
+    "name": "Fanta Mahsulot \u2116830",
+    "category": "Ichimliklar",
+    "costPrice": 1200.0,
+    "price": 1600.0,
+    "barcode": "1635016237027",
+    "unit": "dona"
+  },
+  {
+    "name": "Colgate Mahsulot \u2116831",
+    "category": "Maishiy kimyo",
+    "costPrice": 48400.0,
+    "price": 64200.0,
+    "barcode": "8820725940300",
+    "unit": "kg"
+  },
+  {
+    "name": "ErichKrause Mahsulot \u2116832",
+    "category": "Kantselyariya",
+    "costPrice": 26100.0,
+    "price": 33300.0,
+    "barcode": "5699399665371",
+    "unit": "dona"
+  },
+  {
+    "name": "Tide Mahsulot \u2116833",
+    "category": "Maishiy kimyo",
+    "costPrice": 10400.0,
+    "price": 15200.0,
+    "barcode": "7946776565316",
+    "unit": "dona"
+  },
+  {
+    "name": "Centropen Mahsulot \u2116834",
+    "category": "Kantselyariya",
+    "costPrice": 9000.0,
+    "price": 11100.0,
+    "barcode": "0668384656510",
+    "unit": "dona"
+  },
+  {
+    "name": "Kamilka Mahsulot \u2116835",
+    "category": "Sut mahsulotlari",
+    "costPrice": 45200.0,
+    "price": 64700.0,
+    "barcode": "3849358504630",
+    "unit": "dona"
+  },
+  {
+    "name": "Bio-Sut Mahsulot \u2116836",
+    "category": "Sut mahsulotlari",
+    "costPrice": 28200.0,
+    "price": 35300.0,
+    "barcode": "1056937965321",
+    "unit": "dona"
+  },
+  {
+    "name": "Buxanka Mahsulot \u2116837",
+    "category": "Non mahsulotlari",
+    "costPrice": 6600.0,
+    "price": 9700.0,
+    "barcode": "3632174761066",
+    "unit": "dona"
+  },
+  {
+    "name": "Fairy Mahsulot \u2116838",
+    "category": "Maishiy kimyo",
+    "costPrice": 25000.0,
+    "price": 30100.0,
+    "barcode": "9867161275135",
+    "unit": "kg"
+  },
+  {
+    "name": "ErichKrause Mahsulot \u2116839",
+    "category": "Kantselyariya",
+    "costPrice": 38700.0,
+    "price": 53200.0,
+    "barcode": "3261792043351",
+    "unit": "kg"
+  },
+  {
+    "name": "Buxanka Mahsulot \u2116840",
+    "category": "Non mahsulotlari",
+    "costPrice": 35100.0,
+    "price": 40700.0,
+    "barcode": "7353953994637",
+    "unit": "kg"
+  },
+  {
+    "name": "Patir Mahsulot \u2116841",
+    "category": "Non mahsulotlari",
+    "costPrice": 29600.0,
+    "price": 33300.0,
+    "barcode": "6825853992801",
+    "unit": "kg"
+  },
+  {
+    "name": "Bounty Mahsulot \u2116842",
+    "category": "Qandolat",
+    "costPrice": 46400.0,
+    "price": 65100.0,
+    "barcode": "6545523469108",
+    "unit": "dona"
+  },
+  {
+    "name": "Lactel Mahsulot \u2116843",
+    "category": "Sut mahsulotlari",
+    "costPrice": 38900.0,
+    "price": 57200.0,
+    "barcode": "5226847634037",
+    "unit": "dona"
+  },
+  {
+    "name": "ErichKrause Mahsulot \u2116844",
+    "category": "Kantselyariya",
+    "costPrice": 26600.0,
+    "price": 35200.0,
+    "barcode": "9808466359746",
+    "unit": "dona"
+  },
+  {
+    "name": "Makfa Mahsulot \u2116845",
+    "category": "Oziq-ovqat",
+    "costPrice": 22900.0,
+    "price": 32800.0,
+    "barcode": "2242346777458",
+    "unit": "dona"
+  },
+  {
+    "name": "Coca-Cola Mahsulot \u2116846",
+    "category": "Ichimliklar",
+    "costPrice": 47400.0,
+    "price": 58600.0,
+    "barcode": "7183133264764",
+    "unit": "dona"
+  },
+  {
+    "name": "Buxanka Mahsulot \u2116847",
+    "category": "Non mahsulotlari",
+    "costPrice": 31900.0,
+    "price": 45200.0,
+    "barcode": "5465029029734",
+    "unit": "kg"
+  },
+  {
+    "name": "Buxanka Mahsulot \u2116848",
+    "category": "Non mahsulotlari",
+    "costPrice": 32300.0,
+    "price": 46700.0,
+    "barcode": "5112419050020",
+    "unit": "kg"
+  },
+  {
+    "name": "ErichKrause Mahsulot \u2116849",
+    "category": "Kantselyariya",
+    "costPrice": 26800.0,
+    "price": 39400.0,
+    "barcode": "7136224461658",
+    "unit": "dona"
+  },
+  {
+    "name": "Fanta Mahsulot \u2116850",
+    "category": "Ichimliklar",
+    "costPrice": 25200.0,
+    "price": 34200.0,
+    "barcode": "4424390452078",
+    "unit": "dona"
+  },
+  {
+    "name": "Lochira Mahsulot \u2116851",
+    "category": "Non mahsulotlari",
+    "costPrice": 13500.0,
+    "price": 15000.0,
+    "barcode": "0525140861825",
+    "unit": "dona"
+  },
+  {
+    "name": "Shebekino Mahsulot \u2116852",
+    "category": "Oziq-ovqat",
+    "costPrice": 45900.0,
+    "price": 68400.0,
+    "barcode": "5483781511420",
+    "unit": "dona"
+  },
+  {
+    "name": "Shebekino Mahsulot \u2116853",
+    "category": "Oziq-ovqat",
+    "costPrice": 2000.0,
+    "price": 2300.0,
+    "barcode": "2829784817120",
+    "unit": "dona"
+  },
+  {
+    "name": "Colgate Mahsulot \u2116854",
+    "category": "Maishiy kimyo",
+    "costPrice": 11600.0,
+    "price": 16600.0,
+    "barcode": "6959353524542",
+    "unit": "kg"
+  },
+  {
+    "name": "Shebekino Mahsulot \u2116855",
+    "category": "Oziq-ovqat",
+    "costPrice": 14100.0,
+    "price": 17500.0,
+    "barcode": "4313140228779",
+    "unit": "dona"
+  },
+  {
+    "name": "Bio-Sut Mahsulot \u2116856",
+    "category": "Sut mahsulotlari",
+    "costPrice": 17000.0,
+    "price": 19700.0,
+    "barcode": "1729104031104",
+    "unit": "dona"
+  },
+  {
+    "name": "Deli Mahsulot \u2116857",
+    "category": "Kantselyariya",
+    "costPrice": 34500.0,
+    "price": 40000.0,
+    "barcode": "7482566609812",
+    "unit": "dona"
+  },
+  {
+    "name": "Bounty Mahsulot \u2116858",
+    "category": "Qandolat",
+    "costPrice": 33100.0,
+    "price": 36600.0,
+    "barcode": "9565356155221",
+    "unit": "dona"
+  },
+  {
+    "name": "Bio-Sut Mahsulot \u2116859",
+    "category": "Sut mahsulotlari",
+    "costPrice": 45300.0,
+    "price": 61900.0,
+    "barcode": "7872978172189",
+    "unit": "dona"
+  },
+  {
+    "name": "Coca-Cola Mahsulot \u2116860",
+    "category": "Ichimliklar",
+    "costPrice": 17300.0,
+    "price": 25200.0,
+    "barcode": "6762408007456",
+    "unit": "dona"
+  },
+  {
+    "name": "Fanta Mahsulot \u2116861",
+    "category": "Ichimliklar",
+    "costPrice": 2400.0,
+    "price": 2900.0,
+    "barcode": "8738304381925",
+    "unit": "dona"
+  },
+  {
+    "name": "Centropen Mahsulot \u2116862",
+    "category": "Kantselyariya",
+    "costPrice": 32000.0,
+    "price": 39100.0,
+    "barcode": "0355671455629",
+    "unit": "dona"
+  },
+  {
+    "name": "Coca-Cola Mahsulot \u2116863",
+    "category": "Ichimliklar",
+    "costPrice": 38600.0,
+    "price": 57000.0,
+    "barcode": "7539406729483",
+    "unit": "dona"
+  },
+  {
+    "name": "Domestos Mahsulot \u2116864",
+    "category": "Maishiy kimyo",
+    "costPrice": 7600.0,
+    "price": 8500.0,
+    "barcode": "1601288119971",
+    "unit": "dona"
+  },
+  {
+    "name": "Fairy Mahsulot \u2116865",
+    "category": "Maishiy kimyo",
+    "costPrice": 19900.0,
+    "price": 26600.0,
+    "barcode": "8199412610734",
+    "unit": "dona"
+  },
+  {
+    "name": "Buxanka Mahsulot \u2116866",
+    "category": "Non mahsulotlari",
+    "costPrice": 17000.0,
+    "price": 20400.0,
+    "barcode": "4690211188877",
+    "unit": "kg"
+  },
+  {
+    "name": "Bounty Mahsulot \u2116867",
+    "category": "Qandolat",
+    "costPrice": 16400.0,
+    "price": 19900.0,
+    "barcode": "5556787269338",
+    "unit": "dona"
+  },
+  {
+    "name": "Snickers Mahsulot \u2116868",
+    "category": "Qandolat",
+    "costPrice": 23800.0,
+    "price": 31500.0,
+    "barcode": "6234161129246",
+    "unit": "kg"
+  },
+  {
+    "name": "Musaffo Mahsulot \u2116869",
+    "category": "Sut mahsulotlari",
+    "costPrice": 45700.0,
+    "price": 62700.0,
+    "barcode": "9953850083313",
+    "unit": "dona"
+  },
+  {
+    "name": "Pepsi Mahsulot \u2116870",
+    "category": "Ichimliklar",
+    "costPrice": 10000.0,
+    "price": 13600.0,
+    "barcode": "7161943051110",
+    "unit": "dona"
+  },
+  {
+    "name": "Sprite Mahsulot \u2116871",
+    "category": "Ichimliklar",
+    "costPrice": 20400.0,
+    "price": 26400.0,
+    "barcode": "9380973301279",
+    "unit": "dona"
+  },
+  {
+    "name": "Bounty Mahsulot \u2116872",
+    "category": "Qandolat",
+    "costPrice": 42800.0,
+    "price": 60100.0,
+    "barcode": "9984982249823",
+    "unit": "dona"
+  },
+  {
+    "name": "Bounty Mahsulot \u2116873",
+    "category": "Qandolat",
+    "costPrice": 27900.0,
+    "price": 35900.0,
+    "barcode": "4875422356564",
+    "unit": "dona"
+  },
+  {
+    "name": "Ahmad Tea Mahsulot \u2116874",
+    "category": "Oziq-ovqat",
+    "costPrice": 5000.0,
+    "price": 7200.0,
+    "barcode": "4221742555446",
+    "unit": "dona"
+  },
+  {
+    "name": "Buxanka Mahsulot \u2116875",
+    "category": "Non mahsulotlari",
+    "costPrice": 37200.0,
+    "price": 55600.0,
+    "barcode": "4194875863290",
+    "unit": "kg"
+  },
+  {
+    "name": "Lochira Mahsulot \u2116876",
+    "category": "Non mahsulotlari",
+    "costPrice": 7200.0,
+    "price": 9000.0,
+    "barcode": "9934961242800",
+    "unit": "kg"
+  },
+  {
+    "name": "Moya Semya Mahsulot \u2116877",
+    "category": "Oziq-ovqat",
+    "costPrice": 41600.0,
+    "price": 60600.0,
+    "barcode": "5866558106915",
+    "unit": "kg"
+  },
+  {
+    "name": "Deli Mahsulot \u2116878",
+    "category": "Kantselyariya",
+    "costPrice": 29700.0,
+    "price": 37000.0,
+    "barcode": "0326767820379",
+    "unit": "dona"
+  },
+  {
+    "name": "Tide Mahsulot \u2116879",
+    "category": "Maishiy kimyo",
+    "costPrice": 37100.0,
+    "price": 50300.0,
+    "barcode": "7008961528660",
+    "unit": "dona"
+  },
+  {
+    "name": "Ariel Mahsulot \u2116880",
+    "category": "Maishiy kimyo",
+    "costPrice": 35400.0,
+    "price": 52300.0,
+    "barcode": "5712116972220",
+    "unit": "dona"
+  },
+  {
+    "name": "Pepsi Mahsulot \u2116881",
+    "category": "Ichimliklar",
+    "costPrice": 30700.0,
+    "price": 33900.0,
+    "barcode": "9449201091800",
+    "unit": "dona"
+  },
+  {
+    "name": "Makfa Mahsulot \u2116882",
+    "category": "Oziq-ovqat",
+    "costPrice": 20400.0,
+    "price": 23400.0,
+    "barcode": "1919597771145",
+    "unit": "dona"
+  },
+  {
+    "name": "Domestos Mahsulot \u2116883",
+    "category": "Maishiy kimyo",
+    "costPrice": 32300.0,
+    "price": 47600.0,
+    "barcode": "0455931009032",
+    "unit": "dona"
+  },
+  {
+    "name": "ErichKrause Mahsulot \u2116884",
+    "category": "Kantselyariya",
+    "costPrice": 26300.0,
+    "price": 35800.0,
+    "barcode": "4906092181044",
+    "unit": "dona"
+  },
+  {
+    "name": "Kamilka Mahsulot \u2116885",
+    "category": "Sut mahsulotlari",
+    "costPrice": 41100.0,
+    "price": 52700.0,
+    "barcode": "2287959365031",
+    "unit": "dona"
+  },
+  {
+    "name": "Patir Mahsulot \u2116886",
+    "category": "Non mahsulotlari",
+    "costPrice": 15400.0,
+    "price": 17400.0,
+    "barcode": "2219934112602",
+    "unit": "dona"
+  },
+  {
+    "name": "Moya Semya Mahsulot \u2116887",
+    "category": "Oziq-ovqat",
+    "costPrice": 39000.0,
+    "price": 54400.0,
+    "barcode": "8610576827550",
+    "unit": "kg"
+  },
+  {
+    "name": "Bounty Mahsulot \u2116888",
+    "category": "Qandolat",
+    "costPrice": 33000.0,
+    "price": 48200.0,
+    "barcode": "4049791953819",
+    "unit": "dona"
+  },
+  {
+    "name": "Kamilka Mahsulot \u2116889",
+    "category": "Sut mahsulotlari",
+    "costPrice": 8100.0,
+    "price": 11700.0,
+    "barcode": "5031630650980",
+    "unit": "dona"
+  },
+  {
+    "name": "Lochira Mahsulot \u2116890",
+    "category": "Non mahsulotlari",
+    "costPrice": 25800.0,
+    "price": 30700.0,
+    "barcode": "2964096743756",
+    "unit": "kg"
+  },
+  {
+    "name": "Ahmad Tea Mahsulot \u2116891",
+    "category": "Oziq-ovqat",
+    "costPrice": 28800.0,
+    "price": 41500.0,
+    "barcode": "0770420733504",
+    "unit": "dona"
+  },
+  {
+    "name": "Twix Mahsulot \u2116892",
+    "category": "Qandolat",
+    "costPrice": 41900.0,
+    "price": 47200.0,
+    "barcode": "4048391020635",
+    "unit": "dona"
+  },
+  {
+    "name": "Patir Mahsulot \u2116893",
+    "category": "Non mahsulotlari",
+    "costPrice": 22000.0,
+    "price": 25900.0,
+    "barcode": "0876899278124",
+    "unit": "dona"
+  },
+  {
+    "name": "Dinay Mahsulot \u2116894",
+    "category": "Ichimliklar",
+    "costPrice": 31300.0,
+    "price": 36100.0,
+    "barcode": "0562584893679",
+    "unit": "dona"
+  },
+  {
+    "name": "Patir Mahsulot \u2116895",
+    "category": "Non mahsulotlari",
+    "costPrice": 25600.0,
+    "price": 32200.0,
+    "barcode": "2132804083482",
+    "unit": "dona"
+  },
+  {
+    "name": "Alpen Gold Mahsulot \u2116896",
+    "category": "Qandolat",
+    "costPrice": 14600.0,
+    "price": 21700.0,
+    "barcode": "9939428716164",
+    "unit": "dona"
+  },
+  {
+    "name": "ErichKrause Mahsulot \u2116897",
+    "category": "Kantselyariya",
+    "costPrice": 28200.0,
+    "price": 34900.0,
+    "barcode": "6193919283583",
+    "unit": "kg"
+  },
+  {
+    "name": "Lactel Mahsulot \u2116898",
+    "category": "Sut mahsulotlari",
+    "costPrice": 6200.0,
+    "price": 6900.0,
+    "barcode": "5933617436958",
+    "unit": "dona"
+  },
+  {
+    "name": "Pepsi Mahsulot \u2116899",
+    "category": "Ichimliklar",
+    "costPrice": 5500.0,
+    "price": 7000.0,
+    "barcode": "1636466366370",
+    "unit": "dona"
+  },
+  {
+    "name": "Fairy Mahsulot \u2116900",
+    "category": "Maishiy kimyo",
+    "costPrice": 28200.0,
+    "price": 40500.0,
+    "barcode": "3548336707214",
+    "unit": "dona"
+  },
+  {
+    "name": "Siyom Mahsulot \u2116901",
+    "category": "Oziq-ovqat",
+    "costPrice": 19100.0,
+    "price": 26600.0,
+    "barcode": "8443881399198",
+    "unit": "kg"
+  },
+  {
+    "name": "Bounty Mahsulot \u2116902",
+    "category": "Qandolat",
+    "costPrice": 35000.0,
+    "price": 44600.0,
+    "barcode": "4980892056139",
+    "unit": "dona"
+  },
+  {
+    "name": "Fairy Mahsulot \u2116903",
+    "category": "Maishiy kimyo",
+    "costPrice": 17400.0,
+    "price": 26000.0,
+    "barcode": "1808704684340",
+    "unit": "dona"
+  },
+  {
+    "name": "Deli Mahsulot \u2116904",
+    "category": "Kantselyariya",
+    "costPrice": 32500.0,
+    "price": 35800.0,
+    "barcode": "1965474090935",
+    "unit": "kg"
+  },
+  {
+    "name": "Tide Mahsulot \u2116905",
+    "category": "Maishiy kimyo",
+    "costPrice": 10800.0,
+    "price": 16100.0,
+    "barcode": "8614776230074",
+    "unit": "dona"
+  },
+  {
+    "name": "Domestos Mahsulot \u2116906",
+    "category": "Maishiy kimyo",
+    "costPrice": 6700.0,
+    "price": 9000.0,
+    "barcode": "3890965936835",
+    "unit": "dona"
+  },
+  {
+    "name": "Fanta Mahsulot \u2116907",
+    "category": "Ichimliklar",
+    "costPrice": 13300.0,
+    "price": 18000.0,
+    "barcode": "0598184175675",
+    "unit": "dona"
+  },
+  {
+    "name": "Centropen Mahsulot \u2116908",
+    "category": "Kantselyariya",
+    "costPrice": 9800.0,
+    "price": 13200.0,
+    "barcode": "7083020621180",
+    "unit": "dona"
+  },
+  {
+    "name": "Domestos Mahsulot \u2116909",
+    "category": "Maishiy kimyo",
+    "costPrice": 4100.0,
+    "price": 4800.0,
+    "barcode": "7428237019867",
+    "unit": "dona"
+  },
+  {
+    "name": "Alpen Gold Mahsulot \u2116910",
+    "category": "Qandolat",
+    "costPrice": 9800.0,
+    "price": 14400.0,
+    "barcode": "7759347095920",
+    "unit": "dona"
+  },
+  {
+    "name": "Buxanka Mahsulot \u2116911",
+    "category": "Non mahsulotlari",
+    "costPrice": 43500.0,
+    "price": 52200.0,
+    "barcode": "3964755574467",
+    "unit": "kg"
+  },
+  {
+    "name": "Ariel Mahsulot \u2116912",
+    "category": "Maishiy kimyo",
+    "costPrice": 42200.0,
+    "price": 62600.0,
+    "barcode": "5451284185160",
+    "unit": "dona"
+  },
+  {
+    "name": "Colgate Mahsulot \u2116913",
+    "category": "Maishiy kimyo",
+    "costPrice": 2100.0,
+    "price": 2700.0,
+    "barcode": "7488304524241",
+    "unit": "dona"
+  },
+  {
+    "name": "Twix Mahsulot \u2116914",
+    "category": "Qandolat",
+    "costPrice": 6800.0,
+    "price": 8900.0,
+    "barcode": "9682686921870",
+    "unit": "dona"
+  },
+  {
+    "name": "Lochira Mahsulot \u2116915",
+    "category": "Non mahsulotlari",
+    "costPrice": 9700.0,
+    "price": 13300.0,
+    "barcode": "3480080646305",
+    "unit": "kg"
+  },
+  {
+    "name": "Buxanka Mahsulot \u2116916",
+    "category": "Non mahsulotlari",
+    "costPrice": 34400.0,
+    "price": 43700.0,
+    "barcode": "2779452810136",
+    "unit": "dona"
+  },
+  {
+    "name": "Centropen Mahsulot \u2116917",
+    "category": "Kantselyariya",
+    "costPrice": 17900.0,
+    "price": 24400.0,
+    "barcode": "2601390419703",
+    "unit": "dona"
+  },
+  {
+    "name": "Centropen Mahsulot \u2116918",
+    "category": "Kantselyariya",
+    "costPrice": 32400.0,
+    "price": 41500.0,
+    "barcode": "5886551930775",
+    "unit": "dona"
+  },
+  {
+    "name": "Hydrolife Mahsulot \u2116919",
+    "category": "Ichimliklar",
+    "costPrice": 49100.0,
+    "price": 62500.0,
+    "barcode": "0608033970235",
+    "unit": "dona"
+  },
+  {
+    "name": "Snickers Mahsulot \u2116920",
+    "category": "Qandolat",
+    "costPrice": 30900.0,
+    "price": 36600.0,
+    "barcode": "4744513066625",
+    "unit": "dona"
+  },
+  {
+    "name": "ErichKrause Mahsulot \u2116921",
+    "category": "Kantselyariya",
+    "costPrice": 17200.0,
+    "price": 23200.0,
+    "barcode": "3477991397830",
+    "unit": "dona"
+  },
+  {
+    "name": "Siyom Mahsulot \u2116922",
+    "category": "Oziq-ovqat",
+    "costPrice": 28300.0,
+    "price": 39400.0,
+    "barcode": "9875276772287",
+    "unit": "kg"
+  },
+  {
+    "name": "Domestos Mahsulot \u2116923",
+    "category": "Maishiy kimyo",
+    "costPrice": 31700.0,
+    "price": 35400.0,
+    "barcode": "6970103837698",
+    "unit": "kg"
+  },
+  {
+    "name": "Lochira Mahsulot \u2116924",
+    "category": "Non mahsulotlari",
+    "costPrice": 20900.0,
+    "price": 26100.0,
+    "barcode": "8358524342904",
+    "unit": "dona"
+  },
+  {
+    "name": "Fanta Mahsulot \u2116925",
+    "category": "Ichimliklar",
+    "costPrice": 20600.0,
+    "price": 23200.0,
+    "barcode": "2263921112676",
+    "unit": "kg"
+  },
+  {
+    "name": "Mars Mahsulot \u2116926",
+    "category": "Qandolat",
+    "costPrice": 9800.0,
+    "price": 14100.0,
+    "barcode": "4252765034318",
+    "unit": "dona"
+  },
+  {
+    "name": "Fairy Mahsulot \u2116927",
+    "category": "Maishiy kimyo",
+    "costPrice": 7700.0,
+    "price": 8700.0,
+    "barcode": "6906631663457",
+    "unit": "dona"
+  },
+  {
+    "name": "Ahmad Tea Mahsulot \u2116928",
+    "category": "Oziq-ovqat",
+    "costPrice": 27000.0,
+    "price": 31100.0,
+    "barcode": "6475513062535",
+    "unit": "dona"
+  },
+  {
+    "name": "Alpen Gold Mahsulot \u2116929",
+    "category": "Qandolat",
+    "costPrice": 34300.0,
+    "price": 49700.0,
+    "barcode": "5073565396144",
+    "unit": "dona"
+  },
+  {
+    "name": "Bounty Mahsulot \u2116930",
+    "category": "Qandolat",
+    "costPrice": 31200.0,
+    "price": 34500.0,
+    "barcode": "1301743890894",
+    "unit": "dona"
+  },
+  {
+    "name": "Buxanka Mahsulot \u2116931",
+    "category": "Non mahsulotlari",
+    "costPrice": 30200.0,
+    "price": 36500.0,
+    "barcode": "0846228858717",
+    "unit": "dona"
+  },
+  {
+    "name": "Domestos Mahsulot \u2116932",
+    "category": "Maishiy kimyo",
+    "costPrice": 39300.0,
+    "price": 51100.0,
+    "barcode": "5733132903291",
+    "unit": "dona"
+  },
+  {
+    "name": "Patir Mahsulot \u2116933",
+    "category": "Non mahsulotlari",
+    "costPrice": 44100.0,
+    "price": 54800.0,
+    "barcode": "2858212117218",
+    "unit": "dona"
+  },
+  {
+    "name": "Domestos Mahsulot \u2116934",
+    "category": "Maishiy kimyo",
+    "costPrice": 9900.0,
+    "price": 14000.0,
+    "barcode": "8938963445037",
+    "unit": "kg"
+  },
+  {
+    "name": "Buxanka Mahsulot \u2116935",
+    "category": "Non mahsulotlari",
+    "costPrice": 44600.0,
+    "price": 61100.0,
+    "barcode": "7782255926868",
+    "unit": "dona"
+  },
+  {
+    "name": "Moya Semya Mahsulot \u2116936",
+    "category": "Oziq-ovqat",
+    "costPrice": 36400.0,
+    "price": 46100.0,
+    "barcode": "6538482014555",
+    "unit": "dona"
+  },
+  {
+    "name": "Siyom Mahsulot \u2116937",
+    "category": "Oziq-ovqat",
+    "costPrice": 4900.0,
+    "price": 7200.0,
+    "barcode": "4548728953782",
+    "unit": "dona"
+  },
+  {
+    "name": "Makfa Mahsulot \u2116938",
+    "category": "Oziq-ovqat",
+    "costPrice": 26800.0,
+    "price": 38300.0,
+    "barcode": "8546470550670",
+    "unit": "dona"
+  },
+  {
+    "name": "Lactel Mahsulot \u2116939",
+    "category": "Sut mahsulotlari",
+    "costPrice": 30700.0,
+    "price": 41000.0,
+    "barcode": "7043419077283",
+    "unit": "dona"
+  },
+  {
+    "name": "Colgate Mahsulot \u2116940",
+    "category": "Maishiy kimyo",
+    "costPrice": 30600.0,
+    "price": 34900.0,
+    "barcode": "4376058988077",
+    "unit": "kg"
+  },
+  {
+    "name": "Siyom Mahsulot \u2116941",
+    "category": "Oziq-ovqat",
+    "costPrice": 6200.0,
+    "price": 9000.0,
+    "barcode": "0848420997444",
+    "unit": "kg"
+  },
+  {
+    "name": "Colgate Mahsulot \u2116942",
+    "category": "Maishiy kimyo",
+    "costPrice": 31600.0,
+    "price": 35500.0,
+    "barcode": "9560019187940",
+    "unit": "dona"
+  },
+  {
+    "name": "Kamilka Mahsulot \u2116943",
+    "category": "Sut mahsulotlari",
+    "costPrice": 19000.0,
+    "price": 22000.0,
+    "barcode": "5056191920665",
+    "unit": "kg"
+  },
+  {
+    "name": "Deli Mahsulot \u2116944",
+    "category": "Kantselyariya",
+    "costPrice": 36700.0,
+    "price": 50200.0,
+    "barcode": "3983182441247",
+    "unit": "dona"
+  },
+  {
+    "name": "ErichKrause Mahsulot \u2116945",
+    "category": "Kantselyariya",
+    "costPrice": 4800.0,
+    "price": 5500.0,
+    "barcode": "0827080451966",
+    "unit": "dona"
+  },
+  {
+    "name": "Fanta Mahsulot \u2116946",
+    "category": "Ichimliklar",
+    "costPrice": 11400.0,
+    "price": 15200.0,
+    "barcode": "6229271584488",
+    "unit": "kg"
+  },
+  {
+    "name": "ErichKrause Mahsulot \u2116947",
+    "category": "Kantselyariya",
+    "costPrice": 28900.0,
+    "price": 40700.0,
+    "barcode": "2130360227497",
+    "unit": "dona"
+  },
+  {
+    "name": "Fairy Mahsulot \u2116948",
+    "category": "Maishiy kimyo",
+    "costPrice": 13100.0,
+    "price": 16200.0,
+    "barcode": "0035096523605",
+    "unit": "kg"
+  },
+  {
+    "name": "Siyom Mahsulot \u2116949",
+    "category": "Oziq-ovqat",
+    "costPrice": 42500.0,
+    "price": 58200.0,
+    "barcode": "4241630749981",
+    "unit": "dona"
+  },
+  {
+    "name": "ErichKrause Mahsulot \u2116950",
+    "category": "Kantselyariya",
+    "costPrice": 39400.0,
+    "price": 46200.0,
+    "barcode": "9349376470369",
+    "unit": "dona"
+  },
+  {
+    "name": "Hydrolife Mahsulot \u2116951",
+    "category": "Ichimliklar",
+    "costPrice": 5000.0,
+    "price": 6700.0,
+    "barcode": "5418667560225",
+    "unit": "dona"
+  },
+  {
+    "name": "Patir Mahsulot \u2116952",
+    "category": "Non mahsulotlari",
+    "costPrice": 37200.0,
+    "price": 52200.0,
+    "barcode": "1784440231424",
+    "unit": "dona"
+  },
+  {
+    "name": "Patir Mahsulot \u2116953",
+    "category": "Non mahsulotlari",
+    "costPrice": 4800.0,
+    "price": 7000.0,
+    "barcode": "4738833330911",
+    "unit": "dona"
+  },
+  {
+    "name": "Ariel Mahsulot \u2116954",
+    "category": "Maishiy kimyo",
+    "costPrice": 40400.0,
+    "price": 48800.0,
+    "barcode": "0153117492015",
+    "unit": "dona"
+  },
+  {
+    "name": "Ahmad Tea Mahsulot \u2116955",
+    "category": "Oziq-ovqat",
+    "costPrice": 22000.0,
+    "price": 32500.0,
+    "barcode": "4339598231779",
+    "unit": "dona"
+  },
+  {
+    "name": "ErichKrause Mahsulot \u2116956",
+    "category": "Kantselyariya",
+    "costPrice": 44900.0,
+    "price": 49600.0,
+    "barcode": "1735315882885",
+    "unit": "dona"
+  },
+  {
+    "name": "Fanta Mahsulot \u2116957",
+    "category": "Ichimliklar",
+    "costPrice": 37300.0,
+    "price": 51400.0,
+    "barcode": "7311396518853",
+    "unit": "dona"
+  },
+  {
+    "name": "Patir Mahsulot \u2116958",
+    "category": "Non mahsulotlari",
+    "costPrice": 45900.0,
+    "price": 55000.0,
+    "barcode": "8716357504066",
+    "unit": "kg"
+  },
+  {
+    "name": "Ariel Mahsulot \u2116959",
+    "category": "Maishiy kimyo",
+    "costPrice": 35400.0,
+    "price": 46300.0,
+    "barcode": "8693251607696",
+    "unit": "dona"
+  },
+  {
+    "name": "Deli Mahsulot \u2116960",
+    "category": "Kantselyariya",
+    "costPrice": 41600.0,
+    "price": 49100.0,
+    "barcode": "2728352046519",
+    "unit": "dona"
+  },
+  {
+    "name": "Snickers Mahsulot \u2116961",
+    "category": "Qandolat",
+    "costPrice": 45100.0,
+    "price": 51700.0,
+    "barcode": "7027035287388",
+    "unit": "dona"
+  },
+  {
+    "name": "Domestos Mahsulot \u2116962",
+    "category": "Maishiy kimyo",
+    "costPrice": 36100.0,
+    "price": 49600.0,
+    "barcode": "0751244940993",
+    "unit": "dona"
+  },
+  {
+    "name": "Alpen Gold Mahsulot \u2116963",
+    "category": "Qandolat",
+    "costPrice": 25700.0,
+    "price": 31100.0,
+    "barcode": "1314841076262",
+    "unit": "dona"
+  },
+  {
+    "name": "Buxanka Mahsulot \u2116964",
+    "category": "Non mahsulotlari",
+    "costPrice": 10300.0,
+    "price": 12600.0,
+    "barcode": "0427319396561",
+    "unit": "dona"
+  },
+  {
+    "name": "Mars Mahsulot \u2116965",
+    "category": "Qandolat",
+    "costPrice": 39900.0,
+    "price": 53300.0,
+    "barcode": "9787838762970",
+    "unit": "dona"
+  },
+  {
+    "name": "Musaffo Mahsulot \u2116966",
+    "category": "Sut mahsulotlari",
+    "costPrice": 12600.0,
+    "price": 17000.0,
+    "barcode": "4207180406666",
+    "unit": "dona"
+  },
+  {
+    "name": "ErichKrause Mahsulot \u2116967",
+    "category": "Kantselyariya",
+    "costPrice": 12300.0,
+    "price": 17800.0,
+    "barcode": "1417692008077",
+    "unit": "kg"
+  },
+  {
+    "name": "Lochira Mahsulot \u2116968",
+    "category": "Non mahsulotlari",
+    "costPrice": 34500.0,
+    "price": 39500.0,
+    "barcode": "3389034555155",
+    "unit": "kg"
+  },
+  {
+    "name": "Domestos Mahsulot \u2116969",
+    "category": "Maishiy kimyo",
+    "costPrice": 14000.0,
+    "price": 16500.0,
+    "barcode": "2862070016318",
+    "unit": "kg"
+  },
+  {
+    "name": "Patir Mahsulot \u2116970",
+    "category": "Non mahsulotlari",
+    "costPrice": 34300.0,
+    "price": 46400.0,
+    "barcode": "4911293413718",
+    "unit": "kg"
+  },
+  {
+    "name": "Makfa Mahsulot \u2116971",
+    "category": "Oziq-ovqat",
+    "costPrice": 14900.0,
+    "price": 21200.0,
+    "barcode": "2479881001430",
+    "unit": "dona"
+  },
+  {
+    "name": "Shebekino Mahsulot \u2116972",
+    "category": "Oziq-ovqat",
+    "costPrice": 40100.0,
+    "price": 44100.0,
+    "barcode": "9797553899631",
+    "unit": "dona"
+  },
+  {
+    "name": "Moya Semya Mahsulot \u2116973",
+    "category": "Oziq-ovqat",
+    "costPrice": 28000.0,
+    "price": 34600.0,
+    "barcode": "3204087394423",
+    "unit": "dona"
+  },
+  {
+    "name": "Kamilka Mahsulot \u2116974",
+    "category": "Sut mahsulotlari",
+    "costPrice": 25500.0,
+    "price": 28300.0,
+    "barcode": "0025346128931",
+    "unit": "dona"
+  },
+  {
+    "name": "Kinder Mahsulot \u2116975",
+    "category": "Qandolat",
+    "costPrice": 28800.0,
+    "price": 36800.0,
+    "barcode": "9319592936698",
+    "unit": "dona"
+  },
+  {
+    "name": "Kinder Mahsulot \u2116976",
+    "category": "Qandolat",
+    "costPrice": 27500.0,
+    "price": 40800.0,
+    "barcode": "5539045234521",
+    "unit": "dona"
+  },
+  {
+    "name": "ErichKrause Mahsulot \u2116977",
+    "category": "Kantselyariya",
+    "costPrice": 8300.0,
+    "price": 11000.0,
+    "barcode": "4229592408857",
+    "unit": "dona"
+  },
+  {
+    "name": "ErichKrause Mahsulot \u2116978",
+    "category": "Kantselyariya",
+    "costPrice": 40400.0,
+    "price": 56500.0,
+    "barcode": "9978420924722",
+    "unit": "dona"
+  },
+  {
+    "name": "Lactel Mahsulot \u2116979",
+    "category": "Sut mahsulotlari",
+    "costPrice": 7000.0,
+    "price": 9400.0,
+    "barcode": "6265242726235",
+    "unit": "dona"
+  },
+  {
+    "name": "Buxanka Mahsulot \u2116980",
+    "category": "Non mahsulotlari",
+    "costPrice": 26000.0,
+    "price": 32000.0,
+    "barcode": "9977843511410",
+    "unit": "kg"
+  },
+  {
+    "name": "Hydrolife Mahsulot \u2116981",
+    "category": "Ichimliklar",
+    "costPrice": 17900.0,
+    "price": 24800.0,
+    "barcode": "1129496077852",
+    "unit": "dona"
+  },
+  {
+    "name": "Colgate Mahsulot \u2116982",
+    "category": "Maishiy kimyo",
+    "costPrice": 2500.0,
+    "price": 2800.0,
+    "barcode": "8521085579178",
+    "unit": "kg"
+  },
+  {
+    "name": "Musaffo Mahsulot \u2116983",
+    "category": "Sut mahsulotlari",
+    "costPrice": 31400.0,
+    "price": 45900.0,
+    "barcode": "7223868648322",
+    "unit": "dona"
+  },
+  {
+    "name": "Pepsi Mahsulot \u2116984",
+    "category": "Ichimliklar",
+    "costPrice": 8200.0,
+    "price": 11900.0,
+    "barcode": "4168989485840",
+    "unit": "dona"
+  },
+  {
+    "name": "Alpen Gold Mahsulot \u2116985",
+    "category": "Qandolat",
+    "costPrice": 47300.0,
+    "price": 67600.0,
+    "barcode": "9666617937763",
+    "unit": "dona"
+  },
+  {
+    "name": "Musaffo Mahsulot \u2116986",
+    "category": "Sut mahsulotlari",
+    "costPrice": 4100.0,
+    "price": 5700.0,
+    "barcode": "0724667418434",
+    "unit": "dona"
+  },
+  {
+    "name": "Centropen Mahsulot \u2116987",
+    "category": "Kantselyariya",
+    "costPrice": 36600.0,
+    "price": 50700.0,
+    "barcode": "1928334672215",
+    "unit": "dona"
+  },
+  {
+    "name": "Bio-Sut Mahsulot \u2116988",
+    "category": "Sut mahsulotlari",
+    "costPrice": 31700.0,
+    "price": 36300.0,
+    "barcode": "5129168050209",
+    "unit": "dona"
+  },
+  {
+    "name": "Coca-Cola Mahsulot \u2116989",
+    "category": "Ichimliklar",
+    "costPrice": 2200.0,
+    "price": 2800.0,
+    "barcode": "0501229251667",
+    "unit": "dona"
+  },
+  {
+    "name": "Musaffo Mahsulot \u2116990",
+    "category": "Sut mahsulotlari",
+    "costPrice": 29200.0,
+    "price": 40500.0,
+    "barcode": "7357432254020",
+    "unit": "dona"
+  },
+  {
+    "name": "Siyom Mahsulot \u2116991",
+    "category": "Oziq-ovqat",
+    "costPrice": 9100.0,
+    "price": 13500.0,
+    "barcode": "4012595942704",
+    "unit": "dona"
+  },
+  {
+    "name": "Kamilka Mahsulot \u2116992",
+    "category": "Sut mahsulotlari",
+    "costPrice": 40200.0,
+    "price": 55400.0,
+    "barcode": "6465882052666",
+    "unit": "dona"
+  },
+  {
+    "name": "Patir Mahsulot \u2116993",
+    "category": "Non mahsulotlari",
+    "costPrice": 18500.0,
+    "price": 25700.0,
+    "barcode": "3046716404520",
+    "unit": "kg"
+  },
+  {
+    "name": "Snickers Mahsulot \u2116994",
+    "category": "Qandolat",
+    "costPrice": 13900.0,
+    "price": 18800.0,
+    "barcode": "8686845129505",
+    "unit": "dona"
+  },
+  {
+    "name": "Persil Mahsulot \u2116995",
+    "category": "Maishiy kimyo",
+    "costPrice": 10700.0,
+    "price": 12400.0,
+    "barcode": "9195250130442",
+    "unit": "dona"
+  },
+  {
+    "name": "Makfa Mahsulot \u2116996",
+    "category": "Oziq-ovqat",
+    "costPrice": 18900.0,
+    "price": 23800.0,
+    "barcode": "3535212193731",
+    "unit": "dona"
+  },
+  {
+    "name": "Alpen Gold Mahsulot \u2116997",
+    "category": "Qandolat",
+    "costPrice": 11000.0,
+    "price": 12200.0,
+    "barcode": "9204378661225",
+    "unit": "dona"
+  },
+  {
+    "name": "Deli Mahsulot \u2116998",
+    "category": "Kantselyariya",
+    "costPrice": 39100.0,
+    "price": 48700.0,
+    "barcode": "7342143237543",
+    "unit": "dona"
+  },
+  {
+    "name": "Kinder Mahsulot \u2116999",
+    "category": "Qandolat",
+    "costPrice": 15600.0,
+    "price": 20400.0,
+    "barcode": "0270404453825",
+    "unit": "dona"
+  },
+  {
+    "name": "Lochira Mahsulot \u21161000",
+    "category": "Non mahsulotlari",
+    "costPrice": 7600.0,
+    "price": 8300.0,
+    "barcode": "8332477439080",
+    "unit": "dona"
+  }
+]

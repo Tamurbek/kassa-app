@@ -427,7 +427,7 @@ class _CatalogScreenState extends State<CatalogScreen>
                 final count = await StarterDataService.seed1000Products();
                 if (context.mounted) {
                   Navigator.pop(context); // Close indicator
-                  await context.read<InventoryProvider>().reloadData();
+                  await context.read<InventoryProvider>().reloadData(skipRecalculate: true);
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('$count ta mahsulot muvaffaqiyatli yuklandi!'), backgroundColor: Colors.green),
                   );
