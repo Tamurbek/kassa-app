@@ -78,7 +78,7 @@ class DatabaseService {
 
     return await openDatabase(
       newPath,
-      version: 18,
+      version: 19,
       onCreate: (db, version) async {
         await db.execute('''
           CREATE TABLE categories (
@@ -502,6 +502,22 @@ class DatabaseService {
                print("Migration 18 error ($table): $e");
             }
           }
+        
+        if (oldVersion < 19) {
+          try {
+             var columns = await db.rawQuery('PRAGMA table_info(settings)');
+             bool hasUpdatedAt = columns.any((c) => c['name'] == 'updatedAt');
+             bool hasIsSynced = columns.any((c) => c['name'] == 'isSynced');
+             
+             if (!hasUpdatedAt) {
+                await db.execute('ALTER TABLE settings ADD COLUMN updatedAt TEXT');
+             }
+             if (!hasIsSynced) {
+                await db.execute('ALTER TABLE settings ADD COLUMN isSynced INTEGER NOT NULL DEFAULT 0');
+             }
+          } catch (e) {
+             print("Migration 19 error (settings): $e");
+          }
         }
       },
     );
@@ -859,7 +875,12 @@ class DatabaseService {
     final db = await database;
     await db.insert(
       'settings',
-      {'key': key, 'value': value},
+      {
+        'key': key, 
+        'value': value,
+        'updatedAt': DateTime.now().toIso8601String(),
+        'isSynced': 0,
+      },
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
     triggerUpdate();
@@ -1601,7 +1622,7 @@ class DatabaseService {
     await db.update(
       table,
       {'isSynced': 1},
-      where: 'id = ?',
+      where: table == 'settings' ? 'key = ?' : 'id = ?',
       whereArgs: [id],
     );
     triggerUpdate(skipPush: true);
@@ -1612,7 +1633,7 @@ class DatabaseService {
     final tables = [
       'categories', 'products', 'warehouses', 'registers', 
       'sales', 'returns', 'write_offs', 'inventories', 
-      'stock_entries', 'users', 'stock_transfers'
+      'stock_entries', 'users', 'stock_transfers', 'settings'
     ];
     
     final Map<String, List<Map<String, dynamic>>> result = {};
@@ -1623,7 +1644,7 @@ class DatabaseService {
           final List<Map<String, dynamic>> enriched = [];
           for (var record in records) {
             final Map<String, dynamic> mutable = Map.from(record);
-            final id = record['id'];
+            final id = table == 'settings' ? record['key'] : record['id'];
 
             // Enrich with child items if needed
             if (table == 'sales') {
@@ -1657,7 +1678,7 @@ class DatabaseService {
       final Map<String, dynamic> mutable = Map.from(data);
       final List<dynamic>? items = mutable.remove('items') as List<dynamic>?;
       mutable['isSynced'] = 1;
-      final id = mutable['id'];
+      final id = table == 'settings' ? mutable['key'] : mutable['id'];
 
       await txn.insert(table, mutable, conflictAlgorithm: ConflictAlgorithm.replace);
 

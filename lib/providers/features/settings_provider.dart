@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -29,6 +30,20 @@ class SettingsProvider extends ChangeNotifier {
   bool isBarcodeScanMode = false;
   String appVersion = AppConstants.appVersion;
   String? deviceId;
+  StreamSubscription<void>? _dbSubscription;
+
+  SettingsProvider() {
+    _dbSubscription = DatabaseService.dbUpdateStream.stream.listen((_) {
+      debugPrint("SettingsProvider: Background data change detected. Reloading...");
+      loadSettings();
+    });
+  }
+
+  @override
+  void dispose() {
+    _dbSubscription?.cancel();
+    super.dispose();
+  }
 
   Future<void> loadSettings() async {
     try {
