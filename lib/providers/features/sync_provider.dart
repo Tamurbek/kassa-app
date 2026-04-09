@@ -201,7 +201,8 @@ class SyncProvider extends ChangeNotifier {
           debugPrint("Professional Sync: Master broadcasting $type to LAN");
           SyncService.broadcast(type, record);
           // After broadcasting/cloud-syncing, we mark it as synced locally
-          await DatabaseService.markAsSynced(table, record['id']);
+          final id = table == 'settings' ? record['key'] : record['id'];
+          await DatabaseService.markAsSynced(table, id);
         }
       }
     } else if (isMaster == false && masterAddress != null) {
@@ -314,7 +315,8 @@ class SyncProvider extends ChangeNotifier {
         for (var entry in data.entries) {
           final table = entry.key;
           for (var record in entry.value) {
-            await DatabaseService.markAsSynced(table, record['id']);
+            final id = table == 'settings' ? record['key'] : record['id'];
+            await DatabaseService.markAsSynced(table, id);
           }
         }
         debugPrint("Professional Sync: Cloud incremental sync successful");
@@ -339,7 +341,8 @@ class SyncProvider extends ChangeNotifier {
         for (var entry in data.entries) {
           final table = entry.key;
           for (var record in entry.value) {
-            await DatabaseService.markAsSynced(table, record['id']);
+            final id = table == 'settings' ? record['key'] : record['id'];
+            await DatabaseService.markAsSynced(table, id);
           }
         }
         debugPrint("Professional Sync: Master incremental sync successful");

@@ -212,11 +212,12 @@ class _InitializationWrapperState extends State<InitializationWrapper> {
               ),
               const SizedBox(height: 16),
               Text(
-                "Dastur ma'lumotlarini yuklab bo'lmadi. Internet yoki mahalliy tarmoq ulanishini tekshiring.",
+                state.initializationError ?? "Dastur ma'lumotlarini yuklab bo'lmadi. Iltimos, qayta urinib ko'ring.",
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 15,
-                  color: Colors.white.withOpacity(0.5),
+                  fontSize: 14,
+                  color: Colors.white.withOpacity(0.6),
+                  fontStyle: FontStyle.italic,
                   height: 1.6,
                 ),
               ),
