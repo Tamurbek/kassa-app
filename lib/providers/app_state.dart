@@ -845,55 +845,43 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  void _setupFirewallRules() async {
+  Future<void> _setupFirewallRules() async {
     if (Platform.isWindows) {
       try {
         final exePath = Platform.resolvedExecutable;
-        // 1. Rule for port 8080 (TCP) - Explicitly allow on ALL profiles
+        // 1. Incoming Sync Rule (TCP 8080)
         await Process.run('netsh', [
-          'advfirewall',
-          'firewall',
-          'add',
-          'rule',
-          'name=Simple Sale Sync Port',
-          'dir=in',
-          'action=allow',
-          'protocol=TCP',
-          'localport=8080',
-          'profile=any',
-          'edge=yes', // Allow edge traversal (helpful for complex network topologies)
+          'advfirewall', 'firewall', 'add', 'rule',
+          'name=Simple Sale Sync In', 'dir=in', 'action=allow',
+          'protocol=TCP', 'localport=8080', 'profile=any',
         ]);
-        // 2. Rule for application executable
+        // 2. Outgoing Activation Rule (TCP 443 for HTTPS)
         await Process.run('netsh', [
-          'advfirewall',
-          'firewall',
-          'add',
-          'rule',
-          'name=Simple Sale Business',
-          'dir=in',
-          'action=allow',
-          'program=$exePath',
-          'enable=yes',
-          'profile=any',
+          'advfirewall', 'firewall', 'add', 'rule',
+          'name=Simple Sale Activation Out', 'dir=out', 'action=allow',
+          'protocol=TCP', 'remoteport=443', 'profile=any',
         ]);
-        debugPrint('Windows Firewall rules updated for all profiles.');
+        // 3. Full App Rule
+        await Process.run('netsh', [
+          'advfirewall', 'firewall', 'add', 'rule',
+          'name=Simple Sale Full Access', 'dir=in', 'action=allow',
+          'program=$exePath', 'enable=yes', 'profile=any',
+        ]);
+        debugPrint('Windows Firewall rules automated.');
       } catch (e) {
-        debugPrint('CRITICAL: Failed to add Windows firewall rule. Please run as Administrator: $e');
+        debugPrint('Manual admin intervention required for firewall: $e');
       }
-    } else if (Platform.isMacOS) {
-      try {
-        final exePath = Platform.resolvedExecutable;
-        // On macOS, try to add the app to the application firewall (requires authorization)
-        await Process.run('/usr/libexec/ApplicationFirewall/socketfilterfw', [
-          '--add', exePath
-        ]);
-        await Process.run('/usr/libexec/ApplicationFirewall/socketfilterfw', [
-          '--unblockapp', exePath
-        ]);
-        debugPrint('macOS Firewall settings attempted for app.');
-      } catch (e) {
-        debugPrint('Failed to update macOS firewall: $e');
-      }
+    }
+  }
+
+  Future<bool> fixNetworkConnection() async {
+    await _setupFirewallRules();
+    // Also try to ping a generic service to check if internet is back
+    try {
+      final res = await http.get(Uri.parse('https://google.com')).timeout(const Duration(seconds: 5));
+      return res.statusCode == 200;
+    } catch (_) {
+      return false;
     }
   }
 
