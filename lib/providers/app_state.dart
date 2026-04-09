@@ -292,6 +292,7 @@ class AppState extends ChangeNotifier {
     initializationError = null;
     isInitialized = false;
     notifyListeners();
+    await DatabaseService.closeDatabase();
     await loadSettings();
   }
 

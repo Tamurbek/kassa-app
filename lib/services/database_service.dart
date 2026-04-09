@@ -20,9 +20,15 @@ class DatabaseService {
 
   static Future<Database> get database async {
     if (_db != null && _db!.isOpen) return _db!;
-    _initFuture ??= _initDb();
-    _db = await _initFuture!;
-    return _db!;
+    try {
+      _initFuture ??= _initDb();
+      _db = await _initFuture!;
+      return _db!;
+    } catch (e) {
+      _initFuture = null; // Reset future so retry creates a new one
+      _db = null;
+      rethrow;
+    }
   }
 
   static Future<String> getDatabasePath() async {
@@ -78,7 +84,7 @@ class DatabaseService {
 
     return await openDatabase(
       newPath,
-      version: 19,
+      version: 20,
       onCreate: (db, version) async {
         await db.execute('''
           CREATE TABLE categories (
@@ -94,6 +100,7 @@ class DatabaseService {
             id TEXT PRIMARY KEY,
             name TEXT NOT NULL,
             isMain INTEGER NOT NULL DEFAULT 0,
+            isDeleted INTEGER NOT NULL DEFAULT 0,
             updatedAt TEXT,
             isSynced INTEGER NOT NULL DEFAULT 0
           )
@@ -104,6 +111,7 @@ class DatabaseService {
             name TEXT NOT NULL,
             warehouseId TEXT NOT NULL,
             activeDeviceId TEXT,
+            isDeleted INTEGER NOT NULL DEFAULT 0,
             updatedAt TEXT,
             isSynced INTEGER NOT NULL DEFAULT 0
           )
@@ -146,6 +154,7 @@ class DatabaseService {
             total REAL NOT NULL,
             registerId TEXT NOT NULL,
             warehouseId TEXT NOT NULL,
+            isDeleted INTEGER NOT NULL DEFAULT 0,
             updatedAt TEXT,
             isSynced INTEGER NOT NULL DEFAULT 0
           )
@@ -167,6 +176,7 @@ class DatabaseService {
             date TEXT NOT NULL,
             total REAL NOT NULL,
             warehouseId TEXT NOT NULL,
+            isDeleted INTEGER NOT NULL DEFAULT 0,
             updatedAt TEXT,
             isSynced INTEGER NOT NULL DEFAULT 0
           )
@@ -186,6 +196,7 @@ class DatabaseService {
             date TEXT NOT NULL,
             warehouseId TEXT NOT NULL,
             description TEXT,
+            isDeleted INTEGER NOT NULL DEFAULT 0,
             updatedAt TEXT,
             isSynced INTEGER NOT NULL DEFAULT 0
           )
@@ -204,6 +215,7 @@ class DatabaseService {
             date TEXT NOT NULL,
             warehouseId TEXT NOT NULL,
             description TEXT,
+            isDeleted INTEGER NOT NULL DEFAULT 0,
             updatedAt TEXT,
             isSynced INTEGER NOT NULL DEFAULT 0
           )
@@ -223,6 +235,7 @@ class DatabaseService {
             warehouseId TEXT NOT NULL,
             date TEXT NOT NULL,
             description TEXT,
+            isDeleted INTEGER NOT NULL DEFAULT 0,
             updatedAt TEXT,
             isSynced INTEGER NOT NULL DEFAULT 0
           )
@@ -250,7 +263,9 @@ class DatabaseService {
         await db.execute('''
           CREATE TABLE settings (
             key TEXT PRIMARY KEY,
-            value TEXT
+            value TEXT,
+            updatedAt TEXT,
+            isSynced INTEGER NOT NULL DEFAULT 0
           )
         ''');
         await db.execute('''
@@ -260,6 +275,7 @@ class DatabaseService {
             toWarehouseId TEXT NOT NULL,
             date TEXT NOT NULL,
             description TEXT,
+            isDeleted INTEGER NOT NULL DEFAULT 0,
             updatedAt TEXT,
             isSynced INTEGER NOT NULL DEFAULT 0
           )
@@ -518,6 +534,41 @@ class DatabaseService {
              }
           } catch (e) {
              print("Migration 19 error (settings): $e");
+          }
+        }
+
+        if (oldVersion < 20) {
+          final tables = [
+            'categories', 'products', 'warehouses', 'registers', 
+            'sales', 'returns', 'write_offs', 'inventories', 
+            'stock_entries', 'users', 'stock_transfers', 'settings'
+          ];
+          for (var table in tables) {
+            try {
+              var columns = await db.rawQuery('PRAGMA table_info($table)');
+              
+              // Ensure isDeleted exists (except for settings)
+              if (table != 'settings') {
+                bool hasIsDeleted = columns.any((c) => c['name'] == 'isDeleted');
+                if (!hasIsDeleted) {
+                   await db.execute('ALTER TABLE $table ADD COLUMN isDeleted INTEGER NOT NULL DEFAULT 0');
+                }
+              }
+              
+              // Ensure updatedAt exists
+              bool hasUpdatedAt = columns.any((c) => c['name'] == 'updatedAt');
+              if (!hasUpdatedAt) {
+                 await db.execute('ALTER TABLE $table ADD COLUMN updatedAt TEXT');
+              }
+              
+              // Ensure isSynced exists
+              bool hasIsSynced = columns.any((c) => c['name'] == 'isSynced');
+              if (!hasIsSynced) {
+                 await db.execute('ALTER TABLE $table ADD COLUMN isSynced INTEGER NOT NULL DEFAULT 0');
+              }
+            } catch (e) {
+              print("Migration 20 error ($table): $e");
+            }
           }
         }
       },
