@@ -28,6 +28,6 @@ class User {
     name: json['name']?.toString() ?? 'Noma\'lum',
     pin: json['pin']?.toString() ?? '',
     role: UserRole.values[(json['role'] ?? 1) as int],
-    isDeleted: json['isDeleted'] ?? false,
+    isDeleted: json['isDeleted'] == 1 || json['isDeleted'] == true,
   );
 }

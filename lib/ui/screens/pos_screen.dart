@@ -11,6 +11,8 @@ import '../../models/models.dart';
 import '../widgets/pos/pos_product_card.dart';
 import '../widgets/pos/pos_cart_item.dart';
 import '../widgets/pos/pos_virtual_keyboard.dart';
+import '../widgets/pos/pos_category_selector.dart';
+import '../../core/constants/app_constants.dart';
 import 'checkout_screen.dart';
 
 class POSScreen extends StatefulWidget {
@@ -309,6 +311,24 @@ class _POSScreenState extends State<POSScreen> {
             backgroundColor: Theme.of(context).scaffoldBackgroundColor,
             body: Row(
               children: [
+                // Desktop Cart Sidebar
+                if (!isMobile)
+                  Row(
+                    children: [
+                      _buildCartSidebar(
+                        sales,
+                        inventory,
+                        settings,
+                        auth,
+                        sidebarWidth,
+                      ),
+                      VerticalDivider(
+                        width: 1, 
+                        thickness: 1, 
+                        color: Theme.of(context).dividerColor.withOpacity(0.5)
+                      ),
+                    ],
+                  ),
                 // Product Grid Area
                 Expanded(
                   child: Column(
@@ -354,15 +374,6 @@ class _POSScreenState extends State<POSScreen> {
                     ],
                   ),
                 ),
-                // Desktop Cart Sidebar
-                if (!isMobile)
-                  _buildCartSidebar(
-                    sales,
-                    inventory,
-                    settings,
-                    auth,
-                    sidebarWidth,
-                  ),
               ],
             ),
             floatingActionButton: isMobile && sales.cart.isNotEmpty
@@ -392,8 +403,6 @@ class _POSScreenState extends State<POSScreen> {
       ),
       child: Row(
         children: [
-          Icon(Icons.point_of_sale_rounded, color: Theme.of(context).colorScheme.primary, size: 24),
-          const SizedBox(width: 12),
           Expanded(
             child: Container(
               height: 40,
@@ -412,6 +421,7 @@ class _POSScreenState extends State<POSScreen> {
                   border: InputBorder.none,
                   icon: const Icon(Icons.search, size: 18, color: Colors.grey),
                   isDense: true,
+                  contentPadding: const EdgeInsets.symmetric(vertical: 10),
                 ),
                 onChanged: (v) => setState(() => _currentPage = 1),
                 onSubmitted: (v) {
@@ -439,6 +449,13 @@ class _POSScreenState extends State<POSScreen> {
             const SizedBox(width: 8),
             _buildKassaInfo(settings, inventory),
           ],
+          const SizedBox(width: 8),
+          IconButton(
+            icon: const Icon(Icons.menu_rounded),
+            color: Theme.of(context).colorScheme.primary,
+            onPressed: widget.onMenuPressed,
+            tooltip: 'Menyu',
+          ),
         ],
       ),
     );
@@ -538,7 +555,6 @@ class _POSScreenState extends State<POSScreen> {
       width: width,
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
-        border: Border(left: BorderSide(color: Theme.of(context).dividerColor.withOpacity(0.3))),
       ),
       child: Column(
         children: [

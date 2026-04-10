@@ -151,6 +151,7 @@ class DatabaseService {
 
   // --- Settings ---
   static Future<Map<String, String>> getSettings() => SettingsRepository.getSettings();
+  static Future<Map<String, String>> getAllSettings() => SettingsRepository.getSettings(); // Alias for AppState/SettingsProvider
   static Future<void> saveSetting(String key, String value) async {
     await SettingsRepository.saveSetting(key, value);
     triggerUpdate();
@@ -160,12 +161,90 @@ class DatabaseService {
     await db.delete('settings', where: 'key = ?', whereArgs: [key]);
     triggerUpdate();
   }
-
-  // --- Sync & Utils ---
-  static Future<void> recalculateStocks({bool force = false}) async {
-    await StockUtils.recalculateStocks(force: force);
+  static Future<void> updateRegisterDevice(String registerId, String? deviceId) async {
+    final db = await database;
+    await db.update('registers', {'activeDeviceId': deviceId, 'updatedAt': DateTime.now().toIso8601String(), 'isSynced': 0}, where: 'id = ?', whereArgs: [registerId]);
     triggerUpdate();
   }
+
+  // --- Sync & Utils ---
+  static Future<void> recalculateStocks({bool force = false, bool skipNotify = false}) async {
+    await StockUtils.recalculateStocks(force: force);
+    if (!skipNotify) triggerUpdate();
+  }
+  static Future<void> updateStock(String productId, String warehouseId, double quantity) async {
+    final db = await database;
+    await db.insert('stocks', {'productId': productId, 'warehouseId': warehouseId, 'quantity': quantity}, conflictAlgorithm: ConflictAlgorithm.replace);
+    triggerUpdate();
+  }
+  static Future<void> clearAllData() async {
+    await DatabaseHelper.clearAllData();
+    triggerUpdate();
+  }
+  static Future<void> clearAllAndReplace({
+    required List<Category> categories,
+    required List<Product> products,
+    required List<Warehouse> warehouses,
+    required List<Register> registers,
+    required List<User> users,
+  }) async {
+    final db = await database;
+    await db.transaction((txn) async {
+      await clearAllData();
+      
+      // Professional: Explicitly map booleans to 0/1 for SQLite INTEGER columns
+      for (var c in categories) {
+        await txn.insert(
+          'categories', 
+          {...c.toJson(), 'isDeleted': c.isDeleted ? 1 : 0}, 
+          conflictAlgorithm: ConflictAlgorithm.replace
+        );
+      }
+      for (var w in warehouses) {
+        await txn.insert(
+          'warehouses', 
+          {...w.toJson(), 'isMain': w.isMain ? 1 : 0, 'isDeleted': 0}, 
+          conflictAlgorithm: ConflictAlgorithm.replace
+        );
+      }
+      for (var r in registers) {
+        await txn.insert(
+          'registers', 
+          {...r.toJson(), 'isDeleted': 0}, 
+          conflictAlgorithm: ConflictAlgorithm.replace
+        );
+      }
+      for (var u in users) {
+        await txn.insert(
+          'users', 
+          {...u.toJson(), 'isDeleted': u.isDeleted ? 1 : 0}, 
+          conflictAlgorithm: ConflictAlgorithm.replace
+        );
+      }
+      
+      for (var p in products) {
+        await txn.insert(
+          'products',
+          {...p.toJson(), 'isDeleted': p.isDeleted ? 1 : 0, 'trackStock': p.trackStock ? 1 : 0, 'updatedAt': DateTime.now().toIso8601String(), 'isSynced': 0}..remove('stocks')..remove('additionalBarcodes'),
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
+        for (var b in p.additionalBarcodes) {
+          await txn.insert('product_additional_barcodes', {'productId': p.id, 'barcode': b});
+        }
+        for (var s in p.stocks.entries) {
+          await txn.insert('stocks', {'productId': p.id, 'warehouseId': s.key, 'quantity': s.value}, conflictAlgorithm: ConflictAlgorithm.replace);
+        }
+      }
+    });
+    await recalculateStocks(skipNotify: true);
+    triggerUpdate();
+  }
+
+  static Future<void> saveProductsBatch(List<Product> products) async {
+    for (var p in products) await ProductRepository.saveProduct(p);
+    triggerUpdate();
+  }
+
   static Future<void> markAsSynced(String table, String id) async {
     await SyncRepository.markAsSynced(table, id);
     triggerUpdate(skipPush: true);
@@ -204,7 +283,7 @@ class DatabaseService {
     });
 
     if (['sales', 'returns', 'write_offs', 'stock_entries', 'stock_transfers', 'inventories'].contains(table)) {
-      await recalculateStocks();
+      await recalculateStocks(skipNotify: true);
     }
     triggerUpdate(skipPush: true);
   }
@@ -221,8 +300,23 @@ class DatabaseService {
     if (table == 'stock_transfers') await db.delete('stock_transfer_items', where: 'transferId = ?', whereArgs: [id]);
 
     if (['sales', 'returns', 'write_offs', 'stock_entries', 'stock_transfers', 'inventories'].contains(table)) {
-      await recalculateStocks();
+      await recalculateStocks(skipNotify: true);
     }
     triggerUpdate(skipPush: true);
+  }
+  static Future<Sale?> getSaleById(String id) async {
+    final sales = await SaleRepository.getSales();
+    return sales.where((s) => s.id == id).firstOrNull;
+  }
+
+  static Future<Product?> getProductById(String id) async {
+    final products = await ProductRepository.getProducts();
+    return products.where((p) => p.id == id).firstOrNull;
+  }
+
+  static Future<Map<String, double>> getProductStocks(String productId) async {
+    final products = await ProductRepository.getProducts();
+    final product = products.where((p) => p.id == productId).firstOrNull;
+    return product?.stocks ?? {};
   }
 }

@@ -26,6 +26,6 @@ class Category {
   factory Category.fromJson(Map<String, dynamic> json) => Category(
     id: json['id']?.toString() ?? '',
     name: json['name']?.toString() ?? 'Noma\'lum',
-    isDeleted: json['isDeleted'] ?? false,
+    isDeleted: json['isDeleted'] == 1 || json['isDeleted'] == true,
   );
 }

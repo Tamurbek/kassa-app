@@ -3,7 +3,7 @@ class SaleReturn {
   final String saleId;
   final DateTime date;
   final List<SaleReturnItem> items;
-  final double totalAmount;
+  final double total;
   final String warehouseId;
 
   SaleReturn({
@@ -11,16 +11,18 @@ class SaleReturn {
     required this.saleId,
     required this.date,
     required this.items,
-    required this.totalAmount,
+    required this.total,
     required this.warehouseId,
   });
+
+  double get totalAmount => total;
 
   Map<String, dynamic> toJson() => {
     'id': id,
     'saleId': saleId,
     'date': date.toIso8601String(),
     'items': items.map((i) => i.toJson()).toList(),
-    'total': totalAmount,
+    'total': total,
     'warehouseId': warehouseId,
   };
 
@@ -33,7 +35,7 @@ class SaleReturn {
             ?.map((i) => SaleReturnItem.fromJson(i))
             .toList() ??
         [],
-    totalAmount: double.tryParse(json['total']?.toString() ?? '0') ?? 0.0,
+    total: double.tryParse(json['total']?.toString() ?? '0') ?? 0.0,
     warehouseId: json['warehouseId']?.toString() ?? '',
   );
 }
@@ -50,6 +52,10 @@ class SaleReturnItem {
     required this.quantity,
     required this.price,
   });
+
+  double get total => quantity * price;
+  double get costPrice => 0.0;
+  double get profit => 0.0;
 
   Map<String, dynamic> toJson() => {
     'productId': productId,

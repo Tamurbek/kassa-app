@@ -123,7 +123,7 @@ class SyncService {
         final result = await onRegisterSelectionRequested(
           data['registerId'],
           data['deviceId'],
-          data['force'] ?? false,
+          data['force'] == true || data['force'] == 1,
         );
         return Response.ok(jsonEncode(result));
       } catch (e) {

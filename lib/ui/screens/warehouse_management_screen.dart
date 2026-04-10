@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/app_state.dart';
+import '../../providers/features/inventory_provider.dart';
+import '../../providers/features/settings_provider.dart';
 import '../../models/models.dart';
 
 class WarehouseManagementScreen extends StatelessWidget {
@@ -8,7 +10,7 @@ class WarehouseManagementScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final state = context.watch<AppState>();
+    final inventory = context.watch<InventoryProvider>();
 
     return Scaffold(
       body: Column(
@@ -29,8 +31,8 @@ class WarehouseManagementScreen extends StatelessWidget {
                         fit: BoxFit.cover,
                       ),
                     ),
-                    SizedBox(width: 12),
-                    Text(
+                    const SizedBox(width: 12),
+                    const Text(
                       'Omborlar Boshqaruvi',
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
@@ -47,96 +49,96 @@ class WarehouseManagementScreen extends StatelessWidget {
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 1000),
                 child: ListView.builder(
-            padding: const EdgeInsets.all(24),
-            itemCount: state.warehouses.length,
-            itemBuilder: (context, index) {
-              final warehouse = state.warehouses[index];
-              return Container(
-                margin: const EdgeInsets.only(bottom: 16),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).cardColor,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(
-                        Theme.of(context).brightness == Brightness.dark
-                            ? 0.3
-                            : 0.02,
+                  padding: const EdgeInsets.all(24),
+                  itemCount: inventory.warehouses.length,
+                  itemBuilder: (context, index) {
+                    final warehouse = inventory.warehouses[index];
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 16),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).cardColor,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(
+                              Theme.of(context).brightness == Brightness.dark
+                                  ? 0.3
+                                  : 0.02,
+                            ),
+                            blurRadius: 10,
+                          ),
+                        ],
                       ),
-                      blurRadius: 10,
-                    ),
-                  ],
-                ),
-                child: ListTile(
-                  contentPadding: const EdgeInsets.all(16),
-                  leading: Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.orange.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(Icons.warehouse_rounded, color: Colors.orange),
-                  ),
-                  title: Row(
-                    children: [
-                      Text(
-                        warehouse.name,
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                      ),
-                      if (warehouse.isMain) ...[
-                        SizedBox(width: 8),
-                        Container(
-                          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      child: ListTile(
+                        contentPadding: const EdgeInsets.all(16),
+                        leading: Container(
+                          padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: Colors.green.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(6),
-                            border: Border.all(color: Colors.green.withOpacity(0.3)),
+                            color: Colors.orange.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12),
                           ),
-                          child: Text(
-                            'Asosiy',
-                            style: TextStyle(color: Colors.green, fontSize: 10, fontWeight: FontWeight.bold),
-                          ),
+                          child: const Icon(Icons.warehouse_rounded, color: Colors.orange),
                         ),
-                      ],
-                    ],
-                  ),
-                  subtitle: Text(
-                    'ID: ${warehouse.id.substring(0, warehouse.id.length < 8 ? warehouse.id.length : 8)}${warehouse.id.length > 8 ? "..." : ""}',
-                  ),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (!warehouse.isMain)
-                        IconButton(
-                          icon: Icon(Icons.star_outline_rounded, color: Colors.orange),
-                          tooltip: 'Asosiy ombor qilib belgilash',
-                          onPressed: () => state.setWarehouseAsMain(warehouse.id),
-                        )
-                      else
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 12),
-                          child: Icon(Icons.star_rounded, color: Colors.orange),
+                        title: Row(
+                          children: [
+                            Text(
+                              warehouse.name,
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                            ),
+                            if (warehouse.isMain) ...[
+                              const SizedBox(width: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: Colors.green.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(color: Colors.green.withOpacity(0.3)),
+                                ),
+                                child: const Text(
+                                  'Asosiy',
+                                  style: TextStyle(color: Colors.green, fontSize: 10, fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                            ],
+                          ],
                         ),
-                      IconButton(
-                        icon: Icon(Icons.edit_outlined, color: Colors.blue),
-                        onPressed: () => _showWarehouseDialog(
-                          context,
-                          state,
-                          warehouse: warehouse,
+                        subtitle: Text(
+                          'ID: ${warehouse.id.substring(0, warehouse.id.length < 8 ? warehouse.id.length : 8)}${warehouse.id.length > 8 ? "..." : ""}',
+                        ),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (!warehouse.isMain)
+                              IconButton(
+                                icon: const Icon(Icons.star_outline_rounded, color: Colors.orange),
+                                tooltip: 'Asosiy ombor qilib belgilash',
+                                onPressed: () => inventory.setWarehouseAsMain(warehouse.id),
+                              )
+                            else
+                              const Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 12),
+                                child: Icon(Icons.star_rounded, color: Colors.orange),
+                              ),
+                            IconButton(
+                              icon: const Icon(Icons.edit_outlined, color: Colors.blue),
+                              onPressed: () => _showWarehouseDialog(
+                                context,
+                                inventory,
+                                warehouse: warehouse,
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(
+                                Icons.delete_outline_rounded,
+                                color: Colors.redAccent,
+                              ),
+                              onPressed: () => _confirmDelete(context, inventory, warehouse),
+                            ),
+                          ],
                         ),
                       ),
-                      IconButton(
-                        icon: Icon(
-                          Icons.delete_outline_rounded,
-                          color: Colors.redAccent,
-                        ),
-                        onPressed: () => _confirmDelete(context, state, warehouse),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            },
+                    );
+                  },
                 ),
               ),
             ),
@@ -144,10 +146,10 @@ class WarehouseManagementScreen extends StatelessWidget {
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showWarehouseDialog(context, state),
+        onPressed: () => _showWarehouseDialog(context, inventory),
         backgroundColor: Theme.of(context).colorScheme.primary,
-        icon: Icon(Icons.add, color: Colors.white),
-        label: Text(
+        icon: const Icon(Icons.add, color: Colors.white),
+        label: const Text(
           'Yangi Ombor',
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
@@ -157,7 +159,7 @@ class WarehouseManagementScreen extends StatelessWidget {
 
   void _showWarehouseDialog(
     BuildContext context,
-    AppState state, {
+    InventoryProvider inventory, {
     Warehouse? warehouse,
   }) {
     final nameController = TextEditingController(text: warehouse?.name);
@@ -168,7 +170,7 @@ class WarehouseManagementScreen extends StatelessWidget {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         title: Text(
           warehouse == null ? 'Yangi Ombor' : 'Omborni Tahrirlash',
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         content: TextField(
           controller: nameController,
@@ -186,7 +188,7 @@ class WarehouseManagementScreen extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Bekor qilish'),
+            child: const Text('Bekor qilish'),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -199,14 +201,21 @@ class WarehouseManagementScreen extends StatelessWidget {
             onPressed: () {
               if (nameController.text.isNotEmpty) {
                 if (warehouse == null) {
-                  state.addWarehouse(nameController.text);
+                  inventory.saveWarehouse(Warehouse(
+                    id: DateTime.now().millisecondsSinceEpoch.toString(),
+                    name: nameController.text,
+                  ));
                 } else {
-                  state.updateWarehouse(warehouse.id, nameController.text);
+                  inventory.saveWarehouse(Warehouse(
+                    id: warehouse.id,
+                    name: nameController.text,
+                    isMain: warehouse.isMain,
+                  ));
                 }
                 Navigator.pop(context);
               }
             },
-            child: Text('Saqlash'),
+            child: const Text('Saqlash'),
           ),
         ],
       ),
@@ -215,25 +224,25 @@ class WarehouseManagementScreen extends StatelessWidget {
 
   void _confirmDelete(
     BuildContext context,
-    AppState state,
+    InventoryProvider inventory,
     Warehouse warehouse,
   ) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('O\'chirishni tasdiqlang'),
+        title: const Text('O\'chirishni tasdiqlang'),
         content: Text('"${warehouse.name}" omborini o\'chirmoqchimisiz?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Bekor qilish'),
+            child: const Text('Bekor qilish'),
           ),
           TextButton(
             onPressed: () {
-              state.deleteWarehouse(warehouse.id);
+              inventory.deleteWarehouse(warehouse.id);
               Navigator.pop(context);
             },
-            child: Text('O\'chirish', style: TextStyle(color: Colors.red)),
+            child: const Text('O\'chirish', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),

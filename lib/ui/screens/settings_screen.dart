@@ -164,6 +164,21 @@ class SettingsScreen extends StatelessWidget {
                           ),
                           onTap: () => settings.toggleBarcodeScanMode(),
                         ),
+                        _buildSettingsTile(
+                          context,
+                          icon: Icons.inventory_2_rounded,
+                          color: Colors.orange,
+                          title: 'Ombor ayirish rejimi',
+                          subtitle: settings.shouldTrackInventory 
+                              ? 'Yoqilgan (ombordan ayiradi)' 
+                              : 'O\'chirilgan (ayirmasdan sotish)',
+                          trailing: Switch(
+                            value: settings.shouldTrackInventory,
+                            activeColor: Colors.orange,
+                            onChanged: (v) => settings.toggleInventoryTracking(),
+                          ),
+                          onTap: () => settings.toggleInventoryTracking(),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 24),
@@ -310,11 +325,12 @@ class SettingsScreen extends StatelessWidget {
               fontWeight: FontWeight.w900,
             ),
           ),
-          if (onMenuPressed != null)
-            IconButton(
-              icon: const Icon(Icons.menu_rounded),
-              onPressed: onMenuPressed,
-            ),
+          IconButton(
+            icon: const Icon(Icons.menu_rounded, size: 28),
+            onPressed: onMenuPressed,
+            color: Theme.of(context).colorScheme.primary,
+            tooltip: 'Menyu',
+          ),
         ],
       ),
     );

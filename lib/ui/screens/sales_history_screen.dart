@@ -170,7 +170,6 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-
               ClipRRect(
                 borderRadius: BorderRadius.circular(12),
                 child: Image.asset(
@@ -203,23 +202,12 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen> {
                   ],
                 ),
               ),
-              if (widget.onMenuPressed != null)
-                IconButton(
-                  icon: Icon(
-                    Icons.menu_rounded,
-                    color: Theme.of(context).colorScheme.primary,
-                    size: 28,
-                  ),
-                  onPressed: widget.onMenuPressed,
-                  style: IconButton.styleFrom(
-                    backgroundColor: Theme.of(
-                      context,
-                    ).colorScheme.primary.withOpacity(0.05),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                ),
+              IconButton(
+                icon: const Icon(Icons.menu_rounded, size: 28),
+                onPressed: widget.onMenuPressed,
+                color: Theme.of(context).colorScheme.primary,
+                tooltip: 'Menyu',
+              ),
             ],
           ),
           const SizedBox(height: 20),

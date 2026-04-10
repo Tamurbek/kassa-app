@@ -121,9 +121,9 @@ class Product {
       additionalBarcodes: barcodes,
       stocks: stocks,
       imagePath: json['imagePath']?.toString(),
-      isDeleted: json['isDeleted'] ?? false,
+      isDeleted: json['isDeleted'] == 1 || json['isDeleted'] == true,
       unit: json['unit']?.toString() ?? 'dona',
-      trackStock: json['trackStock'] ?? true,
+      trackStock: json['trackStock'] == 1 || json['trackStock'] == true || json['trackStock'] == null,
     );
   }
 }

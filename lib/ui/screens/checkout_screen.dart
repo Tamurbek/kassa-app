@@ -7,6 +7,8 @@ import '../../providers/features/auth_provider.dart';
 import '../../providers/features/inventory_provider.dart';
 import '../../providers/app_state.dart';
 import '../../services/print_service.dart';
+import '../../core/constants/app_constants.dart';
+import '../../core/theme/app_theme.dart';
 
 class CheckoutScreen extends StatefulWidget {
   const CheckoutScreen({super.key});
@@ -100,7 +102,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       final receivedAmount = double.tryParse(receivedController.text) ?? sales.cartTotal;
 
       final inventory = context.read<InventoryProvider>();
-      final appState = context.read<AppState>();
 
       await sales.checkout(
         registerId: settings.currentRegister?.id,
@@ -109,7 +110,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
       // Force UI update for stock levels
       await inventory.reloadData();
-      await appState.reloadData();
 
       if (mounted) {
         Navigator.pop(context); // close loader

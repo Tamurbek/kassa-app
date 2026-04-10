@@ -35,8 +35,25 @@ class SyncProvider extends ChangeNotifier {
 
   Future<void> loadSync() async {
     final prefs = await SharedPreferences.getInstance();
-    isMaster = prefs.getBool('isMaster');
-    isCloudMode = prefs.getBool('isCloudMode') ?? false;
+    
+    // Professional: Safe boolean parsing from SharedPreferences
+    bool? getSafeBool(String key) {
+      try {
+        return prefs.getBool(key);
+      } catch (_) {
+        try {
+          final val = prefs.get(key);
+          if (val is int) return val == 1;
+          if (val is String) return val.toLowerCase() == 'true';
+          return null;
+        } catch (__) {
+          return null;
+        }
+      }
+    }
+
+    isMaster = getSafeBool('isMaster');
+    isCloudMode = getSafeBool('isCloudMode') ?? false;
     masterAddress = prefs.getString('masterAddress');
     _incrementalSyncTimer?.cancel();
     _cloudBackupTimer?.cancel();

@@ -7,6 +7,7 @@ class InventoryProvider extends ChangeNotifier {
   List<Category> categories = [];
   List<Product> products = [];
   List<Warehouse> warehouses = [];
+  List<Register> registers = [];
   List<StockEntry> stockEntries = [];
   List<InventoryEntry> inventories = [];
   List<StockTransfer> transfers = [];
@@ -48,7 +49,7 @@ class InventoryProvider extends ChangeNotifier {
       if (!skipRecalculate) {
         // Force recalculate stocks if requested (e.g. from cloud sync or manual fix)
         try {
-          await DatabaseService.recalculateStocks(force: forceRecalculate);
+          await DatabaseService.recalculateStocks(force: forceRecalculate, skipNotify: true);
         } catch (e) {
           debugPrint('Stock recalculation error: $e');
         }
@@ -57,6 +58,7 @@ class InventoryProvider extends ChangeNotifier {
       categories = await DatabaseService.getCategories();
       products = await DatabaseService.getProducts();
       warehouses = await DatabaseService.getWarehouses();
+      registers = await DatabaseService.getRegisters();
       stockEntries = await DatabaseService.getStockEntries();
       inventories = await DatabaseService.getInventories();
       transfers = await DatabaseService.getStockTransfers();
@@ -66,6 +68,35 @@ class InventoryProvider extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  // --- Warehouse & Register Management ---
+  Future<void> saveWarehouse(Warehouse warehouse) async {
+    await DatabaseService.saveWarehouse(warehouse);
+    await reloadData();
+  }
+
+  Future<void> deleteWarehouse(String id) async {
+    await DatabaseService.deleteWarehouse(id);
+    await reloadData();
+  }
+
+  Future<void> setWarehouseAsMain(String id) async {
+    for (var w in warehouses) {
+      final updated = Warehouse(id: w.id, name: w.name, isMain: w.id == id);
+      await DatabaseService.saveWarehouse(updated);
+    }
+    await reloadData();
+  }
+
+  Future<void> saveRegister(Register register) async {
+    await DatabaseService.saveRegister(register);
+    await reloadData();
+  }
+
+  Future<void> deleteRegister(String id) async {
+    await DatabaseService.deleteRegister(id);
+    await reloadData();
   }
 
   Future<void> saveProduct(Product product) async {

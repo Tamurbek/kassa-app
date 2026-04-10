@@ -29,8 +29,25 @@ class AuthProvider extends ChangeNotifier {
 
   Future<void> loadAuth() async {
     final prefs = await SharedPreferences.getInstance();
-    _isActivated = prefs.getBool('isActivated') ?? false;
-    _isBlocked = prefs.getBool('isBlocked') ?? false;
+    
+    // Professional: Safe boolean parsing from SharedPreferences
+    bool getSafeBool(String key) {
+      try {
+        return prefs.getBool(key) ?? false;
+      } catch (_) {
+        try {
+          final val = prefs.get(key);
+          if (val is int) return val == 1;
+          if (val is String) return val.toLowerCase() == 'true';
+          return false;
+        } catch (__) {
+          return false;
+        }
+      }
+    }
+
+    _isActivated = getSafeBool('isActivated');
+    _isBlocked = getSafeBool('isBlocked');
     activationCode = prefs.getString('activationCode');
     
     // Use the same deviceId key as AppState for consistency

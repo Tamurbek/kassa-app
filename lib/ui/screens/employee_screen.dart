@@ -91,26 +91,13 @@ class EmployeeScreen extends StatelessWidget {
                   ),
                 ),
               ),
-              if (onMenuPressed != null) ...[
-                SizedBox(width: 16),
-                IconButton(
-                  icon: Icon(
-                    Icons.menu_rounded,
-                    color: Theme.of(context).colorScheme.primary,
-                    size: 28,
-                  ),
-                  onPressed: onMenuPressed,
-                  style: IconButton.styleFrom(
-                    backgroundColor: Theme.of(
-                      context,
-                    ).colorScheme.primary.withOpacity(0.05),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                ),
-              ],
             ],
+          ),
+          IconButton(
+            icon: const Icon(Icons.menu_rounded, size: 28),
+            onPressed: onMenuPressed,
+            color: Theme.of(context).colorScheme.primary,
+            tooltip: 'Menyu',
           ),
         ],
       ),

@@ -15,6 +15,10 @@ class StockUtils {
       await db.transaction((txn) async {
         await txn.delete('stocks');
 
+        // Professional: Check global inventory tracking setting
+        final settingsRes = await txn.query('settings', where: 'key = ?', whereArgs: ['shouldTrackInventory']);
+        final bool globalInventoryTracking = settingsRes.isEmpty || settingsRes.first['value'] == '1';
+
         final entries = await txn.query('stock_entries', where: 'isDeleted = 0');
         final sales = await txn.query('sales', where: 'isDeleted = 0');
         final returns = await txn.query('returns', where: 'isDeleted = 0');
@@ -43,6 +47,7 @@ class StockUtils {
               for (var it in items) await _increaseStockTxn(txn, it['productId'].toString(), doc['warehouseId'].toString(), (it['quantity'] as num).toDouble());
               break;
             case 'sale':
+              if (!globalInventoryTracking) break;
               final items = await txn.query('sale_items', where: 'saleId = ?', whereArgs: [dId]);
               for (var it in items) {
                 final pRes = await txn.query('products', columns: ['trackStock'], where: 'id = ?', whereArgs: [it['productId']]);
@@ -52,6 +57,7 @@ class StockUtils {
               }
               break;
             case 'return':
+              if (!globalInventoryTracking) break;
               final items = await txn.query('return_items', where: 'returnId = ?', whereArgs: [dId]);
               for (var it in items) await _increaseStockTxn(txn, it['productId'].toString(), doc['warehouseId'].toString(), (it['quantity'] as num).toDouble());
               break;

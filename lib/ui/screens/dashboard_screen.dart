@@ -91,15 +91,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
         children: [
           Row(
             children: [
-
-              Image.asset(
-                'assets/icon.png',
-                width: 48,
-                height: 48,
-                fit: BoxFit.contain,
-                filterQuality: FilterQuality.high,
-              ),
-              SizedBox(width: 16),
+              Icon(Icons.dashboard_customize_rounded, color: Theme.of(context).colorScheme.primary, size: 32),
+              const SizedBox(width: 16),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -158,7 +151,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                 ),
               ),
-              SizedBox(width: 12),
+              const SizedBox(width: 12),
               IconButton(
                 onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const StockTransferScreen())),
                 icon: const Icon(Icons.swap_horiz_rounded),
@@ -183,7 +176,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
               ),
               if (width > 800) ...[
-                SizedBox(width: 16),
+                const SizedBox(width: 16),
                 Chip(
                   label: Text(
                     'Bugun: ${DateFormat('dd MMMM, yyyy').format(DateTime.now())}',
@@ -193,31 +186,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     size: 16,
                     color: Theme.of(context).colorScheme.primary,
                   ),
-                  backgroundColor: Theme.of(
-                    context,
-                  ).colorScheme.primary.withOpacity(0.05),
-                ),
-              ],
-              if (widget.onMenuPressed != null) ...[
-                SizedBox(width: 16),
-                IconButton(
-                  icon: Icon(
-                    Icons.menu_rounded,
-                    color: Theme.of(context).colorScheme.primary,
-                    size: 28,
-                  ),
-                  onPressed: widget.onMenuPressed,
-                  style: IconButton.styleFrom(
-                    backgroundColor: Theme.of(
-                      context,
-                    ).colorScheme.primary.withOpacity(0.05),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
+                  backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.05),
                 ),
               ],
             ],
+          ),
+          IconButton(
+            icon: const Icon(Icons.menu_rounded, size: 28),
+            onPressed: widget.onMenuPressed,
+            color: Theme.of(context).colorScheme.primary,
+            tooltip: 'Menyu',
           ),
         ],
       ),

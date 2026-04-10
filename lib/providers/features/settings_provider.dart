@@ -28,6 +28,7 @@ class SettingsProvider extends ChangeNotifier {
   Register? currentRegister;
   
   bool isBarcodeScanMode = false;
+  bool shouldTrackInventory = true;
   String appVersion = AppConstants.appVersion;
   String? deviceId;
   StreamSubscription<void>? _dbSubscription;
@@ -49,6 +50,22 @@ class SettingsProvider extends ChangeNotifier {
     try {
       final prefs = await SharedPreferences.getInstance();
       
+      // Professional: Safe boolean parsing from SharedPreferences
+      bool getSafeBool(String key, {bool defaultValue = false}) {
+        try {
+          return prefs.getBool(key) ?? defaultValue;
+        } catch (_) {
+          try {
+            final val = prefs.get(key);
+            if (val is int) return val == 1;
+            if (val is String) return val.toLowerCase() == 'true';
+            return defaultValue;
+          } catch (__) {
+            return defaultValue;
+          }
+        }
+      }
+
       // 1. Device Identification
       deviceId = prefs.getString('deviceId');
       if (deviceId == null) {
@@ -60,7 +77,7 @@ class SettingsProvider extends ChangeNotifier {
       final savedTheme = prefs.getString('themeMode');
       _themeMode = savedTheme == 'light' ? ThemeMode.light : (savedTheme == 'dark' ? ThemeMode.dark : ThemeMode.system);
       
-      isBarcodeScanMode = prefs.getBool('isBarcodeScanMode') ?? false;
+      isBarcodeScanMode = getSafeBool('isBarcodeScanMode');
       receiptWidth = prefs.getInt('receiptWidth') ?? 80;
 
       // 3. Load from Database (Source of Truth for persistence)
@@ -68,7 +85,7 @@ class SettingsProvider extends ChangeNotifier {
       
       organizationName = dbSettings['organizationName'] ?? prefs.getString('organizationName') ?? 'Mening Do\'konim';
       organizationAddress = dbSettings['organizationAddress'] ?? prefs.getString('organizationAddress') ?? 'O\'zbekiston';
-      instagramUsername = dbSettings['instagramUsername'] ?? prefs.getString('instagramUsername') ?? '@simplesale';
+      instagramUsername = dbSettings['instagramUsername'] ?? prefs.getString('organizationAddress') ?? '@simplesale';
       
       selectedPrinterName = dbSettings['selectedPrinterName'] ?? prefs.getString('selectedPrinterName');
       barcodePrinterName = dbSettings['barcodePrinterName'] ?? prefs.getString('barcodePrinterName');
@@ -76,20 +93,34 @@ class SettingsProvider extends ChangeNotifier {
       networkBarcodePrinterIp = dbSettings['networkBarcodePrinterIp'] ?? prefs.getString('networkBarcodePrinterIp');
       
       receiptFooterText = dbSettings['receiptFooterText'] ?? prefs.getString('receiptFooterText') ?? 'Xaridingiz uchun rahmat!';
-      showInstagramOnReceipt = (dbSettings['showInstagramOnReceipt'] ?? prefs.getBool('showInstagramOnReceipt')?.toString() ?? 'true') == 'true';
+      
+      // showInstagramOnReceipt is complex because it can be in both DB and Prefs as different formats
+      final dbShowInsta = dbSettings['showInstagramOnReceipt'];
+      if (dbShowInsta != null) {
+        showInstagramOnReceipt = dbShowInsta.toLowerCase() == 'true' || dbShowInsta == '1';
+      } else {
+        showInstagramOnReceipt = getSafeBool('showInstagramOnReceipt', defaultValue: true);
+      }
+      
+      // shouldTrackInventory persistence
+      final dbTrackStock = dbSettings['shouldTrackInventory'];
+      if (dbTrackStock != null) {
+        shouldTrackInventory = dbTrackStock.toLowerCase() == 'true' || dbTrackStock == '1';
+      } else {
+        shouldTrackInventory = getSafeBool('shouldTrackInventory', defaultValue: true);
+      }
 
       // 4. Load Registers and selection
       registers = await DatabaseService.getRegisters();
       final savedRegId = prefs.getString('currentRegisterId');
       if (savedRegId != null) {
         final matching = registers.where((r) => r.id == savedRegId).toList();
-        // Only auto-select if this device is the one associated (or if we want to allow re-claiming)
         if (matching.isNotEmpty && matching.first.activeDeviceId == deviceId) {
           currentRegister = matching.first;
         }
       }
 
-      // 5. Load App Version from pubspec.yaml
+      // 5. Load App Version from platform
       try {
         final packageInfo = await PackageInfo.fromPlatform();
         appVersion = packageInfo.version;
@@ -211,5 +242,15 @@ class SettingsProvider extends ChangeNotifier {
     await prefs.clear();
     if (dId != null) await prefs.setString('deviceId', dId); // Keep the device identity
     await loadSettings();
+  }
+
+  Future<void> toggleInventoryTracking() async {
+    shouldTrackInventory = !shouldTrackInventory;
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('shouldTrackInventory', shouldTrackInventory);
+    await DatabaseService.saveSetting('shouldTrackInventory', shouldTrackInventory ? '1' : '0');
+    // Force recalculate stocks to apply/remove sale impacts immediately
+    await DatabaseService.recalculateStocks(force: true);
   }
 }

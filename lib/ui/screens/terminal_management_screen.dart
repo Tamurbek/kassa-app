@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../providers/features/inventory_provider.dart';
+import '../../providers/features/settings_provider.dart';
 import '../../providers/app_state.dart';
 import '../../models/models.dart';
 
@@ -8,7 +10,7 @@ class TerminalManagementScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final state = context.watch<AppState>();
+    final inventory = context.watch<InventoryProvider>();
 
     return Scaffold(
       body: Column(
@@ -29,8 +31,8 @@ class TerminalManagementScreen extends StatelessWidget {
                         fit: BoxFit.cover,
                       ),
                     ),
-                    SizedBox(width: 12),
-                    Text(
+                    const SizedBox(width: 12),
+                    const Text(
                       'Kassa Terminallari',
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
@@ -47,69 +49,69 @@ class TerminalManagementScreen extends StatelessWidget {
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 1000),
                 child: ListView.builder(
-            padding: const EdgeInsets.all(24),
-            itemCount: state.registers.length,
-            itemBuilder: (context, index) {
-              final reg = state.registers[index];
-              final warehouse = state.warehouses.firstWhere(
-                (w) => w.id == reg.warehouseId,
-                orElse: () => Warehouse(id: '', name: 'Noma\'lum'),
-              );
+                  padding: const EdgeInsets.all(24),
+                  itemCount: inventory.registers.length,
+                  itemBuilder: (context, index) {
+                    final reg = inventory.registers[index];
+                    final warehouse = inventory.warehouses.firstWhere(
+                      (w) => w.id == reg.warehouseId,
+                      orElse: () => Warehouse(id: '', name: 'Noma\'lum'),
+                    );
 
-              return Container(
-                margin: const EdgeInsets.only(bottom: 16),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).cardColor,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(
-                        Theme.of(context).brightness == Brightness.dark
-                            ? 0.3
-                            : 0.02,
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 16),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).cardColor,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(
+                              Theme.of(context).brightness == Brightness.dark
+                                  ? 0.3
+                                  : 0.02,
+                            ),
+                            blurRadius: 10,
+                          ),
+                        ],
                       ),
-                      blurRadius: 10,
-                    ),
-                  ],
-                ),
-                child: ListTile(
-                  contentPadding: const EdgeInsets.all(16),
-                  leading: Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.blue.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(Icons.storefront_rounded, color: Colors.blue),
-                  ),
-                  title: Text(
-                    reg.name,
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                  ),
-                  subtitle: Text(
-                    'ID: ${reg.id.substring(0, reg.id.length < 8 ? reg.id.length : 8)}${reg.id.length > 8 ? "..." : ""} \nOmbor: ${warehouse.name}',
-                  ),
-                  isThreeLine: true,
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon: Icon(Icons.edit_outlined, color: Colors.blue),
-                        onPressed: () =>
-                            _showRegisterDialog(context, state, register: reg),
-                      ),
-                      IconButton(
-                        icon: Icon(
-                          Icons.delete_outline_rounded,
-                          color: Colors.redAccent,
+                      child: ListTile(
+                        contentPadding: const EdgeInsets.all(16),
+                        leading: Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.blue.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(Icons.storefront_rounded, color: Colors.blue),
                         ),
-                        onPressed: () => _confirmDelete(context, state, reg),
+                        title: Text(
+                          reg.name,
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                        ),
+                        subtitle: Text(
+                          'ID: ${reg.id.substring(0, reg.id.length < 8 ? reg.id.length : 8)}${reg.id.length > 8 ? "..." : ""} \nOmbor: ${warehouse.name}',
+                        ),
+                        isThreeLine: true,
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.edit_outlined, color: Colors.blue),
+                              onPressed: () =>
+                                  _showRegisterDialog(context, inventory, register: reg),
+                            ),
+                            IconButton(
+                              icon: const Icon(
+                                Icons.delete_outline_rounded,
+                                color: Colors.redAccent,
+                              ),
+                              onPressed: () => _confirmDelete(context, inventory, reg),
+                            ),
+                          ],
+                        ),
                       ),
-                    ],
-                  ),
-                ),
-              );
-            },
+                    );
+                  },
                 ),
               ),
             ),
@@ -117,10 +119,10 @@ class TerminalManagementScreen extends StatelessWidget {
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showRegisterDialog(context, state),
+        onPressed: () => _showRegisterDialog(context, inventory),
         backgroundColor: Theme.of(context).colorScheme.primary,
-        icon: Icon(Icons.add, color: Colors.white),
-        label: Text(
+        icon: const Icon(Icons.add, color: Colors.white),
+        label: const Text(
           'Yangi Kassa',
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
@@ -130,13 +132,13 @@ class TerminalManagementScreen extends StatelessWidget {
 
   void _showRegisterDialog(
     BuildContext context,
-    AppState state, {
+    InventoryProvider inventory, {
     Register? register,
   }) {
     final nameController = TextEditingController(text: register?.name);
     String? selectedWarehouseId =
         register?.warehouseId ??
-        (state.warehouses.isNotEmpty ? state.warehouses.first.id : null);
+        (inventory.warehouses.isNotEmpty ? inventory.warehouses.first.id : null);
 
     showDialog(
       context: context,
@@ -147,7 +149,7 @@ class TerminalManagementScreen extends StatelessWidget {
           ),
           title: Text(
             register == null ? 'Yangi Kassa' : 'Kassani Tahrirlash',
-            style: TextStyle(fontWeight: FontWeight.bold),
+            style: const TextStyle(fontWeight: FontWeight.bold),
           ),
           content: SingleChildScrollView(
             child: Column(
@@ -170,16 +172,16 @@ class TerminalManagementScreen extends StatelessWidget {
                     ),
                   ),
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 DropdownButtonFormField<String>(
-                  initialValue: selectedWarehouseId,
+                  value: selectedWarehouseId,
                   decoration: InputDecoration(
                     labelText: 'Biriktirilgan ombor',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(14),
                     ),
                   ),
-                  items: state.warehouses
+                  items: inventory.warehouses
                       .map(
                         (w) =>
                             DropdownMenuItem(value: w.id, child: Text(w.name)),
@@ -196,7 +198,7 @@ class TerminalManagementScreen extends StatelessWidget {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text('Bekor qilish'),
+              child: const Text('Bekor qilish'),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
@@ -210,21 +212,23 @@ class TerminalManagementScreen extends StatelessWidget {
                 if (nameController.text.isNotEmpty &&
                     selectedWarehouseId != null) {
                   if (register == null) {
-                    state.addRegister(
-                      nameController.text,
-                      selectedWarehouseId!,
-                    );
+                    inventory.saveRegister(Register(
+                      id: DateTime.now().millisecondsSinceEpoch.toString(),
+                      name: nameController.text,
+                      warehouseId: selectedWarehouseId!,
+                    ));
                   } else {
-                    state.updateRegister(
-                      register.id,
-                      nameController.text,
-                      selectedWarehouseId!,
-                    );
+                    inventory.saveRegister(Register(
+                      id: register.id,
+                      name: nameController.text,
+                      warehouseId: selectedWarehouseId!,
+                      activeDeviceId: register.activeDeviceId,
+                    ));
                   }
                   Navigator.pop(context);
                 }
               },
-              child: Text('Saqlash'),
+              child: const Text('Saqlash'),
             ),
           ],
         ),
@@ -232,23 +236,23 @@ class TerminalManagementScreen extends StatelessWidget {
     );
   }
 
-  void _confirmDelete(BuildContext context, AppState state, Register register) {
+  void _confirmDelete(BuildContext context, InventoryProvider inventory, Register register) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('O\'chirishni tasdiqlang'),
+        title: const Text('O\'chirishni tasdiqlang'),
         content: Text('"${register.name}" kassasini o\'chirmoqchimisiz?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Bekor qilish'),
+            child: const Text('Bekor qilish'),
           ),
           TextButton(
             onPressed: () {
-              state.deleteRegister(register.id);
+              inventory.deleteRegister(register.id);
               Navigator.pop(context);
             },
-            child: Text('O\'chirish', style: TextStyle(color: Colors.red)),
+            child: const Text('O\'chirish', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),

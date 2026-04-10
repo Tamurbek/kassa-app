@@ -8,6 +8,11 @@ class AppColors {
   static const Color accent = Color(0xFFF59E0B);
   static const Color error = Color(0xFFEF4444);
   
+  // Aliases for backward compatibility
+  static const Color primaryColor = primary;
+  static const Color secondaryColor = secondary;
+  static const Color slateGrey = Color(0xFF64748B);
+
   // Light Mode Colors
   static const Color lightBg = Color(0xFFF8FAFC);
   static const Color lightSurface = Colors.white;
@@ -52,6 +57,14 @@ class AppShadows {
 class AppTheme {
   static ThemeData lightTheme = _buildTheme(Brightness.light);
   static ThemeData darkTheme = _buildTheme(Brightness.dark);
+
+  // Aliases for legacy code
+  static const Color primaryColor = AppColors.primary;
+  static const Color secondaryColor = AppColors.secondary;
+  static const Color darkBg = AppColors.darkBg;
+  static const Color lightBg = AppColors.lightBg;
+  static const Color darkSurface = AppColors.darkSurface;
+  static const Color slateGrey = AppColors.slateGrey;
 
   static ThemeData _buildTheme(Brightness brightness) {
     final isDark = brightness == Brightness.dark;
