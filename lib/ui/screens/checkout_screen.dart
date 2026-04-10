@@ -60,6 +60,17 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     SettingsProvider settings,
     AuthProvider auth,
   ) async {
+    final receivedAmount = double.tryParse(receivedController.text) ?? 0;
+    if (receivedAmount < sales.cartTotal) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Kiritilgan summa jami summadan kam!', style: TextStyle(fontWeight: FontWeight.bold)),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -269,14 +280,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     children: [
                       Expanded(
                         child: SingleChildScrollView(
-                          padding: const EdgeInsets.all(40),
+                          padding: const EdgeInsets.all(24),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               _buildSummaryCard(total, change),
-                              SizedBox(height: 32),
+                              const SizedBox(height: 24),
                               _buildPaymentMethods(),
-                              SizedBox(height: 32),
+                              const SizedBox(height: 24),
                               _buildBigDisplay(receivedStr),
                             ],
                           ),
@@ -301,20 +312,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   Widget _buildSummaryCard(double total, double change) {
     return Container(
-      padding: const EdgeInsets.all(32),
+      padding: const EdgeInsets.all(AppConstants.paddingLarge),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: Theme.of(context).dividerColor),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(
-              Theme.of(context).brightness == Brightness.dark ? 0.2 : 0.03,
-            ),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
+        borderRadius: BorderRadius.circular(AppConstants.borderRadiusLarge),
+        border: Border.all(color: Theme.of(context).dividerColor.withOpacity(0.5)),
+        boxShadow: AppShadows.medium,
       ),
       child: Column(
         children: [
@@ -326,41 +329,43 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
-                  color: Theme.of(context).textTheme.bodySmall?.color,
+                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
                 ),
               ),
               Text(
                 '${fmt.format(total)} so\'m',
                 style: TextStyle(
-                  fontSize: 28,
+                  fontSize: 32,
                   fontWeight: FontWeight.w900,
                   color: Theme.of(context).colorScheme.onSurface,
+                  letterSpacing: -1,
                 ),
               ),
             ],
           ),
           if (change > 0 && paymentMethod == 'Naqd') ...[
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: 20),
-              child: Divider(height: 1, color: Theme.of(context).dividerColor),
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              child: Divider(height: 1, color: Theme.of(context).dividerColor.withOpacity(0.5)),
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
+                const Text(
                   'Qaytim:',
                   style: TextStyle(
                     fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.green,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.secondary,
                   ),
                 ),
                 Text(
                   '${fmt.format(change)} so\'m',
-                  style: TextStyle(
-                    fontSize: 28,
+                  style: const TextStyle(
+                    fontSize: 32,
                     fontWeight: FontWeight.w900,
-                    color: Colors.green,
+                    color: AppColors.secondary,
+                    letterSpacing: -1,
                   ),
                 ),
               ],
@@ -375,29 +380,23 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          '  TO\'LOV USULI',
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w800,
-            color: Theme.of(context).textTheme.bodySmall?.color,
-            letterSpacing: 1.2,
+        Padding(
+          padding: const EdgeInsets.only(left: 8.0, bottom: 12),
+          child: Text(
+            'TO\'LOV USULI',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w900,
+              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.4),
+              letterSpacing: 1.5,
+            ),
           ),
         ),
-        SizedBox(height: 12),
         Row(
           children: [
-            _buildMethodBtn(
-              'Naqd',
-              Icons.payments_rounded,
-              Theme.of(context).colorScheme.primary,
-            ),
-            SizedBox(width: 16),
-            _buildMethodBtn(
-              'Plastik',
-              Icons.credit_card_rounded,
-              Colors.lightBlue,
-            ),
+            _buildMethodBtn('Naqd', Icons.payments_rounded, AppColors.primary),
+            const SizedBox(width: 16),
+            _buildMethodBtn('Plastik', Icons.credit_card_rounded, Colors.lightBlue),
           ],
         ),
       ],
@@ -411,36 +410,27 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         onTap: () => setState(() => paymentMethod = method),
         borderRadius: BorderRadius.circular(20),
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(vertical: 24),
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeOutCubic,
+          padding: const EdgeInsets.symmetric(vertical: 20),
           decoration: BoxDecoration(
             color: isSelected ? color : Theme.of(context).cardColor,
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: isSelected ? color : Theme.of(context).dividerColor,
+              color: isSelected ? color : Theme.of(context).dividerColor.withOpacity(0.8),
               width: 2,
             ),
-            boxShadow: isSelected
-                ? [
-                    BoxShadow(
-                      color: color.withOpacity(0.3),
-                      blurRadius: 15,
-                      offset: const Offset(0, 8),
-                    ),
-                  ]
-                : [],
+            boxShadow: isSelected ? [BoxShadow(color: color.withOpacity(0.2), blurRadius: 15, offset: const Offset(0, 8))] : [],
           ),
           child: Column(
             children: [
-              Icon(icon, color: isSelected ? Colors.white : color, size: 28),
-              SizedBox(height: 12),
+              Icon(icon, color: isSelected ? Colors.white : color, size: 30),
+              const SizedBox(height: 12),
               Text(
                 method,
                 style: TextStyle(
-                  color: isSelected
-                      ? Colors.white
-                      : Theme.of(context).colorScheme.onSurface,
-                  fontWeight: FontWeight.w800,
+                  color: isSelected ? Colors.white : Theme.of(context).colorScheme.onSurface,
+                  fontWeight: FontWeight.w900,
                   fontSize: 16,
                 ),
               ),
@@ -454,25 +444,25 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   Widget _buildBigDisplay(String val) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(32),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: Theme.of(context).dividerColor, width: 2),
+        borderRadius: BorderRadius.circular(AppConstants.borderRadiusLarge),
+        border: Border.all(color: Theme.of(context).colorScheme.primary.withOpacity(0.3), width: 2),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'OLINGAN SUMMA',
+            'KIRITILGAN SUMMA',
             style: TextStyle(
-              color: Theme.of(context).textTheme.bodySmall?.color,
-              fontSize: 13,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 1,
+              color: Theme.of(context).colorScheme.primary.withOpacity(0.6),
+              fontSize: 12,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 1.5,
             ),
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: 12),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -481,9 +471,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   val.isEmpty ? '0' : val,
                   style: TextStyle(
                     color: Theme.of(context).colorScheme.onSurface,
-                    fontSize: 48,
+                    fontSize: 44,
                     fontWeight: FontWeight.w900,
-                    fontFamily: 'monospace',
+                    letterSpacing: -1,
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -492,7 +482,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 'SO\'M',
                 style: TextStyle(
                   color: Theme.of(context).dividerColor,
-                  fontSize: 24,
+                  fontSize: 20,
                   fontWeight: FontWeight.w900,
                 ),
               ),
@@ -506,130 +496,87 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   Widget _buildNumpadSection(double total) {
     return Column(
       children: [
-        SizedBox(height: 24),
+        const SizedBox(height: 24),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
+          padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: [1000, 5000, 10000, 20000, 50000, 100000, 200000].map((
-              amount,
-            ) {
+            alignment: WrapAlignment.center,
+            children: [5000, 10000, 20000, 50000, 100000, 200000].map((amount) {
               return InkWell(
                 onTap: () => onQuickAdd(amount.toDouble()),
                 borderRadius: BorderRadius.circular(12),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 10,
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                   decoration: BoxDecoration(
                     color: Theme.of(context).cardColor,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Theme.of(context).dividerColor),
+                    borderRadius: BorderRadius.circular(AppConstants.borderRadius),
+                    border: Border.all(color: Theme.of(context).dividerColor.withOpacity(0.5)),
                   ),
                   child: Text(
                     '+${fmt.format(amount).trim()}',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 13,
-                      color: Theme.of(context).colorScheme.onSurface,
-                    ),
+                    style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
                   ),
                 ),
               );
             }).toList(),
           ),
         ),
-        SizedBox(height: 24),
-        Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 400, maxHeight: 500),
-            child: GridView.count(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-              crossAxisCount: 3,
-              mainAxisSpacing: 12,
-              crossAxisSpacing: 12,
-              childAspectRatio: 1.4,
-              children: [
-                for (var i = 1; i <= 9; i++) _buildNumBtn(i.toString()),
-                _buildNumBtn(
-                  'C',
-                  color: Colors.red.withOpacity(0.1),
-                  textColor: Colors.red,
-                ),
-                _buildNumBtn('0'),
-                _buildNumBtn(
-                  'back',
-                  icon: Icons.backspace_rounded,
-                  color: Theme.of(context).colorScheme.surface,
-                ),
-              ],
-            ),
+        const SizedBox(height: 24),
+        Expanded(
+          child: GridView.count(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            crossAxisCount: 3,
+            mainAxisSpacing: 12,
+            crossAxisSpacing: 12,
+            childAspectRatio: 1.3,
+            children: [
+              for (var i = 1; i <= 9; i++) _buildNumBtn(i.toString()),
+              _buildNumBtn('C', color: Colors.red.withOpacity(0.1), textColor: Colors.red),
+              _buildNumBtn('0'),
+              _buildNumBtn('back', icon: Icons.backspace_outlined),
+            ],
           ),
         ),
-        const Spacer(),
         Padding(
           padding: const EdgeInsets.all(24),
-          child: ElevatedButton(
-            onPressed: () => setState(
-              () => receivedController.text = total.toStringAsFixed(0),
-            ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.surface,
-              foregroundColor: Theme.of(context).colorScheme.onSurface,
+          child: OutlinedButton(
+            onPressed: () => setState(() => receivedController.text = total.toStringAsFixed(0)),
+            style: OutlinedButton.styleFrom(
               minimumSize: const Size.fromHeight(60),
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
+              side: BorderSide(color: Theme.of(context).colorScheme.primary, width: 2),
             ),
-            child: Text(
-              'ANIQ SUMMA',
-              style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14),
-            ),
+            child: const Text('ANIQ SUMMA', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1)),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildNumBtn(
-    String val, {
-    Color? color,
-    Color? textColor,
-    IconData? icon,
-  }) {
+  Widget _buildNumBtn(String val, {Color? color, Color? textColor, IconData? icon}) {
     return Material(
-      color: color ?? (Theme.of(context).cardColor),
-      borderRadius: BorderRadius.circular(16),
+      color: color ?? Theme.of(context).cardColor,
+      borderRadius: BorderRadius.circular(20),
       child: InkWell(
         onTap: () => onNumPressed(val),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
         child: Container(
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: Theme.of(context).dividerColor.withOpacity(0.5),
-              width: 1,
-            ),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: Theme.of(context).dividerColor.withOpacity(0.5)),
           ),
           child: Center(
             child: icon != null
-                ? Icon(
-                    icon,
-                    color: Theme.of(context).colorScheme.onSurface,
-                    size: 28,
-                  )
+                ? Icon(icon, color: Theme.of(context).colorScheme.onSurface, size: 28)
                 : Text(
                     val,
                     style: TextStyle(
-                      fontSize: 26,
+                      fontSize: 28,
                       fontWeight: FontWeight.bold,
-                      color:
-                          textColor ?? Theme.of(context).colorScheme.onSurface,
+                      color: textColor ?? Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
           ),
@@ -640,30 +587,18 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   Widget _buildSimpleFooter(SalesProvider sales, SettingsProvider settings, AuthProvider auth) {
     return Container(
-      padding: const EdgeInsets.all(32),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
-        border: Border(top: BorderSide(color: Theme.of(context).dividerColor)),
+        border: Border(top: BorderSide(color: Theme.of(context).dividerColor.withOpacity(0.5))),
       ),
       child: Row(
         children: [
           Expanded(
             child: TextButton(
               onPressed: () => Navigator.pop(context),
-              style: TextButton.styleFrom(
-                minimumSize: const Size.fromHeight(64),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-              ),
-              child: Text(
-                'Bekor qilish',
-                style: TextStyle(
-                  color: Theme.of(context).textTheme.bodySmall?.color,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
-              ),
+              style: TextButton.styleFrom(minimumSize: const Size(0, 64)),
+              child: const Text('BEKOR QILISH', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1)),
             ),
           ),
           const SizedBox(width: 20),
@@ -672,25 +607,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             child: ElevatedButton(
               onPressed: () => _executeSale(sales, settings, auth),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Theme.of(context).colorScheme.primary,
-                foregroundColor: Colors.white,
-                minimumSize: const Size.fromHeight(64),
+                minimumSize: const Size(0, 64),
+                shadowColor: Theme.of(context).colorScheme.primary.withOpacity(0.4),
                 elevation: 8,
-                shadowColor: Theme.of(
-                  context,
-                ).colorScheme.primary.withOpacity(0.4),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(18),
-                ),
               ),
-              child: Text(
-                'TASDIQLASH VA BOSISH',
-                style: TextStyle(
-                  fontWeight: FontWeight.w900,
-                  fontSize: 18,
-                  letterSpacing: 0.5,
-                ),
-              ),
+              child: const Text('TASDIQLASH', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, letterSpacing: 1)),
             ),
           ),
         ],

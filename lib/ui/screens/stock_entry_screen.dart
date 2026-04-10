@@ -39,6 +39,7 @@ class _StockEntryScreenState extends State<StockEntryScreen> {
           'productName': item.productName,
           'quantity': item.quantity,
           'costPrice': item.costPrice,
+          'price': item.price,
         });
       }
     } else {
@@ -131,7 +132,7 @@ class _StockEntryScreenState extends State<StockEntryScreen> {
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 1000),
           child: ListView(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(16),
             children: [
               Container(
                 padding: const EdgeInsets.all(24),
@@ -176,55 +177,65 @@ class _StockEntryScreenState extends State<StockEntryScreen> {
               ...items.asMap().entries.map((entry) {
                 final idx = entry.key;
                 final item = entry.value;
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        flex: 4,
-                        child: DropdownButtonFormField<String>(
-                          value: item['productId'],
-                          isExpanded: true,
-                          decoration: const InputDecoration(border: OutlineInputBorder(), contentPadding: EdgeInsets.symmetric(horizontal: 12)),
-                          items: inventory.activeProducts.map((p) => DropdownMenuItem(value: p.id, child: Text(p.name, overflow: TextOverflow.ellipsis))).toList(),
-                          onChanged: (val) {
-                            if (val == null) return;
-                            final p = inventory.activeProducts.firstWhere((p) => p.id == val);
-                            setState(() {
-                              items[idx]['productId'] = val;
-                              items[idx]['productName'] = p.name;
-                              items[idx]['costPrice'] = p.costPrice;
-                            });
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        flex: 2,
-                        child: TextFormField(
-                          initialValue: item['costPrice'].toString(),
-                          decoration: const InputDecoration(border: OutlineInputBorder(), hintText: 'Narxi'),
-                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                          onChanged: (val) => items[idx]['costPrice'] = double.tryParse(val) ?? 0,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        flex: 2,
-                        child: TextFormField(
-                          initialValue: item['quantity'].toString(),
-                          decoration: const InputDecoration(border: OutlineInputBorder(), hintText: 'Soni'),
-                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                          onChanged: (val) => items[idx]['quantity'] = double.tryParse(val) ?? 0,
-                        ),
-                      ),
-                      IconButton(icon: const Icon(Icons.remove_circle, color: Colors.red), onPressed: () => setState(() => items.removeAt(idx))),
-                    ],
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 16),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).cardColor,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Theme.of(context).dividerColor.withOpacity(0.5)),
+                  ),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final bool isSmall = constraints.maxWidth < 650;
+                      
+                      if (isSmall) {
+                        return Column(
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(child: _buildProductDropdown(idx, item, inventory)),
+                                IconButton(
+                                  icon: const Icon(Icons.delete_outline, color: Colors.red),
+                                  onPressed: () => setState(() => items.removeAt(idx)),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            Row(
+                              children: [
+                                Expanded(child: _buildCompactInput(item['costPrice'], 'Tan narxi', (val) => items[idx]['costPrice'] = double.tryParse(val) ?? 0)),
+                                const SizedBox(width: 8),
+                                Expanded(child: _buildCompactInput(item['price'], 'Sotuv narxi', (val) => items[idx]['price'] = double.tryParse(val) ?? 0)),
+                                const SizedBox(width: 8),
+                                Expanded(child: _buildCompactInput(item['quantity'], 'Soni', (val) => items[idx]['quantity'] = double.tryParse(val) ?? 0)),
+                              ],
+                            ),
+                          ],
+                        );
+                      }
+
+                      return Row(
+                        children: [
+                          Expanded(flex: 4, child: _buildProductDropdown(idx, item, inventory)),
+                          const SizedBox(width: 8),
+                          Expanded(flex: 2, child: _buildCompactInput(item['costPrice'], 'Tan narxi', (val) => items[idx]['costPrice'] = double.tryParse(val) ?? 0)),
+                          const SizedBox(width: 8),
+                          Expanded(flex: 2, child: _buildCompactInput(item['price'], 'Sotuv narxi', (val) => items[idx]['price'] = double.tryParse(val) ?? 0)),
+                          const SizedBox(width: 8),
+                          Expanded(flex: 2, child: _buildCompactInput(item['quantity'], 'Soni', (val) => items[idx]['quantity'] = double.tryParse(val) ?? 0)),
+                          IconButton(
+                            icon: const Icon(Icons.remove_circle_outline, color: Colors.red),
+                            onPressed: () => setState(() => items.removeAt(idx)),
+                          ),
+                        ],
+                      );
+                    },
                   ),
                 );
               }),
               const SizedBox(height: 16),
-              OutlinedButton.icon(onPressed: () => setState(() => items.add({'productId': null, 'productName': '', 'quantity': 0.0, 'costPrice': 0.0})), icon: const Icon(Icons.add), label: const Text('Qator qo\'shish')),
+              OutlinedButton.icon(onPressed: () => setState(() => items.add({'productId': null, 'productName': '', 'quantity': 0.0, 'costPrice': 0.0, 'price': 0.0})), icon: const Icon(Icons.add), label: const Text('Qator qo\'shish')),
               const SizedBox(height: 32),
               ElevatedButton(
                 onPressed: _save,
@@ -247,7 +258,7 @@ class _StockEntryScreenState extends State<StockEntryScreen> {
         if (existingIdx >= 0) {
           items[existingIdx]['quantity'] = (items[existingIdx]['quantity'] ?? 0) + 1;
         } else {
-          items.add({'productId': p.id, 'productName': p.name, 'quantity': 1.0, 'costPrice': p.costPrice});
+          items.add({'productId': p.id, 'productName': p.name, 'quantity': 1.0, 'costPrice': p.costPrice, 'price': p.price});
         }
         barcodeCtrl.clear();
         barcodeFocusNode.requestFocus();
@@ -266,7 +277,7 @@ class _StockEntryScreenState extends State<StockEntryScreen> {
           if (existingIdx >= 0) {
             items[existingIdx]['quantity'] = (items[existingIdx]['quantity'] ?? 0) + pItem.quantity;
           } else {
-            items.add({'productId': pItem.productId, 'productName': pItem.productName, 'quantity': pItem.quantity, 'costPrice': pItem.costPrice});
+            items.add({'productId': pItem.productId, 'productName': pItem.productName, 'quantity': pItem.quantity, 'costPrice': pItem.costPrice, 'price': pItem.price});
           }
         }
       });
@@ -276,7 +287,13 @@ class _StockEntryScreenState extends State<StockEntryScreen> {
   Future<void> _save() async {
     final inventory = context.read<InventoryProvider>();
     if (entryWarehouseId == null) return;
-    final finalItems = items.where((i) => i['productId'] != null && i['quantity'] > 0).map((i) => StockEntryItem(productId: i['productId'], productName: i['productName'], quantity: i['quantity'], costPrice: (i['costPrice'] as num).toDouble())).toList();
+    final finalItems = items.where((i) => i['productId'] != null && i['quantity'] > 0).map((i) => StockEntryItem(
+      productId: i['productId'], 
+      productName: i['productName'], 
+      quantity: i['quantity'], 
+      costPrice: (i['costPrice'] as num).toDouble(),
+      price: (i['price'] as num).toDouble(),
+    )).toList();
     if (finalItems.isEmpty) return;
 
     final entry = StockEntry(id: widget.entry?.id ?? const Uuid().v4(), warehouseId: entryWarehouseId!, date: selectedDate, description: descriptionCtrl.text, items: finalItems);
@@ -288,6 +305,45 @@ class _StockEntryScreenState extends State<StockEntryScreen> {
     } catch (e) {
        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Xatolik: $e')));
     }
+  }
+
+  Widget _buildProductDropdown(int idx, Map<String, dynamic> item, InventoryProvider inventory) {
+    return DropdownButtonFormField<String>(
+      value: item['productId'],
+      isExpanded: true,
+      decoration: const InputDecoration(
+        border: OutlineInputBorder(), 
+        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        hintText: 'Mahsulotni tanlang',
+        isDense: true,
+      ),
+      items: inventory.activeProducts.map((p) => DropdownMenuItem(value: p.id, child: Text(p.name, overflow: TextOverflow.ellipsis))).toList(),
+      onChanged: (val) {
+        if (val == null) return;
+        final p = inventory.activeProducts.firstWhere((p) => p.id == val);
+        setState(() {
+          items[idx]['productId'] = val;
+          items[idx]['productName'] = p.name;
+          items[idx]['costPrice'] = p.costPrice;
+          items[idx]['price'] = p.price;
+        });
+      },
+    );
+  }
+
+  Widget _buildCompactInput(dynamic initialValue, String label, Function(String) onChanged) {
+    return TextFormField(
+      initialValue: initialValue.toString(),
+      decoration: InputDecoration(
+        border: const OutlineInputBorder(), 
+        labelText: label,
+        isDense: true,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+      ),
+      style: const TextStyle(fontSize: 13),
+      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+      onChanged: onChanged,
+    );
   }
 
   Widget _buildInputCard({required String title, required Widget child}) {

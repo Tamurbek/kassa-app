@@ -321,24 +321,27 @@ class _WarehouseScreenState extends State<WarehouseScreen> {
     }).length;
 
     double totalSaleValue = 0;
+    double totalCostValue = 0;
     for (var p in inventory.activeProducts) {
       final stock = p.stocks[selectedWarehouseId] ?? 0;
       totalSaleValue += (stock * p.price);
+      totalCostValue += (stock * p.costPrice);
     }
 
-    int crossAxisCount = width < 600 ? 1 : width < 1200 ? 2 : 4;
+    int crossAxisCount = width < 600 ? 1 : width < 1200 ? 3 : 5;
     return GridView.count(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       crossAxisCount: crossAxisCount,
-      crossAxisSpacing: 24,
-      mainAxisSpacing: 24,
-      childAspectRatio: 3,
+      crossAxisSpacing: 16,
+      mainAxisSpacing: 16,
+      childAspectRatio: 2.2,
       children: [
         _buildStatCard('Jami Mahsulotlar', totalProducts.toString(), Icons.inventory_2_rounded, Colors.indigo),
         _buildStatCard('Kam qolganlar', lowStockCount.toString(), Icons.warning_amber_rounded, Colors.orange),
-        _buildStatCard('Zaxira qiymati', '${NumberFormat.compact(locale: 'uz_UZ').format(totalSaleValue)} so\'m', Icons.payments_rounded, Colors.green),
-        _buildStatCard('Kirimlar (Bugun)', inventory.stockEntries.length.toString(), Icons.add_circle_outline_rounded, Colors.blue),
+        _buildStatCard('Sotuv qiymati', '${NumberFormat.compact(locale: 'uz_UZ').format(totalSaleValue)} so\'m', Icons.payments_rounded, Colors.green),
+        _buildStatCard('Tan narxi qiymati', '${NumberFormat.compact(locale: 'uz_UZ').format(totalCostValue)} so\'m', Icons.account_balance_wallet_rounded, Colors.teal),
+        _buildStatCard('Kirimlar (Bugun)', inventory.stockEntries.where((e) => e.date.day == DateTime.now().day).length.toString(), Icons.add_circle_outline_rounded, Colors.blue),
       ],
     );
   }

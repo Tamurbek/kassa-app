@@ -238,10 +238,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
           s.date.day == now.day;
     }).toList();
 
-    final todayTotal = todaySales.fold(0.0, (sum, s) => sum + s.total);
-    final todayProfit = todaySales.fold(0.0, (sum, s) => sum + s.items.fold(0.0, (iSum, item) => iSum + item.profit));
-    final todayCount = todaySales.length;
-    final avgCheck = todayCount == 0 ? 0.0 : todayTotal / todayCount;
+    final todayReturns = sales.returns.where((r) {
+      return r.date.year == now.year &&
+          r.date.month == now.month &&
+          r.date.day == now.day;
+    }).toList();
+
+    final todayTotal = todaySales.fold(0.0, (sum, s) => sum + s.total) - 
+                       todayReturns.fold(0.0, (sum, r) => sum + r.totalAmount);
+    
+    final todayProfit = todaySales.fold(0.0, (sum, s) => sum + s.items.fold(0.0, (iSum, item) => iSum + item.profit)) -
+                        todayReturns.fold(0.0, (sum, r) => sum + r.items.fold(0.0, (iSum, item) => iSum + (item.quantity * (item.price - item.costPrice))));
+    
+    final todayCount = todaySales.length - todayReturns.length;
+    final avgCheck = todayCount <= 0 ? 0.0 : todayTotal / todayCount;
 
     int crossAxisCount = width < 600
         ? 1

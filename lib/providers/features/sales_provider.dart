@@ -29,38 +29,59 @@ class SalesProvider extends ChangeNotifier {
 
   double get todaySalesTotal {
     final now = DateTime.now();
-    return sales
-        .where(
-          (s) =>
-              s.date.year == now.year &&
-              s.date.month == now.month &&
-              s.date.day == now.day,
-        )
-        .fold(0.0, (sum, s) => sum + s.total);
+    final daySales = sales.where(
+      (s) =>
+          s.date.year == now.year &&
+          s.date.month == now.month &&
+          s.date.day == now.day,
+    ).fold(0.0, (sum, s) => sum + s.total);
+
+    final dayReturns = returns.where(
+      (r) =>
+          r.date.year == now.year &&
+          r.date.month == now.month &&
+          r.date.day == now.day,
+    ).fold(0.0, (sum, r) => sum + r.total);
+
+    return daySales - dayReturns;
   }
 
   double get todayProfitTotal {
     final now = DateTime.now();
-    return sales
-        .where(
-          (s) =>
-              s.date.year == now.year &&
-              s.date.month == now.month &&
-              s.date.day == now.day,
-        )
-        .fold(0.0, (sum, s) => sum + s.items.fold(0.0, (iSum, item) => iSum + item.profit));
+    final dayProfit = sales.where(
+      (s) =>
+          s.date.year == now.year &&
+          s.date.month == now.month &&
+          s.date.day == now.day,
+    ).fold(0.0, (sum, s) => sum + s.items.fold(0.0, (iSum, item) => iSum + item.profit));
+
+    final dayReturnProfit = returns.where(
+      (r) =>
+          r.date.year == now.year &&
+          r.date.month == now.month &&
+          r.date.day == now.day,
+    ).fold(0.0, (sum, r) => sum + r.items.fold(0.0, (iSum, item) => iSum + item.profit));
+
+    return dayProfit - dayReturnProfit;
   }
 
   int get todaySalesCount {
     final now = DateTime.now();
-    return sales
-        .where(
-          (s) =>
-              s.date.year == now.year &&
-              s.date.month == now.month &&
-              s.date.day == now.day,
-        )
-        .length;
+    final daySalesCount = sales.where(
+      (s) =>
+          s.date.year == now.year &&
+          s.date.month == now.month &&
+          s.date.day == now.day,
+    ).length;
+
+    final dayReturnsCount = returns.where(
+      (r) =>
+          r.date.year == now.year &&
+          r.date.month == now.month &&
+          r.date.day == now.day,
+    ).length;
+
+    return daySalesCount - dayReturnsCount;
   }
 
   double get averageCheck {

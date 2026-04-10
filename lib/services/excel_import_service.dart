@@ -233,7 +233,7 @@ class ExcelImportService {
         return null;
       }
 
-      int barcodeIdx = -1, nameIdx = -1, qtyIdx = -1, costIdx = -1;
+      int barcodeIdx = -1, nameIdx = -1, qtyIdx = -1, costIdx = -1, priceIdx = -1;
       var headerRow = sheet.rows[0];
       for (int i = 0; i < headerRow.length; i++) {
         String h = _getCellValue(headerRow[i]).toLowerCase().trim();
@@ -241,6 +241,7 @@ class ExcelImportService {
         if (h.contains('nomi') || h.contains('mahsulot')) nameIdx = i;
         if (h.contains('soni') || h.contains('miqdor')) qtyIdx = i;
         if (h.contains('tan') || h.contains('cost')) costIdx = i;
+        if (h.contains('sotish') || h.contains('price') || h.contains('sotuv')) priceIdx = i;
       }
 
       if (qtyIdx == -1 || (barcodeIdx == -1 && nameIdx == -1)) {
@@ -257,9 +258,11 @@ class ExcelImportService {
         String name = nameIdx != -1 && row.length > nameIdx ? _getCellValue(row[nameIdx]) : '';
         String qtyStr = qtyIdx != -1 && row.length > qtyIdx ? _getCellValue(row[qtyIdx]) : '0';
         String costStr = costIdx != -1 && row.length > costIdx ? _getCellValue(row[costIdx]) : '0';
+        String priceStr = priceIdx != -1 && row.length > priceIdx ? _getCellValue(row[priceIdx]) : '0';
         
         double qty = _parseRobustDouble(qtyStr);
         double cost = _parseRobustDouble(costStr);
+        double price = _parseRobustDouble(priceStr);
 
         if (barcode.isEmpty && name.isEmpty) continue;
         if (qty <= 0) continue;
@@ -278,6 +281,7 @@ class ExcelImportService {
             productName: product.name,
             quantity: qty,
             costPrice: cost > 0 ? cost : product.costPrice,
+            price: price > 0 ? price : product.price,
           ));
         }
       }
@@ -318,7 +322,8 @@ class ExcelImportService {
       sheetObject.cell(CellIndex.indexByString("A1")).value = TextCellValue("Shtrix kod");
       sheetObject.cell(CellIndex.indexByString("B1")).value = TextCellValue("Mahsulot nomi");
       sheetObject.cell(CellIndex.indexByString("C1")).value = TextCellValue("Soni");
-      sheetObject.cell(CellIndex.indexByString("D1")).value = TextCellValue("Tan narxi (ixtiyoriy)");
+      sheetObject.cell(CellIndex.indexByString("D1")).value = TextCellValue("Tan narxi");
+      sheetObject.cell(CellIndex.indexByString("E1")).value = TextCellValue("Sotuv narxi");
 
       for (int i = 0; i < products.length; i++) {
         final p = products[i];
