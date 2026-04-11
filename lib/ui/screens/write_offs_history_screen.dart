@@ -77,7 +77,7 @@ class WriteOffsHistoryScreen extends StatelessWidget {
                 return _buildLogCard(
                   context,
                   sales,
-                  'Hisobdan chiqarish #${wo.id.substring(0, 8)}',
+                  'Hisobdan chiqarish #${wo.id.length > 8 ? wo.id.substring(0, 8) : wo.id}',
                   wo.date.toString().substring(0, 16),
                   wo.items.length.toString(),
                   Colors.redAccent,

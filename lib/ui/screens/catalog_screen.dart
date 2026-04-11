@@ -292,7 +292,7 @@ class _CatalogScreenState extends State<CatalogScreen>
             final c = categories[index];
             return _buildListItem(
               title: c.name,
-              subtitle: 'ID: ${c.id.substring(0, 8)}',
+              subtitle: 'ID: ${c.id.length > 8 ? c.id.substring(0, 8) : c.id}',
               onEdit: () => _showCategoryDialog(inventory, c),
               onDelete: () => _confirmDelete(
                 context,

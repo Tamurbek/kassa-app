@@ -9,6 +9,7 @@ import '../../providers/app_state.dart';
 import '../../services/print_service.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/theme/app_theme.dart';
+import '../widgets/app_status_bar.dart';
 
 class CheckoutScreen extends StatefulWidget {
   const CheckoutScreen({super.key});
@@ -172,7 +173,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 ),
                 onPressed: () {
                   Navigator.pop(context); // close success dialog
-                  Navigator.pop(context); // back to POS
+                  Navigator.pop(context, true); // back to POS with success
                 },
                 child: Text(
                   'Davom Etish',
@@ -244,68 +245,79 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           ),
         ),
       ),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          final isSmall = constraints.maxWidth < 950;
-
-          if (isSmall) {
-            return Column(
-              children: [
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.all(20),
-                    child: Column(
-                      children: [
-                        _buildSummaryCard(total, change),
-                        SizedBox(height: 20),
-                        _buildPaymentMethods(),
-                        SizedBox(height: 20),
-                        _buildNumpadSection(total),
-                      ],
-                    ),
-                  ),
-                ),
-                _buildSimpleFooter(sales, settings, auth),
-              ],
-            );
-          }
-
-          return Row(
-            children: [
-              Expanded(
-                flex: 4,
-                child: Container(
-                  color: Theme.of(context).scaffoldBackgroundColor,
-                  child: Column(
+      body: Column(
+        children: [
+          Expanded(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final isSmall = constraints.maxWidth < 950;
+          
+                if (isSmall) {
+                  return Column(
                     children: [
                       Expanded(
                         child: SingleChildScrollView(
-                          padding: const EdgeInsets.all(24),
+                          padding: const EdgeInsets.all(20),
                           child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               _buildSummaryCard(total, change),
-                              const SizedBox(height: 24),
+                              SizedBox(height: 20),
                               _buildPaymentMethods(),
-                              const SizedBox(height: 24),
-                              _buildBigDisplay(receivedStr),
+                              SizedBox(height: 20),
+                              _buildNumpadSection(total),
                             ],
                           ),
                         ),
                       ),
                       _buildSimpleFooter(sales, settings, auth),
                     ],
-                  ),
-                ),
-              ),
-              Container(
-                width: 450,
-                color: Theme.of(context).cardColor,
-                child: _buildNumpadSection(total),
-              ),
-            ],
-          );
-        },
+                  );
+                }
+          
+                return Row(
+                  children: [
+                    Expanded(
+                      flex: 4,
+                      child: Container(
+                        color: Theme.of(context).scaffoldBackgroundColor,
+                        child: Column(
+                          children: [
+                            Expanded(
+                              child: SingleChildScrollView(
+                                padding: const EdgeInsets.all(24),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    _buildSummaryCard(total, change),
+                                    const SizedBox(height: 24),
+                                    _buildPaymentMethods(),
+                                    const SizedBox(height: 24),
+                                    _buildBigDisplay(receivedStr),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            _buildSimpleFooter(sales, settings, auth),
+                          ],
+                        ),
+                      ),
+                    ),
+                    Container(
+                      width: 450,
+                      color: Theme.of(context).cardColor,
+                      child: _buildNumpadSection(total),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+          AppStatusBar(
+            settings: settings,
+            auth: auth,
+            onExit: () => Navigator.pop(context),
+          ),
+        ],
       ),
     );
   }

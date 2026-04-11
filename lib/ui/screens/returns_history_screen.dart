@@ -45,8 +45,8 @@ class ReturnsHistoryScreen extends StatelessWidget {
               itemBuilder: (context, index) {
                 final ret = sales.returns[index];
                 return LogCard(
-                  title: 'Vazvrat #${ret.id.substring(0, 8)}',
-                  subtitle: 'Sotuv #${ret.saleId.substring(0, 8)} • ${ret.date.toString().substring(0, 16)}',
+                  title: 'Vazvrat #${ret.id.length > 8 ? ret.id.substring(0, 8) : ret.id}',
+                  subtitle: 'Sotuv #${ret.saleId.length > 8 ? ret.saleId.substring(0, 8) : ret.saleId} • ${ret.date.toString().substring(0, 16)}',
                   trailingText: '${ret.items.length} ta tur',
                   accentColor: Colors.orange,
                   leadingIcon: Icons.assignment_return_outlined,

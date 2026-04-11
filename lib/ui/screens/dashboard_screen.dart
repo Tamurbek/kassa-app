@@ -34,51 +34,57 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final inventory = context.watch<InventoryProvider>();
     final settings = context.watch<SettingsProvider>();
 
+
     // Filter sales by register if selected
     final filteredSales = selectedRegisterId == null
         ? sales.sales
         : sales.sales.where((s) => s.registerId == selectedRegisterId).toList();
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final isNarrow = constraints.maxWidth < 900;
-        return Scaffold(
-          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-          body: Column(
-            children: [
-              _buildHeader(context, settings, sales, inventory, constraints.maxWidth, filteredSales),
-              Expanded(
-                child: ListView(
-                  padding: const EdgeInsets.all(24),
-                  children: [
-                    _buildStatsSummary(context, sales, inventory, filteredSales, constraints.maxWidth),
-                    const SizedBox(height: 24),
-                    if (isNarrow) ...[
-                      _buildRecentSales(context, filteredSales),
-                      const SizedBox(height: 24),
-                      _buildTopProducts(context, filteredSales),
-                    ] else
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            flex: 2,
-                            child: _buildRecentSales(context, filteredSales),
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 1440),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final isNarrow = constraints.maxWidth < 900;
+            return Scaffold(
+              backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+              body: Column(
+                children: [
+                  _buildHeader(context, settings, sales, inventory, constraints.maxWidth, filteredSales),
+                  Expanded(
+                    child: ListView(
+                      padding: const EdgeInsets.all(24),
+                      children: [
+                        _buildStatsSummary(context, sales, inventory, filteredSales, constraints.maxWidth),
+                        const SizedBox(height: 24),
+                        if (isNarrow) ...[
+                          _buildRecentSales(context, filteredSales),
+                          const SizedBox(height: 24),
+                          _buildTopProducts(context, filteredSales),
+                        ] else
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                flex: 2,
+                                child: _buildRecentSales(context, filteredSales),
+                              ),
+                              const SizedBox(width: 24),
+                              Expanded(
+                                flex: 1,
+                                child: _buildTopProducts(context, filteredSales),
+                              ),
+                            ],
                           ),
-                          const SizedBox(width: 24),
-                          Expanded(
-                            flex: 1,
-                            child: _buildTopProducts(context, filteredSales),
-                          ),
-                        ],
-                      ),
-                  ],
-                ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
-        );
-      },
+            );
+          },
+        ),
+      ),
     );
   }
 

@@ -31,6 +31,12 @@ class SettingsProvider extends ChangeNotifier {
   bool shouldTrackInventory = true;
   String appVersion = AppConstants.appVersion;
   String? deviceId;
+
+  // Scale Settings
+  String? scalePort;
+  int scaleBaudRate = 9600;
+  String scaleProtocol = 'NCI'; // NCI, CAS, POS
+  
   StreamSubscription<void>? _dbSubscription;
 
   SettingsProvider() {
@@ -127,6 +133,11 @@ class SettingsProvider extends ChangeNotifier {
       } catch (e) {
         debugPrint('Error loading package info: $e');
       }
+
+      // 6. Load Scale Settings
+      scalePort = dbSettings['scalePort'] ?? prefs.getString('scalePort');
+      scaleBaudRate = int.tryParse(dbSettings['scaleBaudRate'] ?? '') ?? prefs.getInt('scaleBaudRate') ?? 9600;
+      scaleProtocol = dbSettings['scaleProtocol'] ?? prefs.getString('scaleProtocol') ?? 'NCI';
 
       notifyListeners();
     } catch (e) {
@@ -252,5 +263,25 @@ class SettingsProvider extends ChangeNotifier {
     await DatabaseService.saveSetting('shouldTrackInventory', shouldTrackInventory ? '1' : '0');
     // Force recalculate stocks to apply/remove sale impacts immediately
     await DatabaseService.recalculateStocks(force: true);
+  }
+
+  Future<void> updateScaleSettings({String? port, int? baudRate, String? protocol}) async {
+    final prefs = await SharedPreferences.getInstance();
+    if (port != null) {
+      scalePort = port;
+      await prefs.setString('scalePort', port);
+      await DatabaseService.saveSetting('scalePort', port);
+    }
+    if (baudRate != null) {
+      scaleBaudRate = baudRate;
+      await prefs.setInt('scaleBaudRate', baudRate);
+      await DatabaseService.saveSetting('scaleBaudRate', baudRate.toString());
+    }
+    if (protocol != null) {
+      scaleProtocol = protocol;
+      await prefs.setString('scaleProtocol', protocol);
+      await DatabaseService.saveSetting('scaleProtocol', protocol);
+    }
+    notifyListeners();
   }
 }

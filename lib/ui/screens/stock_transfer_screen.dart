@@ -3,6 +3,9 @@ import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 import '../../models/models.dart';
 import '../../providers/features/inventory_provider.dart';
+import '../../providers/features/auth_provider.dart';
+import '../../providers/features/settings_provider.dart';
+import '../widgets/app_status_bar.dart';
 import '../../providers/app_state.dart';
 
 class StockTransferScreen extends StatefulWidget {
@@ -59,6 +62,9 @@ class _StockTransferScreenState extends State<StockTransferScreen> {
   Widget build(BuildContext context) {
     final inventory = context.watch<InventoryProvider>();
 
+    final auth = context.watch<AuthProvider>();
+    final settingsProv = context.watch<SettingsProvider>();
+
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: PreferredSize(
@@ -78,79 +84,90 @@ class _StockTransferScreenState extends State<StockTransferScreen> {
           ),
         ),
       ),
-      body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 1400),
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              final isWide = constraints.maxWidth > 900;
-              
-              if (isWide) {
-                return Padding(
-                  padding: const EdgeInsets.all(32),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Left Column: Configuration & Barcode
-                      Expanded(
-                        flex: 5,
-                        child: SingleChildScrollView(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              _buildConfigSection(inventory),
-                              const SizedBox(height: 24),
-                              _buildBarcodeSection(inventory),
-                              const SizedBox(height: 48),
-                              _buildConfirmButton(),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 40),
-                      // Right Column: Products List
-                      Expanded(
-                        flex: 7,
-                        child: Column(
+      body: Column(
+        children: [
+          Expanded(
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 1400),
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final isWide = constraints.maxWidth > 900;
+                    
+                    if (isWide) {
+                      return Padding(
+                        padding: const EdgeInsets.all(32),
+                        child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text('Mahsulotlar ro\'yxati', 
-                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-                            const SizedBox(height: 16),
+                            // Left Column: Configuration & Barcode
                             Expanded(
-                              child: _buildItemsList(inventory),
+                              flex: 5,
+                              child: SingleChildScrollView(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    _buildConfigSection(inventory),
+                                    const SizedBox(height: 24),
+                                    _buildBarcodeSection(inventory),
+                                    const SizedBox(height: 48),
+                                    _buildConfirmButton(),
+                                  ],
+                                ),
+                              ),
                             ),
-                            const SizedBox(height: 16),
-                            _buildAddRowButton(),
+                            const SizedBox(width: 40),
+                            // Right Column: Products List
+                            Expanded(
+                              flex: 7,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text('Mahsulotlar ro\'yxati', 
+                                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                                  const SizedBox(height: 16),
+                                  Expanded(
+                                    child: _buildItemsList(inventory),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  _buildAddRowButton(),
+                                ],
+                              ),
+                            ),
                           ],
                         ),
-                      ),
-                    ],
-                  ),
-                );
-              }
-
-              // Mobile/Small Screen Layout
-              return ListView(
-                padding: const EdgeInsets.all(24),
-                children: [
-                  _buildConfigSection(inventory),
-                  const SizedBox(height: 24),
-                  _buildBarcodeSection(inventory),
-                  const SizedBox(height: 32),
-                  const Text('Mahsulotlar ro\'yxati', 
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-                  const SizedBox(height: 16),
-                  ..._buildItemsListItems(inventory),
-                  const SizedBox(height: 16),
-                  _buildAddRowButton(),
-                  const SizedBox(height: 48),
-                  _buildConfirmButton(),
-                ],
-              );
-            },
+                      );
+                    }
+          
+                    // Mobile/Small Screen Layout
+                    return ListView(
+                      padding: const EdgeInsets.all(24),
+                      children: [
+                        _buildConfigSection(inventory),
+                        const SizedBox(height: 24),
+                        _buildBarcodeSection(inventory),
+                        const SizedBox(height: 32),
+                        const Text('Mahsulotlar ro\'yxati', 
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                        const SizedBox(height: 16),
+                        ..._buildItemsListItems(inventory),
+                        const SizedBox(height: 16),
+                        _buildAddRowButton(),
+                        const SizedBox(height: 48),
+                        _buildConfirmButton(),
+                      ],
+                    );
+                  },
+                ),
+              ),
+            ),
           ),
-        ),
+          AppStatusBar(
+            settings: settingsProv,
+            auth: auth,
+            onExit: () => Navigator.pop(context),
+          ),
+        ],
       ),
     );
   }

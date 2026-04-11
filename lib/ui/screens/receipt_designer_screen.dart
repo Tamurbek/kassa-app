@@ -4,6 +4,8 @@ import 'package:intl/intl.dart';
 import 'dart:io';
 import '../../providers/app_state.dart';
 import '../../providers/features/settings_provider.dart';
+import '../../providers/features/auth_provider.dart';
+import '../widgets/app_status_bar.dart';
 
 class ReceiptDesignerScreen extends StatefulWidget {
   const ReceiptDesignerScreen({super.key});
@@ -33,6 +35,8 @@ class _ReceiptDesignerScreenState extends State<ReceiptDesignerScreen> {
     final state = context.watch<AppState>();
     final settings = context.watch<SettingsProvider>();
 
+    final auth = context.watch<AuthProvider>();
+
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
@@ -40,70 +44,81 @@ class _ReceiptDesignerScreenState extends State<ReceiptDesignerScreen> {
         backgroundColor: Theme.of(context).cardColor,
         elevation: 0,
       ),
-      body: Row(
+      body: Column(
         children: [
-          // Settings Side
           Expanded(
-            flex: 1,
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildSectionTitle('Chek Mazmuni'),
-                  const SizedBox(height: 16),
-                  _buildSettingCard([
-                    _buildToggleTile(
-                      'Instagram / QR kod',
-                      settings.showInstagramOnReceipt,
-                      (val) => settings.updateReceiptSettings(showInstagram: val),
+            child: Row(
+              children: [
+                // Settings Side
+                Expanded(
+                  flex: 1,
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildSectionTitle('Chek Mazmuni'),
+                        const SizedBox(height: 16),
+                        _buildSettingCard([
+                          _buildToggleTile(
+                            'Instagram / QR kod',
+                            settings.showInstagramOnReceipt,
+                            (val) => settings.updateReceiptSettings(showInstagram: val),
+                          ),
+                        ]),
+                        const SizedBox(height: 24),
+                        _buildSectionTitle('Pastki Matn (Footer)'),
+                        const SizedBox(height: 12),
+                        TextField(
+                          controller: _footerController,
+                          maxLines: 3,
+                          decoration: InputDecoration(
+                            filled: true,
+                            fillColor: Theme.of(context).cardColor,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(16),
+                              borderSide: BorderSide(color: Theme.of(context).dividerColor),
+                            ),
+                            hintText: 'Masalan: Xaridingiz uchun rahmat!',
+                          ),
+                          onChanged: (val) => settings.updateReceiptSettings(footer: val),
+                        ),
+                        const SizedBox(height: 32),
+                        ElevatedButton.icon(
+                          onPressed: () => Navigator.pop(context),
+                          icon: const Icon(Icons.check_circle_outline),
+                          label: const Text('Saqlash va Chiqish'),
+                          style: ElevatedButton.styleFrom(
+                            minimumSize: const Size.fromHeight(56),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                            backgroundColor: Theme.of(context).colorScheme.primary,
+                            foregroundColor: Colors.white,
+                          ),
+                        ),
+                      ],
                     ),
-                  ]),
-                  const SizedBox(height: 24),
-                  _buildSectionTitle('Pastki Matn (Footer)'),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: _footerController,
-                    maxLines: 3,
-                    decoration: InputDecoration(
-                      filled: true,
-                      fillColor: Theme.of(context).cardColor,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        borderSide: BorderSide(color: Theme.of(context).dividerColor),
+                  ),
+                ),
+                
+                // Preview Side
+                Expanded(
+                  flex: 1,
+                  child: Container(
+                    color: Colors.grey.withOpacity(0.1),
+                    child: Center(
+                      child: SingleChildScrollView(
+                        child: _buildReceiptPreview(state, settings),
                       ),
-                      hintText: 'Masalan: Xaridingiz uchun rahmat!',
-                    ),
-                    onChanged: (val) => settings.updateReceiptSettings(footer: val),
-                  ),
-                  const SizedBox(height: 32),
-                  ElevatedButton.icon(
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.check_circle_outline),
-                    label: const Text('Saqlash va Chiqish'),
-                    style: ElevatedButton.styleFrom(
-                      minimumSize: const Size.fromHeight(56),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                      backgroundColor: Theme.of(context).colorScheme.primary,
-                      foregroundColor: Colors.white,
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
-          
-          // Preview Side
-          Expanded(
-            flex: 1,
-            child: Container(
-              color: Colors.grey.withOpacity(0.1),
-              child: Center(
-                child: SingleChildScrollView(
-                  child: _buildReceiptPreview(state, settings),
-                ),
-              ),
-            ),
+          AppStatusBar(
+            settings: settings,
+            auth: auth,
+            onExit: () => Navigator.pop(context),
           ),
         ],
       ),

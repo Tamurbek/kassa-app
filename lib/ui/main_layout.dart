@@ -24,6 +24,9 @@ import 'screens/sales_history_screen.dart';
 import 'screens/trash_screen.dart';
 import 'screens/returns_history_screen.dart';
 import 'screens/write_offs_history_screen.dart';
+import 'screens/sales_sessions_screen.dart';
+import 'widgets/app_end_drawer.dart';
+import 'widgets/app_status_bar.dart';
 
 class MainLayout extends StatefulWidget {
   const MainLayout({super.key});
@@ -64,36 +67,7 @@ class _MainLayoutState extends State<MainLayout> {
     super.dispose();
   }
 
-  List<Widget> get _screens => [
-        POSScreen(onMenuPressed: () => _scaffoldKey.currentState?.openEndDrawer()),
-        DashboardScreen(
-          onMenuPressed: () => _scaffoldKey.currentState?.openEndDrawer(),
-        ),
-        SalesHistoryScreen(
-          onMenuPressed: () => _scaffoldKey.currentState?.openEndDrawer(),
-        ),
-        WarehouseScreen(
-          onMenuPressed: () => _scaffoldKey.currentState?.openEndDrawer(),
-        ),
-        CatalogScreen(
-          onMenuPressed: () => _scaffoldKey.currentState?.openEndDrawer(),
-        ),
-        EmployeeScreen(
-          onMenuPressed: () => _scaffoldKey.currentState?.openEndDrawer(),
-        ),
-        TrashScreen(
-          onMenuPressed: () => _scaffoldKey.currentState?.openEndDrawer(),
-        ),
-        SettingsScreen(
-          onMenuPressed: () => _scaffoldKey.currentState?.openEndDrawer(),
-        ),
-        ReturnsHistoryScreen(
-          onMenuPressed: () => _scaffoldKey.currentState?.openEndDrawer(),
-        ),
-        WriteOffsHistoryScreen(
-          onMenuPressed: () => _scaffoldKey.currentState?.openEndDrawer(),
-        ),
-      ];
+
 
   bool _canAccess(int index, UserRole? role) {
     if (role == UserRole.admin) return true;
@@ -117,21 +91,56 @@ class _MainLayoutState extends State<MainLayout> {
         },
         child: Scaffold(
           key: _scaffoldKey,
-          endDrawer: Drawer(width: 280, child: _buildSidebar(context, auth, settings, sync, false)),
+          endDrawer: Drawer(
+            width: 280,
+            child: AppEndDrawer(
+              selectedIndex: _selectedIndex,
+              onIndexChanged: (index) {
+                setState(() => _selectedIndex = index);
+                if (_scaffoldKey.currentState?.isEndDrawerOpen ?? false) {
+                  Navigator.pop(context);
+                }
+              },
+            ),
+          ),
           body: LayoutBuilder(
             builder: (context, constraints) {
               final isSmall = constraints.maxWidth < 700;
               final isMedium =
                   constraints.maxWidth >= 700 && constraints.maxWidth < 1200;
 
-              const bool showPermanentSidebar = false;
+              final bool showPermanentSidebar = false;
+              
+              final onMenu = () => _scaffoldKey.currentState?.openEndDrawer();
+
+              final List<Widget> screens = [
+                SalesSessionsScreen(onMenuPressed: onMenu),
+                POSScreen(onMenuPressed: onMenu),
+                DashboardScreen(onMenuPressed: onMenu),
+                SalesHistoryScreen(onMenuPressed: onMenu),
+                WarehouseScreen(onMenuPressed: onMenu),
+                CatalogScreen(onMenuPressed: onMenu),
+                EmployeeScreen(onMenuPressed: onMenu),
+                TrashScreen(onMenuPressed: onMenu),
+                SettingsScreen(onMenuPressed: onMenu),
+                ReturnsHistoryScreen(onMenuPressed: onMenu),
+                WriteOffsHistoryScreen(onMenuPressed: onMenu),
+              ];
 
               return Column(
                 children: [
                   Expanded(
                     child: Row(
                       children: [
-                        if (showPermanentSidebar) _buildSidebar(context, auth, settings, sync, isMedium),
+                        if (showPermanentSidebar) 
+                          SizedBox(
+                            width: isMedium ? 80 : 280,
+                            child: AppEndDrawer(
+                              selectedIndex: _selectedIndex,
+                              onIndexChanged: (index) => setState(() => _selectedIndex = index),
+                              isMedium: isMedium,
+                            ),
+                          ),
                         if (showPermanentSidebar)
                           const VerticalDivider(
                             thickness: 1,
@@ -141,10 +150,10 @@ class _MainLayoutState extends State<MainLayout> {
                         Expanded(
                           child: Center(
                             child: ConstrainedBox(
-                              constraints: const BoxConstraints(maxWidth: 1400),
+                              constraints: const BoxConstraints(maxWidth: 1440),
                               child: IndexedStack(
                                 index: _selectedIndex,
-                                children: _screens,
+                                children: screens,
                               ),
                             ),
                           ),
@@ -152,11 +161,10 @@ class _MainLayoutState extends State<MainLayout> {
                       ],
                     ),
                   ),
-                  Center(
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 1400),
-                        child: _buildStatusFooter(context, auth, settings, sync),
-                    ),
+                  AppStatusBar(
+                    settings: settings,
+                    auth: auth,
+                    onExit: () => auth.logout(),
                   ),
                   if (isSmall) _buildBottomNav(),
                 ],
@@ -170,29 +178,31 @@ class _MainLayoutState extends State<MainLayout> {
 
   Widget _buildSidebar(BuildContext context, AuthProvider auth, SettingsProvider settings, SyncProvider sync, bool isMedium) {
     final Map<int, String> titles = {
-      0: 'Savdo bo\'limi (POS)',
-      1: 'Statistika (Dashboard)',
-      2: 'Sotuvlar tarixi',
-      3: 'Omborxona',
-      4: 'Katalog va Mahsulotlar',
-      5: 'Sotuvchilar (Xodimlar)',
-      8: 'Qaytarilgan tovarlar',
-      9: 'Spisaniya tarixi',
-      6: 'Chiqitlar (Savatcha)',
-      7: 'Sozlamalar',
+      0: 'Savdo (POS)',
+      1: 'Dashboard',
+      2: 'Savdo Tarixi',
+      3: 'Savdo Seanslari',
+      4: 'Ombor',
+      5: 'Katalog',
+      6: 'Hodimlar',
+      7: 'Savat',
+      8: 'Sozlamalar',
+      9: 'Qaytaruvlar',
+      10: 'Chiqitlar',
     };
 
     final Map<int, IconData> icons = {
       0: Icons.point_of_sale_rounded,
-      1: Icons.dashboard_customize_rounded,
+      1: Icons.dashboard_rounded,
       2: Icons.history_rounded,
-      3: Icons.inventory_2_rounded,
-      4: Icons.category_rounded,
-      5: Icons.people_alt_rounded,
-      8: Icons.keyboard_return_rounded,
-      9: Icons.remove_circle_outline_rounded,
-      6: Icons.auto_delete_rounded,
-      7: Icons.settings_suggest_rounded,
+      3: Icons.timer_rounded,
+      4: Icons.inventory_2_rounded,
+      5: Icons.category_rounded,
+      6: Icons.people_rounded,
+      7: Icons.delete_outline_rounded,
+      8: Icons.settings_rounded,
+      9: Icons.assignment_return_rounded,
+      10: Icons.remove_shopping_cart_rounded,
     };
 
     final isDark = theme.brightness == Brightness.dark;

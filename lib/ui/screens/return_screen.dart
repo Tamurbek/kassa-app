@@ -5,6 +5,9 @@ import 'package:uuid/uuid.dart';
 import '../../models/models.dart';
 import '../../providers/features/inventory_provider.dart';
 import '../../providers/features/sales_provider.dart';
+import '../../providers/features/auth_provider.dart';
+import '../../providers/features/settings_provider.dart';
+import '../widgets/app_status_bar.dart';
 import '../../providers/app_state.dart';
 
 class ReturnScreen extends StatefulWidget {
@@ -77,6 +80,9 @@ class _ReturnScreenState extends State<ReturnScreen> {
     final inventory = context.watch<InventoryProvider>();
     final sales = context.watch<SalesProvider>();
 
+    final auth = context.watch<AuthProvider>();
+    final settingsProv = context.watch<SettingsProvider>();
+
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: PreferredSize(
@@ -100,106 +106,117 @@ class _ReturnScreenState extends State<ReturnScreen> {
           ),
         ),
       ),
-      body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 800),
-          child: ListView(
-            padding: const EdgeInsets.all(24),
-            children: [
-              Container(
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).cardColor,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: Theme.of(context).dividerColor),
-                ),
-                child: Column(
+      body: Column(
+        children: [
+          Expanded(
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 800),
+                child: ListView(
+                  padding: const EdgeInsets.all(24),
                   children: [
-                    DropdownButtonFormField<String>(
-                      value: returnWarehouseId,
-                      decoration: const InputDecoration(labelText: 'Qaysi omborga qaytadi?', border: OutlineInputBorder(), prefixIcon: Icon(Icons.store_rounded)),
-                      items: inventory.warehouses.map((w) => DropdownMenuItem(value: w.id, child: Text(w.name))).toList(),
-                      onChanged: (val) => setState(() => returnWarehouseId = val),
-                    ),
-                    const SizedBox(height: 16),
-                    InkWell(
-                      onTap: _pickDate,
-                      child: InputDecorator(
-                        decoration: const InputDecoration(labelText: 'Sana va vaqt', border: OutlineInputBorder(), prefixIcon: Icon(Icons.calendar_today_rounded)),
-                        child: Text(DateFormat('dd.MM.yyyy HH:mm').format(selectedDate)),
+                    Container(
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).cardColor,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: Theme.of(context).dividerColor),
+                      ),
+                      child: Column(
+                        children: [
+                          DropdownButtonFormField<String>(
+                            value: returnWarehouseId,
+                            decoration: const InputDecoration(labelText: 'Qaysi omborga qaytadi?', border: OutlineInputBorder(), prefixIcon: Icon(Icons.store_rounded)),
+                            items: inventory.warehouses.map((w) => DropdownMenuItem(value: w.id, child: Text(w.name))).toList(),
+                            onChanged: (val) => setState(() => returnWarehouseId = val),
+                          ),
+                          const SizedBox(height: 16),
+                          InkWell(
+                            onTap: _pickDate,
+                            child: InputDecorator(
+                              decoration: const InputDecoration(labelText: 'Sana va vaqt', border: OutlineInputBorder(), prefixIcon: Icon(Icons.calendar_today_rounded)),
+                              child: Text(DateFormat('dd.MM.yyyy HH:mm').format(selectedDate)),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          TextField(
+                            controller: saleIdCtrl,
+                            decoration: const InputDecoration(labelText: 'Sotuv ID (ixtiyoriy)', border: OutlineInputBorder(), prefixIcon: Icon(Icons.receipt_long_rounded)),
+                          ),
+                        ],
                       ),
                     ),
+                    const SizedBox(height: 32),
+                    const Text('Mahsulotlar', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
                     const SizedBox(height: 16),
-                    TextField(
-                      controller: saleIdCtrl,
-                      decoration: const InputDecoration(labelText: 'Sotuv ID (ixtiyoriy)', border: OutlineInputBorder(), prefixIcon: Icon(Icons.receipt_long_rounded)),
+                    ...items.asMap().entries.map((entry) {
+                      final idx = entry.key;
+                      final item = entry.value;
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              flex: 3,
+                              child: DropdownButtonFormField<String>(
+                                value: item['productId'],
+                                decoration: const InputDecoration(border: OutlineInputBorder(), contentPadding: EdgeInsets.symmetric(horizontal: 12)),
+                                hint: const Text('Tanlang'),
+                                items: inventory.activeProducts.map((p) => DropdownMenuItem(value: p.id, child: Text(p.name))).toList(),
+                                onChanged: (val) {
+                                  if (val == null) return;
+                                  final p = inventory.activeProducts.firstWhere((p) => p.id == val);
+                                  setState(() {
+                                    items[idx]['productId'] = val;
+                                    items[idx]['productName'] = p.name;
+                                    items[idx]['price'] = p.price;
+                                  });
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              flex: 1,
+                              child: TextFormField(
+                                initialValue: item['quantity'] == 0 ? '' : item['quantity'].toString(),
+                                decoration: const InputDecoration(hintText: 'Soni', border: OutlineInputBorder(), contentPadding: EdgeInsets.symmetric(horizontal: 12)),
+                                keyboardType: TextInputType.number,
+                                onChanged: (val) => items[idx]['quantity'] = double.tryParse(val) ?? 0,
+                              ),
+                            ),
+                            IconButton(icon: const Icon(Icons.remove_circle_outline, color: Colors.orange), onPressed: () => setState(() => items.removeAt(idx))),
+                          ],
+                        ),
+                      );
+                    }),
+                    const SizedBox(height: 16),
+                    OutlinedButton.icon(
+                      onPressed: () => setState(() => items.add({'productId': null, 'productName': '', 'quantity': 0.0, 'price': 0.0})),
+                      icon: const Icon(Icons.add_rounded),
+                      label: const Text('Mahsulot qo\'shish'),
+                      style: OutlinedButton.styleFrom(foregroundColor: Colors.orange, side: const BorderSide(color: Colors.orange)),
+                    ),
+                    const SizedBox(height: 32),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 54,
+                      child: ElevatedButton(
+                        onPressed: _save,
+                        style: ElevatedButton.styleFrom(backgroundColor: Colors.orange, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                        child: const Text('VAZVRATNI SAQLASH', style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1)),
+                      ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 32),
-              const Text('Mahsulotlar', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-              const SizedBox(height: 16),
-              ...items.asMap().entries.map((entry) {
-                final idx = entry.key;
-                final item = entry.value;
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        flex: 3,
-                        child: DropdownButtonFormField<String>(
-                          value: item['productId'],
-                          decoration: const InputDecoration(border: OutlineInputBorder(), contentPadding: EdgeInsets.symmetric(horizontal: 12)),
-                          hint: const Text('Tanlang'),
-                          items: inventory.activeProducts.map((p) => DropdownMenuItem(value: p.id, child: Text(p.name))).toList(),
-                          onChanged: (val) {
-                            if (val == null) return;
-                            final p = inventory.activeProducts.firstWhere((p) => p.id == val);
-                            setState(() {
-                              items[idx]['productId'] = val;
-                              items[idx]['productName'] = p.name;
-                              items[idx]['price'] = p.price;
-                            });
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        flex: 1,
-                        child: TextFormField(
-                          initialValue: item['quantity'] == 0 ? '' : item['quantity'].toString(),
-                          decoration: const InputDecoration(hintText: 'Soni', border: OutlineInputBorder(), contentPadding: EdgeInsets.symmetric(horizontal: 12)),
-                          keyboardType: TextInputType.number,
-                          onChanged: (val) => items[idx]['quantity'] = double.tryParse(val) ?? 0,
-                        ),
-                      ),
-                      IconButton(icon: const Icon(Icons.remove_circle_outline, color: Colors.orange), onPressed: () => setState(() => items.removeAt(idx))),
-                    ],
-                  ),
-                );
-              }),
-              const SizedBox(height: 16),
-              OutlinedButton.icon(
-                onPressed: () => setState(() => items.add({'productId': null, 'productName': '', 'quantity': 0.0, 'price': 0.0})),
-                icon: const Icon(Icons.add_rounded),
-                label: const Text('Mahsulot qo\'shish'),
-                style: OutlinedButton.styleFrom(foregroundColor: Colors.orange, side: const BorderSide(color: Colors.orange)),
-              ),
-              const SizedBox(height: 32),
-              SizedBox(
-                width: double.infinity,
-                height: 54,
-                child: ElevatedButton(
-                  onPressed: _save,
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.orange, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-                  child: const Text('VAZVRATNI SAQLASH', style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1)),
-                ),
-              ),
-            ],
+            ),
           ),
-        ),
+          AppStatusBar(
+            settings: settingsProv,
+            auth: auth,
+            onExit: () => Navigator.pop(context),
+          ),
+        ],
       ),
     );
   }

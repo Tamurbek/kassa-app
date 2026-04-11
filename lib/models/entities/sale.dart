@@ -5,6 +5,9 @@ class Sale {
   final double total;
   final String registerId;
   final String warehouseId;
+  final double discount;
+  final String? customerId;
+  final String? customerName;
 
   Sale({
     required this.id,
@@ -13,6 +16,9 @@ class Sale {
     required this.total,
     required this.registerId,
     required this.warehouseId,
+    this.discount = 0.0,
+    this.customerId,
+    this.customerName,
   });
 
   Map<String, dynamic> toJson() => {
@@ -22,6 +28,9 @@ class Sale {
     'total': total,
     'registerId': registerId,
     'warehouseId': warehouseId,
+    'discount': discount,
+    'customerId': customerId,
+    'customerName': customerName,
   };
 
   factory Sale.fromJson(Map<String, dynamic> json) => Sale(
@@ -33,6 +42,9 @@ class Sale {
     total: double.tryParse(json['total']?.toString() ?? '0') ?? 0.0,
     registerId: json['registerId']?.toString() ?? '',
     warehouseId: json['warehouseId']?.toString() ?? '',
+    discount: double.tryParse(json['discount']?.toString() ?? '0') ?? 0.0,
+    customerId: json['customerId'],
+    customerName: json['customerName'],
   );
 }
 

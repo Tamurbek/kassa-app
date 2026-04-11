@@ -7,8 +7,16 @@ class SalesProvider extends ChangeNotifier {
   List<Sale> sales = [];
   List<SaleReturn> returns = [];
   List<WriteOff> writeOffs = [];
+  List<SuspendedSale> suspendedSales = [];
   
   List<SaleItem> cart = [];
+  double _cartDiscount = 0.0;
+  String? _cartCustomerId;
+  String? _cartCustomerName;
+
+  double get cartDiscount => _cartDiscount;
+  String? get cartCustomerId => _cartCustomerId;
+  String? get cartCustomerName => _cartCustomerName;
   
   bool _isLoading = false;
   bool get isLoading => _isLoading;
@@ -19,6 +27,7 @@ class SalesProvider extends ChangeNotifier {
       debugPrint("SalesProvider: Background data change detected. Reloading...");
       reloadSalesData();
     });
+    reloadSalesData();
   }
 
   @override
@@ -111,8 +120,9 @@ class SalesProvider extends ChangeNotifier {
     return sorted.take(5).toList();
   }
 
-  double get cartTotal => cart.fold(0, (sum, item) => sum + (item.price * item.quantity));
-  double get cartProfit => cart.fold(0, (sum, item) => sum + item.profit);
+  double get cartTotal => (cart.fold(0.0, (sum, item) => sum + (item.price * item.quantity))) - _cartDiscount;
+  double get cartProfit => cart.fold(0.0, (sum, item) => sum + item.profit);
+  double get cartSubtotal => cart.fold(0.0, (sum, item) => sum + (item.price * item.quantity));
 
   void addToCart(Product product, {String? warehouseId}) {
     // Check if product tracks stock and has 0 quantity for the selected warehouse
@@ -197,7 +207,55 @@ class SalesProvider extends ChangeNotifier {
 
   void clearCart() {
     cart.clear();
+    _cartDiscount = 0.0;
+    _cartCustomerId = null;
+    _cartCustomerName = null;
     notifyListeners();
+  }
+
+  void setCartDiscount(double discount) {
+    _cartDiscount = discount;
+    notifyListeners();
+  }
+
+  void setCartCustomer(String? id, String? name) {
+    _cartCustomerId = id;
+    _cartCustomerName = name;
+    notifyListeners();
+  }
+
+  Future<void> suspendCurrentCart({String? note}) async {
+    if (cart.isEmpty) return;
+    final suspendedSale = SuspendedSale(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      date: DateTime.now(),
+      items: List.from(cart),
+      total: cartTotal,
+      note: note,
+    );
+    await DatabaseService.saveSuspendedSale(suspendedSale);
+    clearCart();
+    await reloadSuspendedSales();
+  }
+
+  Future<void> resumeSuspendedSale(SuspendedSale suspendedSale) async {
+    // If current cart is not empty, suspend it first? 
+    // Or just merge? Usually, resuming replaces or merges. 
+    // Let's replace for simplicity, but maybe alert user.
+    cart = List.from(suspendedSale.items);
+    await DatabaseService.deleteSuspendedSale(suspendedSale.id);
+    await reloadSuspendedSales();
+    notifyListeners();
+  }
+
+  Future<void> reloadSuspendedSales() async {
+    suspendedSales = await DatabaseService.getSuspendedSales();
+    notifyListeners();
+  }
+
+  Future<void> deleteSuspendedSale(String id) async {
+    await DatabaseService.deleteSuspendedSale(id);
+    await reloadSuspendedSales();
   }
 
   Future<void> checkout({
@@ -213,9 +271,37 @@ class SalesProvider extends ChangeNotifier {
       date: DateTime.now(),
       registerId: registerId ?? 'unknown',
       warehouseId: warehouseId ?? 'unknown',
+      discount: _cartDiscount,
+      customerId: _cartCustomerId,
+      customerName: _cartCustomerName,
     );
 
     await DatabaseService.saveSale(sale);
+    clearCart();
+    await reloadSalesData();
+  }
+
+  Future<void> processReturn({
+    required String? registerId,
+    required String? warehouseId,
+  }) async {
+    if (cart.isEmpty) throw Exception('Savat bo\'sh');
+
+    final saleReturn = SaleReturn(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      saleId: '', // Direct return from cart
+      date: DateTime.now(),
+      items: cart.map((item) => SaleReturnItem(
+        productId: item.productId,
+        productName: item.productName,
+        quantity: item.quantity,
+        price: item.price,
+      )).toList(),
+      total: cartTotal,
+      warehouseId: warehouseId ?? 'unknown',
+    );
+
+    await DatabaseService.saveReturn(saleReturn);
     clearCart();
     await reloadSalesData();
   }
@@ -228,6 +314,7 @@ class SalesProvider extends ChangeNotifier {
       sales = await DatabaseService.getSales();
       returns = await DatabaseService.getReturns();
       writeOffs = await DatabaseService.getWriteOffs();
+      suspendedSales = await DatabaseService.getSuspendedSales();
     } catch (e) {
       debugPrint('SalesProvider reloadData error: $e');
     } finally {

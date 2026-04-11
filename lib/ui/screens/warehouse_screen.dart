@@ -56,6 +56,8 @@ class _WarehouseScreenState extends State<WarehouseScreen> {
       return matchesSearch;
     }).toList();
 
+
+
     return DefaultTabController(
       length: 6,
       child: LayoutBuilder(
@@ -63,92 +65,98 @@ class _WarehouseScreenState extends State<WarehouseScreen> {
           final isNarrow = constraints.maxWidth < 800;
           return Scaffold(
             backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-            body: Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 1400),
-                child: Column(
-                  children: [
-                    _buildHeader(inventory, isNarrow),
-                    TabBar(
-                      isScrollable: true,
-                      labelColor: Theme.of(context).colorScheme.primary,
-                      unselectedLabelColor: Colors.grey.shade400,
-                      indicatorColor: Theme.of(context).colorScheme.primary,
-                      tabs: const [
-                        Tab(text: 'Qoldiqlar'),
-                        Tab(text: 'Kirimlar'),
-                        Tab(text: 'O\'tkazmalar'),
-                        Tab(text: 'Vazvratlar'),
-                        Tab(text: 'Hisobdan chiqarish'),
-                        Tab(text: 'Inventarizatsiya'),
-                      ],
-                    ),
-                    Expanded(
-                      child: TabBarView(
+            body: Column(
+              children: [
+                Expanded(
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 1400),
+                      child: Column(
                         children: [
-                          // TAB 1: Current Stock
-                          Padding(
-                            padding: const EdgeInsets.all(24.0),
-                            child: Column(
+                          _buildHeader(inventory, isNarrow),
+                          TabBar(
+                            isScrollable: true,
+                            labelColor: Theme.of(context).colorScheme.primary,
+                            unselectedLabelColor: Colors.grey.shade400,
+                            indicatorColor: Theme.of(context).colorScheme.primary,
+                            tabs: const [
+                              Tab(text: 'Qoldiqlar'),
+                              Tab(text: 'Kirimlar'),
+                              Tab(text: 'O\'tkazmalar'),
+                              Tab(text: 'Vazvratlar'),
+                              Tab(text: 'Hisobdan chiqarish'),
+                              Tab(text: 'Inventarizatsiya'),
+                            ],
+                          ),
+                          Expanded(
+                            child: TabBarView(
                               children: [
-                                _buildStatsRow(inventory, constraints.maxWidth),
-                                const SizedBox(height: 24),
-                                Expanded(
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      color: Theme.of(context).cardColor,
-                                      borderRadius: BorderRadius.circular(20),
-                                      border: Border.all(
-                                        color: Theme.of(context).dividerColor,
-                                      ),
-                                    ),
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Padding(
-                                          padding: const EdgeInsets.all(24),
-                                          child: Row(
-                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                // TAB 1: Current Stock
+                                Padding(
+                                  padding: const EdgeInsets.all(24.0),
+                                  child: Column(
+                                    children: [
+                                      _buildStatsRow(inventory, constraints.maxWidth),
+                                      const SizedBox(height: 24),
+                                      Expanded(
+                                        child: Container(
+                                          decoration: BoxDecoration(
+                                            color: Theme.of(context).cardColor,
+                                            borderRadius: BorderRadius.circular(20),
+                                            border: Border.all(
+                                              color: Theme.of(context).dividerColor,
+                                            ),
+                                          ),
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
                                             children: [
-                                              const Text(
-                                                'Mahsulotlar Qoldig\'i',
-                                                style: TextStyle(
-                                                  fontSize: 18,
-                                                  fontWeight: FontWeight.bold,
+                                              Padding(
+                                                padding: const EdgeInsets.all(24),
+                                                child: Row(
+                                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                  children: [
+                                                    const Text(
+                                                      'Mahsulotlar Qoldig\'i',
+                                                      style: TextStyle(
+                                                        fontSize: 18,
+                                                        fontWeight: FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                    _buildWarehouseSelector(inventory),
+                                                  ],
                                                 ),
                                               ),
-                                              _buildWarehouseSelector(inventory),
+                                              const Divider(height: 1),
+                                              Expanded(
+                                                child: filteredProducts.isEmpty
+                                                    ? _buildEmptySearch()
+                                                    : _buildProductsList(
+                                                        inventory,
+                                                        filteredProducts,
+                                                        isNarrow,
+                                                      ),
+                                              ),
                                             ],
                                           ),
                                         ),
-                                        const Divider(height: 1),
-                                        Expanded(
-                                          child: filteredProducts.isEmpty
-                                              ? _buildEmptySearch()
-                                              : _buildProductsList(
-                                                  inventory,
-                                                  filteredProducts,
-                                                  isNarrow,
-                                                ),
-                                        ),
-                                      ],
-                                    ),
+                                      ),
+                                    ],
                                   ),
                                 ),
+                                _buildHistoryList(inventory),
+                                _buildTransferList(inventory),
+                                _buildReturnsList(sales, inventory),
+                                _buildWriteOffsList(sales),
+                                _buildInventoriesList(inventory),
                               ],
                             ),
                           ),
-                          _buildHistoryList(inventory),
-                          _buildTransferList(inventory),
-                          _buildReturnsList(sales, inventory),
-                          _buildWriteOffsList(sales),
-                          _buildInventoriesList(inventory),
                         ],
                       ),
                     ),
-                  ],
+                  ),
                 ),
-              ),
+              ],
             ),
           );
         },
@@ -267,13 +275,11 @@ class _WarehouseScreenState extends State<WarehouseScreen> {
               icon: Icon(Icons.refresh_rounded, color: Theme.of(context).colorScheme.primary),
               onPressed: () => inventory.reloadData(),
             ),
-            if (widget.onMenuPressed != null) ...[
-              const SizedBox(width: 8),
-              IconButton(
-                icon: Icon(Icons.menu_rounded, color: Theme.of(context).colorScheme.primary),
-                onPressed: widget.onMenuPressed,
-              ),
-            ],
+            const SizedBox(width: 8),
+            IconButton(
+              icon: Icon(Icons.menu_rounded, color: Theme.of(context).colorScheme.primary),
+              onPressed: widget.onMenuPressed,
+            ),
           ],
         ],
       ),
@@ -409,7 +415,7 @@ class _WarehouseScreenState extends State<WarehouseScreen> {
       'Kirim',
       inventory.stockEntries.cast<dynamic>(),
       inventory,
-      (entry) => 'Kirim #${entry.id.substring(0, 8)}',
+      (entry) => 'Kirim #${entry.id.length > 8 ? entry.id.substring(0, 8) : entry.id}',
       (entry) => entry.date.toString().substring(0, 16),
       Colors.blue,
       (entry) => inventory.deleteStockEntry(entry.id),
@@ -422,7 +428,7 @@ class _WarehouseScreenState extends State<WarehouseScreen> {
       'O\'tkazma',
       inventory.transfers.cast<dynamic>(),
       inventory,
-      (entry) => 'O\'tkazma #${entry.id.substring(0, 8)}',
+      (entry) => 'O\'tkazma #${entry.id.length > 8 ? entry.id.substring(0, 8) : entry.id}',
       (entry) => '${entry.fromWarehouseId} -> ${entry.toWarehouseId}',
       Colors.indigo,
       (entry) => inventory.deleteStockTransfer(entry.id),
@@ -435,8 +441,8 @@ class _WarehouseScreenState extends State<WarehouseScreen> {
       'Vazvrat',
       sales.returns.cast<dynamic>(),
       inventory,
-      (entry) => 'Vazvrat #${entry.id.substring(0, 8)}',
-      (entry) => 'Sotuv #${entry.saleId.substring(0, 8)}',
+      (entry) => 'Vazvrat #${entry.id.length > 8 ? entry.id.substring(0, 8) : entry.id}',
+      (entry) => 'Sotuv #${entry.saleId.length > 8 ? entry.saleId.substring(0, 8) : entry.saleId}',
       Colors.orange,
       (entry) => sales.deleteReturn(entry.id),
       (entry) { Navigator.push(context, MaterialPageRoute(builder: (_) => ReturnScreen(saleReturn: entry))); },
@@ -448,7 +454,7 @@ class _WarehouseScreenState extends State<WarehouseScreen> {
       'Chiqit',
       sales.writeOffs.cast<dynamic>(),
       null,
-      (entry) => 'Chiqit #${entry.id.substring(0, 8)}',
+      (entry) => 'Chiqit #${entry.id.length > 8 ? entry.id.substring(0, 8) : entry.id}',
       (entry) => entry.date.toString().substring(0, 16),
       Colors.red,
       (entry) => sales.deleteWriteOff(entry.id),
@@ -461,7 +467,7 @@ class _WarehouseScreenState extends State<WarehouseScreen> {
       'Inventar',
       inventory.inventories.cast<dynamic>(),
       inventory,
-      (entry) => 'Inventar #${entry.id.substring(0, 8)}',
+      (entry) => 'Inventar #${entry.id.length > 8 ? entry.id.substring(0, 8) : entry.id}',
       (entry) => entry.date.toString().substring(0, 16),
       Colors.teal,
       (entry) => inventory.deleteInventory(entry.id),

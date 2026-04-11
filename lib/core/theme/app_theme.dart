@@ -21,10 +21,10 @@ class AppColors {
   static const Color lightTextSecondary = Color(0xFF64748B);
 
   // Dark Mode Colors
-  static const Color darkBg = Color(0xFF020617); // Slate 950
-  static const Color darkSurface = Color(0xFF0F172A); // Slate 900
-  static const Color darkBorder = Color(0xFF1E293B); // Slate 800
-  static const Color darkTextPrimary = Color(0xFFF1F5F9);
+  static const Color darkBg = Color(0xFF262626); 
+  static const Color darkSurface = Color(0xFF333333); 
+  static const Color darkBorder = Color(0xFF404040); 
+  static const Color darkTextPrimary = Color(0xFFF5F5F5);
   static const Color darkTextSecondary = Color(0xFF94A3B8);
 }
 
@@ -89,7 +89,7 @@ class AppTheme {
         onSurface: textPrimary,
         error: AppColors.error,
         outline: border,
-        surfaceContainerHighest: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+        surfaceContainerHighest: isDark ? const Color(0xFF404040) : const Color(0xFFF1F5F9),
       ),
       textTheme: GoogleFonts.outfitTextTheme(base.textTheme).copyWith(
         displayLarge: GoogleFonts.outfit(fontWeight: FontWeight.w900, color: textPrimary),

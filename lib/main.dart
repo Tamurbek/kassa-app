@@ -71,13 +71,10 @@ class SimpleSaleApp extends StatelessWidget {
       builder: (context, child) {
         return Container(
           color: Theme.of(context).brightness == Brightness.dark 
-              ? const Color(0xFF0F172A) // Slate 900 background for gutters
+              ? const Color(0xFF262626) // Corrected to match darkBg
               : const Color(0xFFF1F5F9), // Slate 100 background for gutters
           child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 1440),
-              child: child!,
-            ),
+            child: child!,
           ),
         );
       },

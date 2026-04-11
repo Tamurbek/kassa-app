@@ -11,9 +11,12 @@ import '../../models/models.dart';
 import '../widgets/pos/pos_product_card.dart';
 import '../widgets/pos/pos_cart_item.dart';
 import '../widgets/pos/pos_virtual_keyboard.dart';
+import '../widgets/app_status_bar.dart';
 import '../widgets/pos/pos_category_selector.dart';
 import '../../core/constants/app_constants.dart';
 import 'checkout_screen.dart';
+import '../../services/scale_service.dart';
+import '../widgets/app_end_drawer.dart';
 
 class POSScreen extends StatefulWidget {
   final VoidCallback? onMenuPressed;
@@ -24,6 +27,7 @@ class POSScreen extends StatefulWidget {
 }
 
 class _POSScreenState extends State<POSScreen> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   String selectedCategory = 'Barchasi';
   final FocusNode _focusNode = FocusNode();
   String _barcodeBuffer = '';
@@ -43,10 +47,13 @@ class _POSScreenState extends State<POSScreen> {
     _searchFocusNode.addListener(() {
       if (!mounted) return;
       final settings = context.read<SettingsProvider>();
-      if (settings.isBarcodeScanMode && !_searchFocusNode.hasFocus) {
+      final isCurrentRoute = ModalRoute.of(context)?.isCurrent ?? true;
+      
+      if (settings.isBarcodeScanMode && !_searchFocusNode.hasFocus && isCurrentRoute) {
         Future.delayed(const Duration(milliseconds: 200), () {
           if (!mounted) return;
-          if (context.read<SettingsProvider>().isBarcodeScanMode) {
+          final currentIsCurrent = ModalRoute.of(context)?.isCurrent ?? true;
+          if (context.read<SettingsProvider>().isBarcodeScanMode && currentIsCurrent) {
             _searchFocusNode.requestFocus();
           }
         });
@@ -119,6 +126,37 @@ class _POSScreenState extends State<POSScreen> {
                 ),
               ),
             ),
+            if (unit == 'kg') ...[
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton.icon(
+                  onPressed: () async {
+                    try {
+                      final settings = context.read<SettingsProvider>();
+                      final weight = await ScaleService().readWeight(
+                        port: settings.scalePort,
+                        baudRate: settings.scaleBaudRate,
+                        protocol: settings.scaleProtocol,
+                      );
+                      controller.text = weight.toStringAsFixed(3);
+                    } catch (e) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Tarozidan o\'qib bo\'lmadi: $e')),
+                      );
+                    }
+                  },
+                  icon: const Icon(Icons.scale_rounded),
+                  label: const Text('TAROZIDAN OLISH', style: TextStyle(fontWeight: FontWeight.bold)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.orange.shade700,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
         actions: [
@@ -305,48 +343,40 @@ class _POSScreenState extends State<POSScreen> {
       child: LayoutBuilder(
         builder: (context, constraints) {
           final isMobile = constraints.maxWidth < 800;
-          final sidebarWidth = constraints.maxWidth < 1050 ? 300.0 : 380.0;
+          final categoryWidth = 200.0;
+          final cartWidth = 450.0;
+          final actionWidth = 140.0; // Slightly wider for premium buttons
 
           return Scaffold(
+            key: _scaffoldKey,
             backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-            body: Row(
+            endDrawer: Drawer(
+              width: 280,
+              child: AppEndDrawer(
+                selectedIndex: 0, // POS is index 0
+                onIndexChanged: (index) {
+                  Navigator.pop(context); // close drawer
+                  if (index != 0) {
+                     Navigator.pop(context); // Return to MainLayout to switch tabs
+                     // Note: We'd need a better way to switch index in parent if it's not reactive, 
+                     // but for now this returns to the main view.
+                  }
+                },
+              ),
+            ),
+            body: Column(
               children: [
-                // Desktop Cart Sidebar
-                if (!isMobile)
-                  Row(
-                    children: [
-                      _buildCartSidebar(
-                        sales,
-                        inventory,
-                        settings,
-                        auth,
-                        sidebarWidth,
-                      ),
-                      VerticalDivider(
-                        width: 1, 
-                        thickness: 1, 
-                        color: Theme.of(context).dividerColor.withOpacity(0.5)
-                      ),
-                    ],
-                  ),
-                // Product Grid Area
+                _buildTopBar(settings, inventory, sales, isMobile),
                 Expanded(
-                  child: Column(
+                  child: Row(
                     children: [
-                      _buildTopBar(settings, inventory, isMobile),
-                      POSCategorySelector(
-                        categories: categories,
-                        selectedCategory: selectedCategory,
-                        onCategorySelected: (cat) {
-                          setState(() {
-                            selectedCategory = cat;
-                            _currentPage = 1;
-                          });
-                        },
-                      ),
+                      // Left: Products Filter & Grid
                       Expanded(
+                        flex: 6,
                         child: Column(
                           children: [
+                            _buildProductSearchSection(settings),
+                            _buildHorizontalCategoryBar(categories),
                             Expanded(
                               child: _buildProductGrid(
                                 paginatedProducts,
@@ -357,23 +387,38 @@ class _POSScreenState extends State<POSScreen> {
                             ),
                             if (filteredProducts.length > _pageSize)
                               _buildPagination((filteredProducts.length / _pageSize).ceil()),
+                            
+                            // Virtual Keyboard inside Products Section
+                            AnimatedSize(
+                              duration: const Duration(milliseconds: 300),
+                              curve: Curves.easeInOut,
+                              child: _showKeyboard
+                                  ? KeyedSubtree(
+                                      key: const ValueKey('virtual_keyboard'),
+                                      child: _buildVirtualKeyboard(),
+                                    )
+                                  : const SizedBox.shrink(),
+                            ),
                           ],
                         ),
                       ),
-                      // Virtual Keyboard
-                      AnimatedSize(
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeInOut,
-                        child: _showKeyboard
-                            ? KeyedSubtree(
-                                key: const ValueKey('virtual_keyboard'),
-                                child: _buildVirtualKeyboard(),
-                              )
-                            : const SizedBox.shrink(),
+                      
+                      const VerticalDivider(width: 1, thickness: 1),
+
+                      // Center: Cart View
+                      Expanded(
+                        flex: 4,
+                        child: _buildVerticalCartView(sales, inventory),
                       ),
+
+                      const VerticalDivider(width: 1, thickness: 1),
+
+                      // Right: Action Sidebar (Now includes Payment and Save)
+                      _buildActionSidebar(sales, inventory, settings, auth, actionWidth),
                     ],
                   ),
                 ),
+                _buildBottomStatusBar(settings, auth),
               ],
             ),
             floatingActionButton: isMobile && sales.cart.isNotEmpty
@@ -394,7 +439,7 @@ class _POSScreenState extends State<POSScreen> {
     );
   }
 
-  Widget _buildTopBar(SettingsProvider settings, InventoryProvider inventory, bool isMobile) {
+  Widget _buildTopBar(SettingsProvider settings, InventoryProvider inventory, SalesProvider sales, bool isMobile) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
@@ -403,25 +448,64 @@ class _POSScreenState extends State<POSScreen> {
       ),
       child: Row(
         children: [
+          if (Navigator.canPop(context))
+            _buildTopBarAction(
+              icon: Icons.arrow_back_ios_new_rounded,
+              isActive: false,
+              onTap: () => Navigator.pop(context),
+              tooltip: 'Ortga qaytish',
+            ),
+          const Spacer(),
+          if (!isMobile) ...[
+            _buildKassaInfo(settings, inventory),
+            const SizedBox(width: 8),
+          ],
+          IconButton(
+            icon: const Icon(Icons.menu_rounded),
+            color: Theme.of(context).colorScheme.primary,
+            onPressed: () {
+              if (widget.onMenuPressed != null) {
+                // If it's part of indexed stack, parent might handle it
+                _scaffoldKey.currentState?.openEndDrawer();
+              } else {
+                _scaffoldKey.currentState?.openEndDrawer();
+              }
+            },
+            tooltip: 'Menyu',
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProductSearchSection(SettingsProvider settings) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        border: Border(bottom: BorderSide(color: Theme.of(context).dividerColor.withOpacity(0.1))),
+      ),
+      child: Row(
+        children: [
           Expanded(
             child: Container(
-              height: 40,
-              padding: const EdgeInsets.symmetric(horizontal: 12),
+              height: 48,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
               decoration: BoxDecoration(
                 color: Theme.of(context).dividerColor.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(12),
               ),
               child: TextField(
                 controller: _searchController,
                 focusNode: _searchFocusNode,
-                style: const TextStyle(fontSize: 14),
+                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
                 decoration: InputDecoration(
                   hintText: 'Qidirish...',
-                  hintStyle: TextStyle(fontSize: 13, color: Colors.grey.withOpacity(0.7)),
+                  hintStyle: TextStyle(fontSize: 14, color: Colors.grey.withOpacity(0.7)),
                   border: InputBorder.none,
-                  icon: const Icon(Icons.search, size: 18, color: Colors.grey),
+                  icon: const Icon(Icons.search, size: 20, color: Colors.grey),
                   isDense: true,
-                  contentPadding: const EdgeInsets.symmetric(vertical: 10),
+                  contentPadding: const EdgeInsets.symmetric(vertical: 14),
                 ),
                 onChanged: (v) => setState(() => _currentPage = 1),
                 onSubmitted: (v) {
@@ -432,7 +516,7 @@ class _POSScreenState extends State<POSScreen> {
               ),
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 12),
           _buildTopBarAction(
             icon: Icons.keyboard_hide_rounded,
             isActive: _showKeyboard,
@@ -445,21 +529,11 @@ class _POSScreenState extends State<POSScreen> {
             onTap: () => settings.toggleBarcodeScanMode(),
             tooltip: 'Scan rejimi',
           ),
-          if (!isMobile) ...[
-            const SizedBox(width: 8),
-            _buildKassaInfo(settings, inventory),
-          ],
-          const SizedBox(width: 8),
-          IconButton(
-            icon: const Icon(Icons.menu_rounded),
-            color: Theme.of(context).colorScheme.primary,
-            onPressed: widget.onMenuPressed,
-            tooltip: 'Menyu',
-          ),
         ],
       ),
     );
   }
+
 
   Widget _buildTopBarAction({required IconData icon, required bool isActive, required VoidCallback onTap, required String tooltip}) {
     return IconButton(
@@ -505,10 +579,10 @@ class _POSScreenState extends State<POSScreen> {
     return GridView.builder(
       padding: const EdgeInsets.all(10),
       gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-        maxCrossAxisExtent: 180,
-        mainAxisExtent: 105,
-        crossAxisSpacing: 8,
-        mainAxisSpacing: 8,
+        maxCrossAxisExtent: 220,
+        mainAxisExtent: 120,
+        crossAxisSpacing: 10,
+        mainAxisSpacing: 10,
       ),
       itemCount: products.length,
       itemBuilder: (context, index) => POSProductCard(
@@ -550,34 +624,51 @@ class _POSScreenState extends State<POSScreen> {
     );
   }
 
-  Widget _buildCartSidebar(SalesProvider sales, InventoryProvider inventory, SettingsProvider settings, AuthProvider auth, double width) {
+  Widget _buildVerticalCartView(SalesProvider sales, InventoryProvider inventory) {
     return Container(
-      width: width,
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-      ),
+      color: Theme.of(context).cardColor,
       child: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 10, 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.primary.withOpacity(0.05),
+              border: Border(bottom: BorderSide(color: Theme.of(context).dividerColor.withOpacity(0.2))),
+            ),
             child: Row(
               children: [
-                const Expanded(child: Text('SAVAT', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, letterSpacing: 0.5))),
-                if (sales.cart.isNotEmpty)
-                  IconButton(
-                    icon: const Icon(Icons.delete_sweep_rounded, color: Colors.redAccent, size: 20),
-                    onPressed: () => sales.clearCart(),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
+                Icon(Icons.shopping_basket_rounded, size: 20, color: Theme.of(context).colorScheme.primary),
+                const SizedBox(width: 10),
+                const Text('SAVATDAGI MAHSULOTLAR', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: 0.5)),
+                const Spacer(),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(20),
                   ),
+                  child: Text(
+                    '${sales.cart.length} turlar',
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: Theme.of(context).colorScheme.primary),
+                  ),
+                ),
               ],
             ),
           ),
           Expanded(
             child: sales.cart.isEmpty
-                ? Center(child: Text('Savat bo\'sh', style: TextStyle(color: Colors.grey.withOpacity(0.4), fontSize: 13)))
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.add_shopping_cart_rounded, size: 64, color: Colors.grey.withOpacity(0.15)),
+                        const SizedBox(height: 16),
+                        const Text('Savat bo\'sh', style: TextStyle(color: Colors.grey, fontSize: 15, fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                  )
                 : ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    padding: const EdgeInsets.symmetric(vertical: 8),
                     itemCount: sales.cart.length,
                     itemBuilder: (context, index) => POSCartItem(
                       item: sales.cart[index],
@@ -585,52 +676,68 @@ class _POSScreenState extends State<POSScreen> {
                     ),
                   ),
           ),
-          _buildCartFooter(sales),
+          // Moved Summary to Cart Footer
+          _buildCartInlineSummary(sales),
         ],
       ),
     );
   }
 
-  Widget _buildCartFooter(SalesProvider sales) {
+  Widget _buildCartInlineSummary(SalesProvider sales) {
     final total = sales.cartTotal;
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
+        color: Theme.of(context).colorScheme.primary.withOpacity(0.02),
         border: Border(top: BorderSide(color: Theme.of(context).dividerColor.withOpacity(0.3))),
       ),
       child: Column(
-        mainAxisSize: MainAxisSize.min,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Jami:', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.grey)),
-              Text(
-                '${NumberFormat.currency(locale: 'uz_UZ', symbol: '', decimalDigits: 0).format(total)}',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Theme.of(context).colorScheme.primary),
-              ),
+              const Text('Mahsulotlar soni:', style: TextStyle(color: Colors.grey, fontSize: 13, fontWeight: FontWeight.bold)),
+              Text('${sales.cart.fold(0, (sum, i) => sum + i.quantity.toInt())} ta', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14)),
             ],
           ),
-          const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            height: 48,
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          const SizedBox(height: 4),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text('Foyda (taxm.):', style: TextStyle(color: Colors.grey, fontSize: 13, fontWeight: FontWeight.bold)),
+              Text('${NumberFormat.currency(locale: 'uz_UZ', symbol: '', decimalDigits: 0).format(sales.cartProfit)} UZS', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14, color: Colors.green)),
+            ],
+          ),
+          const Divider(height: 24),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text('JAMI TO\'LOV:', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w900, letterSpacing: 0.5)),
+              Text(
+                '${NumberFormat.currency(locale: 'uz_UZ', symbol: '', decimalDigits: 0).format(total)} UZS',
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Theme.of(context).colorScheme.primary),
               ),
-              onPressed: sales.cart.isEmpty ? null : () => _handlePayment(sales),
-              child: const Text('TO\'LOV', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-            ),
+            ],
           ),
         ],
       ),
     );
   }
 
-  void _handlePayment(SalesProvider sales) {
-    Navigator.push(context, MaterialPageRoute(builder: (context) => const CheckoutScreen()));
+  Widget _buildBottomStatusBar(SettingsProvider settings, AuthProvider auth) {
+    return AppStatusBar(
+      settings: settings,
+      auth: auth,
+      onExit: () => Navigator.pop(context),
+    );
+  }
+
+  void _handlePayment(SalesProvider sales) async {
+    final result = await Navigator.push(context, MaterialPageRoute(builder: (context) => const CheckoutScreen()));
+    // If checkout was successful, go back to sessions screen
+    if (result == true && mounted) {
+      Navigator.pop(context);
+    }
   }
 
   void _showCartSheet(SalesProvider sales, InventoryProvider inventory, SettingsProvider settings, AuthProvider auth) {
@@ -647,7 +754,7 @@ class _POSScreenState extends State<POSScreen> {
         child: Column(
           children: [
             Container(margin: const EdgeInsets.symmetric(vertical: 8), width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2))),
-            Expanded(child: _buildCartSidebar(sales, inventory, settings, auth, double.infinity)),
+            Expanded(child: _buildVerticalCartView(sales, inventory)),
           ],
         ),
       ),
@@ -660,5 +767,395 @@ class _POSScreenState extends State<POSScreen> {
       onKeyTap: _onKeyTap,
       onHideKeyboard: () => setState(() => _showKeyboard = false),
     );
+  }
+
+  void _showSuspendNoteDialog(BuildContext context, SalesProvider sales) {
+    final controller = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Savdoni kutishga qo\'yish'),
+        content: TextField(
+          controller: controller,
+          decoration: const InputDecoration(
+            labelText: 'Izoh (Mijoz ismi yoki tel)',
+            hintText: 'Ixtiyoriy...',
+          ),
+          autofocus: true,
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Bekor qilish')),
+          ElevatedButton(
+            onPressed: () async {
+              await sales.suspendCurrentCart(note: controller.text);
+              if (mounted) {
+                Navigator.pop(context); // close dialog
+                Navigator.pop(context); // go back to sessions screen
+              }
+            },
+            child: const Text('Saqlash'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showSuspendedSalesDialog(BuildContext context, SalesProvider sales) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Kutayotgan savdolar'),
+        content: SizedBox(
+          width: 400,
+          child: sales.suspendedSales.isEmpty
+              ? const Center(child: Padding(padding: EdgeInsets.all(20), child: Text('Kutayotgan savdolar yo\'q')))
+              : ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: sales.suspendedSales.length,
+                  itemBuilder: (context, index) {
+                    final s = sales.suspendedSales[index];
+                    return ListTile(
+                      title: Text(s.note != null && s.note!.isNotEmpty ? s.note! : 'Nomsiz savdo #${s.id.substring(s.id.length - 4)}'),
+                      subtitle: Text('${DateFormat('HH:mm').format(s.date)} • ${s.items.length} ta mahsulot • ${NumberFormat.currency(locale: 'uz_UZ', symbol: '', decimalDigits: 0).format(s.total)}'),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.delete_outline, color: Colors.red),
+                            onPressed: () => sales.deleteSuspendedSale(s.id),
+                          ),
+                          const SizedBox(width: 8),
+                          ElevatedButton(
+                            onPressed: () {
+                              sales.resumeSuspendedSale(s);
+                              Navigator.pop(context);
+                            },
+                            child: const Text('Tiklash'),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Yopish')),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionSidebar(SalesProvider sales, InventoryProvider inventory, SettingsProvider settings, AuthProvider auth, double width) {
+    return Container(
+      width: width,
+      color: Theme.of(context).cardColor,
+      child: Column(
+        children: [
+          const SizedBox(height: 8),
+          _buildActionBtn(
+            icon: Icons.percent_rounded,
+            label: 'Chegirma',
+            onTap: () => _showDiscountDialog(sales),
+            color: Colors.purple,
+          ),
+          _buildActionBtn(
+            icon: Icons.assignment_return_rounded,
+            label: 'Qaytarish',
+            onTap: () => _showReturnsDialog(sales),
+            color: Colors.redAccent,
+          ),
+          _buildActionBtn(
+            icon: Icons.print_rounded,
+            label: 'Chek',
+            onTap: () => _reprintLastReceipt(sales),
+            color: Colors.teal,
+          ),
+          const Spacer(),
+          _buildActionBtn(
+            icon: Icons.pause_circle_filled_rounded,
+            label: 'SAQLASH',
+            onTap: sales.cart.isEmpty ? () {} : () => _showSuspendNoteDialog(context, sales),
+            color: Colors.orange.shade700,
+            isBig: true,
+          ),
+          _buildActionBtn(
+            icon: Icons.payments_rounded,
+            label: 'TO\'LOV',
+            onTap: sales.cart.isEmpty ? () {} : () => _handlePayment(sales),
+            color: Colors.green.shade600,
+            isBig: true,
+          ),
+          const Divider(indent: 12, endIndent: 12),
+          _buildActionBtn(
+            icon: Icons.logout_rounded,
+            label: 'Chiqish',
+            onTap: () => auth.logout(),
+            color: Colors.blueGrey,
+          ),
+          const SizedBox(height: 8),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionBtn({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+    required Color color,
+    bool isBig = false,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          width: double.infinity,
+          padding: EdgeInsets.symmetric(vertical: isBig ? 16 : 8),
+          decoration: BoxDecoration(
+            color: isBig ? color : color.withOpacity(0.08),
+            borderRadius: BorderRadius.circular(12),
+            border: isBig ? null : Border.all(color: color.withOpacity(0.2), width: 1.5),
+            boxShadow: isBig ? [BoxShadow(color: color.withOpacity(0.3), blurRadius: 8, offset: const Offset(0, 4))] : [],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, color: isBig ? Colors.white : color, size: isBig ? 32 : 24),
+              const SizedBox(height: 4),
+              Text(
+                label.toUpperCase(),
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: isBig ? Colors.white : color,
+                  fontSize: isBig ? 12 : 10,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+   Widget _buildHorizontalCategoryBar(List<String> categories) {
+    return Container(
+      height: 70,
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        border: Border(bottom: BorderSide(color: Theme.of(context).dividerColor.withOpacity(0.2))),
+      ),
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        itemCount: categories.length,
+        itemBuilder: (context, index) {
+          final cat = categories[index];
+          final isSelected = selectedCategory == cat;
+          return Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: InkWell(
+              onTap: () {
+                setState(() {
+                  selectedCategory = cat;
+                  _currentPage = 1;
+                });
+              },
+              borderRadius: BorderRadius.circular(12),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                decoration: BoxDecoration(
+                  color: isSelected ? Theme.of(context).colorScheme.primary : Theme.of(context).dividerColor.withOpacity(0.05),
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: isSelected ? [BoxShadow(color: Theme.of(context).colorScheme.primary.withOpacity(0.3), blurRadius: 8, offset: const Offset(0, 4))] : [],
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  cat,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w900,
+                    color: isSelected ? Colors.white : Theme.of(context).textTheme.bodyLarge?.color?.withOpacity(0.8),
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  void _showDiscountDialog(SalesProvider sales) {
+    if (sales.cart.isEmpty) return;
+    final controller = TextEditingController(text: sales.cartDiscount.toString());
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Chegirma qo\'llash'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: controller,
+              keyboardType: TextInputType.number,
+              autofocus: true,
+              decoration: const InputDecoration(
+                labelText: 'Chegirma summasi (UZS)',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text('Eslatma: Chegirma umumiy savat summasidan ayriladi.', style: TextStyle(fontSize: 12, color: Colors.grey)),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Bekor qilish')),
+          ElevatedButton(
+            onPressed: () {
+              final discount = double.tryParse(controller.text) ?? 0.0;
+              sales.setCartDiscount(discount);
+              Navigator.pop(context);
+            },
+            child: const Text('Qo\'llash'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showCustomerDialog(SalesProvider sales) {
+    final controller = TextEditingController(text: sales.cartCustomerName);
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Mijoz biriktirish'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          decoration: const InputDecoration(
+            labelText: 'Mijoz ismi',
+            border: OutlineInputBorder(),
+            prefixIcon: Icon(Icons.person),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              sales.setCartCustomer(null, null);
+              Navigator.pop(context);
+            },
+            child: const Text('Tozalash', style: TextStyle(color: Colors.red)),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (controller.text.isNotEmpty) {
+                sales.setCartCustomer(DateTime.now().millisecondsSinceEpoch.toString(), controller.text);
+              }
+              Navigator.pop(context);
+            },
+            child: const Text('Saqlash'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showReturnsDialog(SalesProvider sales) {
+    if (sales.cart.isNotEmpty) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: const Row(
+            children: [
+              Icon(Icons.assignment_return_rounded, color: Colors.red),
+              SizedBox(width: 10),
+              Text('Qaytarishni Tasdiqlash'),
+            ],
+          ),
+          content: Text('Savatdagi ${sales.cart.length} ta mahsulotni qaytarishni (vazvrat) tasdiqlaysizmi?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Bekor qilish'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                try {
+                  final settings = context.read<SettingsProvider>();
+                  await sales.processReturn(
+                    registerId: settings.currentRegister?.id,
+                    warehouseId: settings.currentRegister?.warehouseId,
+                  );
+                  if (mounted) {
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Mahsulotlar muvaffaqiyatli qaytarildi', style: TextStyle(fontWeight: FontWeight.bold)),
+                        backgroundColor: Colors.green,
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Xatolik: $e'), backgroundColor: Colors.red),
+                  );
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              child: const Text('TASDIQLASH'),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Oxirgi sotuvlar (Qaytarish uchun)'),
+        content: SizedBox(
+          width: 500,
+          height: 400,
+          child: sales.sales.isEmpty 
+            ? const Center(child: Text('Sotuvlar mavjud emas'))
+            : ListView.builder(
+                itemCount: sales.sales.length,
+                itemBuilder: (context, index) {
+                  final sale = sales.sales[index];
+                  return ListTile(
+                    title: Text('Chek #${sale.id.substring(sale.id.length - 4)}'),
+                    subtitle: Text('${DateFormat('dd.MM.yyyy HH:mm').format(sale.date)} - ${NumberFormat.currency(locale: 'uz_UZ', symbol: '').format(sale.total)} UZS'),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () {
+                       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Qaytarish funksiyasi keyingi versiyada...')));
+                       Navigator.pop(context);
+                    },
+                  );
+                },
+              ),
+        ),
+      ),
+    );
+  }
+
+  void _reprintLastReceipt(SalesProvider sales) {
+    if (sales.sales.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Chop etish uchun sotuv topilmadi')));
+      return;
+    }
+    final lastSale = sales.sales.first;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Chek #${lastSale.id.substring(lastSale.id.length-4)} chop etilmoqda...')));
   }
 }

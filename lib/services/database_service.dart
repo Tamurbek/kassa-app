@@ -12,6 +12,7 @@ import 'database/stock_repository.dart';
 import 'database/repository_utils.dart';
 import 'database/sync_repository.dart';
 import 'database/stock_utils.dart';
+import 'database/suspended_sale_repository.dart';
 
 class DatabaseService {
   static Future<Database> get database => DatabaseHelper.database;
@@ -79,6 +80,17 @@ class DatabaseService {
   }
   static Future<void> deleteSale(String id) async {
     await SaleRepository.deleteSale(id);
+    triggerUpdate();
+  }
+
+  // --- Suspended Sales ---
+  static Future<List<SuspendedSale>> getSuspendedSales() => SuspendedSaleRepository.getSuspendedSales();
+  static Future<void> saveSuspendedSale(SuspendedSale sale) async {
+    await SuspendedSaleRepository.saveSuspendedSale(sale);
+    triggerUpdate();
+  }
+  static Future<void> deleteSuspendedSale(String id) async {
+    await SuspendedSaleRepository.deleteSuspendedSale(id);
     triggerUpdate();
   }
 

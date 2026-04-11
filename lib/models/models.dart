@@ -8,4 +8,6 @@ export 'entities/stock_transfer.dart';
 export 'entities/sale_return.dart';
 export 'entities/write_off.dart';
 export 'entities/inventory_entry.dart';
+export 'entities/suspended_sale.dart';
 export 'entities/user.dart';
+export 'entities/customer.dart';

@@ -74,6 +74,7 @@ class PrintService {
 
     if (printerName != null) {
       final printers = await Printing.listPrinters();
+      if (printers.isEmpty) return;
       final printer = printers.firstWhere(
         (p) => p.name == printerName,
         orElse: () => printers.first,
@@ -291,6 +292,7 @@ class PrintService {
 
     if (printerName != null) {
       final printers = await Printing.listPrinters();
+      if (printers.isEmpty) return;
       final printer = printers.firstWhere(
         (p) => p.name == printerName,
         orElse: () => printers.first,
@@ -506,6 +508,7 @@ class PrintService {
 
     if (printerName != null) {
       final printers = await Printing.listPrinters();
+      if (printers.isEmpty) return;
       final printer = printers.firstWhere(
         (p) => p.name == printerName,
         orElse: () => printers.first,

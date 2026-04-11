@@ -9,7 +9,7 @@ class DatabaseHelper {
   static Future<Database>? _initFuture;
   static bool _factoryInitialized = false;
 
-  static const int databaseVersion = 21;
+  static const int databaseVersion = 23;
   static const String databaseName = 'simple_sale.db';
 
   static Future<Database> get database async {
@@ -151,6 +151,9 @@ class DatabaseHelper {
         total REAL NOT NULL,
         registerId TEXT NOT NULL,
         warehouseId TEXT NOT NULL,
+        discount REAL NOT NULL DEFAULT 0,
+        customerId TEXT,
+        customerName TEXT,
         isDeleted INTEGER NOT NULL DEFAULT 0,
         updatedAt TEXT,
         isSynced INTEGER NOT NULL DEFAULT 0
@@ -284,6 +287,24 @@ class DatabaseHelper {
         productId TEXT NOT NULL,
         productName TEXT NOT NULL,
         quantity REAL NOT NULL
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE suspended_sales (
+        id TEXT PRIMARY KEY,
+        date TEXT NOT NULL,
+        total REAL NOT NULL,
+        note TEXT
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE suspended_sale_items (
+        suspendedSaleId TEXT NOT NULL,
+        productId TEXT NOT NULL,
+        productName TEXT NOT NULL,
+        quantity REAL NOT NULL,
+        price REAL NOT NULL,
+        costPrice REAL NOT NULL DEFAULT 0
       )
     ''');
   }
@@ -553,6 +574,31 @@ class DatabaseHelper {
       } catch (e) {
         print("Migration 21 error: $e");
       }
+    }
+    if (oldVersion < 22) {
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS suspended_sales (
+          id TEXT PRIMARY KEY,
+          date TEXT NOT NULL,
+          total REAL NOT NULL,
+          note TEXT
+        )
+      ''');
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS suspended_sale_items (
+          suspendedSaleId TEXT NOT NULL,
+          productId TEXT NOT NULL,
+          productName TEXT NOT NULL,
+          quantity REAL NOT NULL,
+          price REAL NOT NULL,
+          costPrice REAL NOT NULL DEFAULT 0
+        )
+      ''');
+    }
+    if (oldVersion < 23) {
+      try { await db.execute('ALTER TABLE sales ADD COLUMN discount REAL NOT NULL DEFAULT 0'); } catch(_) {}
+      try { await db.execute('ALTER TABLE sales ADD COLUMN customerId TEXT'); } catch(_) {}
+      try { await db.execute('ALTER TABLE sales ADD COLUMN customerName TEXT'); } catch(_) {}
     }
   }
 
