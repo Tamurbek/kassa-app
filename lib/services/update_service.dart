@@ -10,37 +10,58 @@ class UpdateService {
 
   static Future<Map<String, dynamic>?> checkUpdate() async {
     try {
-      final response = await http.get(Uri.parse("$_serverUrl/update/latest"));
+      // Professional: Add timestamp to bypass any server or CDN caching
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final response = await http.get(
+        Uri.parse("$_serverUrl/update/latest?t=$timestamp"),
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache',
+        },
+      ).timeout(const Duration(seconds: 10));
+
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         final latestVersion = data['version'] as String;
+        
         final packageInfo = await PackageInfo.fromPlatform();
-        final currentVersion = packageInfo.version;
+        // current will be something like "1.22.71+71"
+        final currentVersion = "${packageInfo.version}+${packageInfo.buildNumber}";
 
         if (_isNewer(latestVersion, currentVersion)) {
           return data;
         }
       }
     } catch (e) {
-      print("[UpdateService] Yangilanishni tekshirishda xatolik: $e");
+      print("[UpdateService] Professional check failed: $e");
     }
     return null;
   }
 
   static bool _isNewer(String latest, String current) {
     try {
-      // Remove build metadata (e.g., 1.22.37+37 -> 1.22.37)
-      String latestClean = latest.contains('+') ? latest.split('+')[0] : latest;
-      String currentClean = current.contains('+') ? current.split('+')[0] : current;
+      // 1. Separate version from build number
+      // latest: 1.22.73+73
+      // current: 1.22.71+71
+      final latestPart = latest.split('+')[0];
+      final latestBuild = latest.contains('+') ? int.tryParse(latest.split('+')[1]) ?? 0 : 0;
+      
+      final currentPart = current.split('+')[0];
+      final currentBuild = current.contains('+') ? int.tryParse(current.split('+')[1]) ?? 0 : 0;
 
-      List<int> latestParts = latestClean.split('.').map((e) => int.tryParse(e) ?? 0).toList();
-      List<int> currentParts = currentClean.split('.').map((e) => int.tryParse(e) ?? 0).toList();
+      // 2. Compare main version parts (1.22.73)
+      List<int> latestParts = latestPart.split('.').map((e) => int.tryParse(e) ?? 0).toList();
+      List<int> currentParts = currentPart.split('.').map((e) => int.tryParse(e) ?? 0).toList();
 
       for (int i = 0; i < latestParts.length; i++) {
         if (i >= currentParts.length) return true;
         if (latestParts[i] > currentParts[i]) return true;
         if (latestParts[i] < currentParts[i]) return false;
       }
+      
+      // 3. If main version is identical, compare build numbers
+      if (latestBuild > currentBuild) return true;
+
       return false;
     } catch (e) {
       return false;

@@ -39,14 +39,9 @@ class _InitializationWrapperState extends State<InitializationWrapper> {
     try {
       final updateData = await UpdateService.checkUpdate();
       if (updateData != null && mounted) {
-        final latestVersion = updateData['version'].toString().replaceAll('v', '');
-        final currentVersion = AppConstants.appVersion.replaceAll('v', '');
+        // If checkUpdate returned data, it means a newer version exists.
+        // We don't need redundant string comparisons here anymore.
         
-        if (latestVersion == currentVersion) {
-          debugPrint('Professional Update: App is up to date ($currentVersion)');
-          return;
-        }
-
         if (!context.mounted) return;
         AppUpdateDialog.show(
           context,
