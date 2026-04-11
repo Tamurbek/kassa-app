@@ -200,11 +200,6 @@ class _BarcodePrintScreenState extends State<BarcodePrintScreen> {
               ),
             ),
           ),
-          AppStatusBar(
-            settings: settings,
-            auth: auth,
-            onExit: () => Navigator.pop(context),
-          ),
         ],
       ),
     );

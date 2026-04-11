@@ -13,6 +13,7 @@ import 'ui/initialization_wrapper.dart';
 import 'core/theme/app_theme.dart';
 import 'services/system_tray_service.dart';
 import 'services/single_instance_service.dart';
+import 'providers/features/navigation_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -47,6 +48,7 @@ void main() async {
             return sync;
           },
         ),
+        ChangeNotifierProvider(create: (context) => NavigationProvider()),
         ChangeNotifierProvider(create: (context) => AppState()..loadSettings()),
       ],
       child: const SimpleSaleApp(),

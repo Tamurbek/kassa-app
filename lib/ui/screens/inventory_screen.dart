@@ -268,11 +268,6 @@ class _InventoryScreenState extends State<InventoryScreen> {
               ),
             ),
           ),
-          AppStatusBar(
-            settings: settings,
-            auth: auth,
-            onExit: () => Navigator.pop(context),
-          ),
         ],
       ),
     );

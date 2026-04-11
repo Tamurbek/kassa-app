@@ -15,7 +15,13 @@ class PrintService {
         .replaceAll('ʻ', "'")      // Uzbek modifier
         .replaceAll('ʼ', "'")      // Uzbek modifier
         .replaceAll('‘', "'")      // Left single quote
-        .replaceAll('’', "'");     // Right single quote
+        .replaceAll('’', "'")      // Right single quote
+        .replaceAll('ʻ', "'")
+        .replaceAll('ʼ', "'")
+        .replaceAll('`', "'")
+        .replaceAll('´', "'")
+        .replaceAll('‘', "'")
+        .replaceAll('’', "'");
   }
 
   static Future<void> printBarcodeLabels({
@@ -72,17 +78,18 @@ class PrintService {
       }
     }
 
-    if (printerName != null) {
+    if (printerName != null && printerName != 'Network') {
       final printers = await Printing.listPrinters();
-      if (printers.isEmpty) return;
-      final printer = printers.firstWhere(
-        (p) => p.name == printerName,
-        orElse: () => printers.first,
-      );
-      await Printing.directPrintPdf(
-        printer: printer,
-        onLayout: (format) => doc.save(),
-      );
+      if (printers.isNotEmpty) {
+        final printer = printers.firstWhere(
+          (p) => p.name == printerName,
+          orElse: () => printers.first,
+        );
+        await Printing.directPrintPdf(
+          printer: printer,
+          onLayout: (format) => doc.save(),
+        );
+      }
     } else if (printerName == null && (ipAddress == null || ipAddress.isEmpty)) {
       await Printing.layoutPdf(onLayout: (format) => doc.save());
     }
@@ -151,6 +158,7 @@ class PrintService {
     required List<SaleItem> items,
     required double total,
     required String registerName,
+    double discount = 0,
     String? printerName,
     String? ipAddress,
     String? orgName,
@@ -161,6 +169,7 @@ class PrintService {
     bool showInstagram = true,
   }) async {
     final doc = pw.Document();
+    final fmt = NumberFormat.currency(locale: 'uz_UZ', symbol: '', decimalDigits: 0);
     
 
     doc.addPage(
@@ -233,15 +242,34 @@ class PrintService {
                 ),
               ),
               pw.Divider(thickness: 1),
+              if (discount > 0) ...[
+                pw.Row(
+                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                  children: [
+                    pw.Text(_clean('UMUMIY:'), style: pw.TextStyle(fontSize: 9 * scale)),
+                    pw.Text(_clean('${NumberFormat.currency(locale: 'uz_UZ', symbol: '', decimalDigits: 0).format(total + discount)} s'), style: pw.TextStyle(fontSize: 9 * scale)),
+                  ],
+                ),
+                pw.SizedBox(height: 2),
+                pw.Row(
+                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                  children: [
+                    pw.Text(_clean('CHEGIRMA:'), style: pw.TextStyle(fontSize: 9 * scale)),
+                    pw.Text(_clean('-${NumberFormat.currency(locale: 'uz_UZ', symbol: '', decimalDigits: 0).format(discount)} s'), style: pw.TextStyle(fontSize: 9 * scale)),
+                  ],
+                ),
+                pw.SizedBox(height: 2),
+                pw.Divider(thickness: 0.5, borderStyle: pw.BorderStyle.dashed),
+              ],
               pw.Row(
                 mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                 children: [
                   pw.Text(
-                    'JAMI SUMMA:',
+                    _clean('TO\'LANADIGAN:'),
                     style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10 * scale),
                   ),
                   pw.Text(
-                    _clean('${total.toStringAsFixed(0)} so\'m'),
+                    _clean('${fmt.format(total)} so\'m'),
                     style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11 * scale),
                   ),
                 ],
@@ -290,17 +318,18 @@ class PrintService {
     ),
   );
 
-    if (printerName != null) {
+    if (printerName != null && printerName != 'Network') {
       final printers = await Printing.listPrinters();
-      if (printers.isEmpty) return;
-      final printer = printers.firstWhere(
-        (p) => p.name == printerName,
-        orElse: () => printers.first,
-      );
-      await Printing.directPrintPdf(
-        printer: printer,
-        onLayout: (format) => doc.save(),
-      );
+      if (printers.isNotEmpty) {
+        final printer = printers.firstWhere(
+          (p) => p.name == printerName,
+          orElse: () => printers.first,
+        );
+        await Printing.directPrintPdf(
+          printer: printer,
+          onLayout: (format) => doc.save(),
+        );
+      }
     }
 
     if (ipAddress != null && ipAddress.isNotEmpty) {
@@ -314,6 +343,7 @@ class PrintService {
           items, 
           total, 
           registerName, 
+          discount: discount,
           orgName: orgName, 
           orgAddress: orgAddress, 
           instagram: instagram,
@@ -323,7 +353,7 @@ class PrintService {
         );
         socket.add(commands);
         await socket.flush();
-        socket.destroy();
+        await socket.close();
       } catch (e) {
         print('IP Printer error: $e');
       }
@@ -334,6 +364,7 @@ class PrintService {
     List<SaleItem> items,
     double total,
     String registerName, {
+    double discount = 0,
     String? orgName,
     String? orgAddress,
     String? instagram,
@@ -398,11 +429,27 @@ class PrintService {
     }
 
     bytes.addAll(utf8.encode('$divider\n'));
-    bytes.addAll([0x1B, 0x61, 0x01]); // Align center
+    
+    if (discount > 0) {
+      // Subtotal
+      String subtotalLabel = 'UMUMIY:';
+      String subtotalVal = '${NumberFormat.currency(locale: 'uz_UZ', symbol: '', decimalDigits: 0).format(total + discount)} s';
+      int subSpaces = maxChars - subtotalLabel.length - subtotalVal.length;
+      bytes.addAll(utf8.encode(_clean(subtotalLabel + (' ' * (subSpaces > 0 ? subSpaces : 1)) + subtotalVal + '\n')));
+      
+      // Discount
+      String discountLabel = 'CHEGIRMA:';
+      String discountVal = '-${NumberFormat.currency(locale: 'uz_UZ', symbol: '', decimalDigits: 0).format(discount)} s';
+      int discSpaces = maxChars - discountLabel.length - discountVal.length;
+      bytes.addAll(utf8.encode(_clean(discountLabel + (' ' * (discSpaces > 0 ? discSpaces : 1)) + discountVal + '\n')));
+      
+      bytes.addAll(utf8.encode('$divider\n'));
+    }
 
+    bytes.addAll([0x1B, 0x61, 0x01]); // Align center
     bytes.addAll([0x1B, 0x45, 0x01]); // bold on
     bytes.addAll([0x1D, 0x21, 0x01]); // double height
-    bytes.addAll(utf8.encode(_clean('JAMI: ${total.toStringAsFixed(0)} so\'m\n')));
+    bytes.addAll(utf8.encode(_clean('TO\'LANADIGAN: ${total.toStringAsFixed(0)} so\'m\n')));
     bytes.addAll([0x1D, 0x21, 0x00]); // normal size
     bytes.addAll([0x1B, 0x45, 0x00]); // bold off
     
@@ -506,17 +553,18 @@ class PrintService {
       ),
     );
 
-    if (printerName != null) {
+    if (printerName != null && printerName != 'Network' && printerName.isNotEmpty) {
       final printers = await Printing.listPrinters();
-      if (printers.isEmpty) return;
-      final printer = printers.firstWhere(
-        (p) => p.name == printerName,
-        orElse: () => printers.first,
-      );
-      await Printing.directPrintPdf(
-        printer: printer,
-        onLayout: (format) => doc.save(),
-      );
+      if (printers.isNotEmpty) {
+        final printer = printers.firstWhere(
+          (p) => p.name == printerName,
+          orElse: () => printers.first,
+        );
+        await Printing.directPrintPdf(
+          printer: printer,
+          onLayout: (format) => doc.save(),
+        );
+      }
     }
 
     if (ipAddress != null && ipAddress.isNotEmpty) {
@@ -568,6 +616,41 @@ class PrintService {
         debugPrint('IP Printer error: $e');
       }
     }
+  }
+
+  static Future<void> testPrint({
+    required String? printerName,
+    required String? ipAddress,
+    required String registerName,
+    int width = 80,
+  }) async {
+    final List<SaleItem> testItems = [
+      SaleItem(
+        productId: 'test-pro',
+        productName: 'TEST MAHSULOT',
+        quantity: 1.0,
+        price: 15000.0,
+      ),
+      SaleItem(
+        productId: 'test-pro-2',
+        productName: 'MUVOFFIQUYATLI ULANISH!',
+        quantity: 2.0,
+        price: 5000.0,
+      ),
+    ];
+
+    await printReceipt(
+      items: testItems,
+      total: 25000.0,
+      registerName: registerName,
+      printerName: printerName,
+      ipAddress: ipAddress,
+      orgName: 'TEST PRINT',
+      orgAddress: 'TIZIM TEKSHIRUVI',
+      width: width,
+      footerText: 'Printer muvaffaqiyatli sozlandi!',
+      showInstagram: false,
+    );
   }
 
   static Future<List<Printer>> getPrinters() async {

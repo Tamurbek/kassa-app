@@ -601,8 +601,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
               leading: const Icon(Icons.today, color: Colors.green),
               title: const Text('Kunlik X-Hisobot (Umumiy)'),
               subtitle: const Text('Bugungi savdo va cheklar xulosasi'),
-              onTap: () {
+              onTap: () async {
                 Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('X-Hisobot chop etilmoqda...')));
                 _printDailyReport(settings, sales);
               },
             ),
@@ -612,6 +613,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               subtitle: const Text('Ombordagi kam qolgan va umumiy mahsulotlar'),
               onTap: () {
                 Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Ombor hisoboti chop etilmoqda...')));
                 _printInventoryReport(settings, inventory);
               },
             ),
@@ -621,6 +623,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               subtitle: const Text('Eng ko\'p sotilgan mahsulotlar reytingi'),
               onTap: () {
                 Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Top mahsulotlar hisoboti chop etilmoqda...')));
                 _printTopProductsReport(settings, sales);
               },
             ),

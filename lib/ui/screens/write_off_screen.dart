@@ -206,11 +206,6 @@ class _WriteOffScreenState extends State<WriteOffScreen> {
               ),
             ),
           ),
-          AppStatusBar(
-            settings: settingsProv,
-            auth: auth,
-            onExit: () => Navigator.pop(context),
-          ),
         ],
       ),
     );

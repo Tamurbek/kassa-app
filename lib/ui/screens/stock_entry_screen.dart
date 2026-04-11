@@ -299,11 +299,6 @@ class _StockEntryScreenState extends State<StockEntryScreen> {
               ),
             ),
           ),
-          AppStatusBar(
-            settings: settingsProv,
-            auth: auth,
-            onExit: () => Navigator.pop(context),
-          ),
         ],
       ),
     );

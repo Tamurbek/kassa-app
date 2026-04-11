@@ -162,11 +162,6 @@ class _StockTransferScreenState extends State<StockTransferScreen> {
               ),
             ),
           ),
-          AppStatusBar(
-            settings: settingsProv,
-            auth: auth,
-            onExit: () => Navigator.pop(context),
-          ),
         ],
       ),
     );

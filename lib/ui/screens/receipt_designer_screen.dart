@@ -115,11 +115,6 @@ class _ReceiptDesignerScreenState extends State<ReceiptDesignerScreen> {
               ],
             ),
           ),
-          AppStatusBar(
-            settings: settings,
-            auth: auth,
-            onExit: () => Navigator.pop(context),
-          ),
         ],
       ),
     );

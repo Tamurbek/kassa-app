@@ -88,6 +88,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         await PrintService.printReceipt(
           items: sales.cart,
           total: sales.cartTotal,
+          discount: sales.cartDiscount,
           registerName: settings.currentRegister?.name ?? 'Kassa',
           printerName: settings.selectedPrinterName,
           ipAddress: settings.networkPrinterIp,
@@ -311,11 +312,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 );
               },
             ),
-          ),
-          AppStatusBar(
-            settings: settings,
-            auth: auth,
-            onExit: () => Navigator.pop(context),
           ),
         ],
       ),

@@ -211,11 +211,6 @@ class _ReturnScreenState extends State<ReturnScreen> {
               ),
             ),
           ),
-          AppStatusBar(
-            settings: settingsProv,
-            auth: auth,
-            onExit: () => Navigator.pop(context),
-          ),
         ],
       ),
     );

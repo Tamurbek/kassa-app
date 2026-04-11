@@ -17,10 +17,12 @@ import '../../core/constants/app_constants.dart';
 import 'checkout_screen.dart';
 import '../../services/scale_service.dart';
 import '../widgets/app_end_drawer.dart';
+import '../../providers/features/navigation_provider.dart';
 
 class POSScreen extends StatefulWidget {
   final VoidCallback? onMenuPressed;
-  const POSScreen({super.key, this.onMenuPressed});
+  final bool isStandalone;
+  const POSScreen({super.key, this.onMenuPressed, this.isStandalone = false});
 
   @override
   State<POSScreen> createState() => _POSScreenState();
@@ -75,13 +77,9 @@ class _POSScreenState extends State<POSScreen> {
     SalesProvider sales,
     SaleItem item,
   ) {
-    final product = inventory.products
-        .where((p) => p.id == item.productId)
-        .firstOrNull;
+    final product = inventory.products.where((p) => p.id == item.productId).firstOrNull;
     final unit = product?.unit ?? 'dona';
-    final initialValue = item.quantity % 1 == 0
-        ? item.quantity.toInt().toString()
-        : item.quantity.toString();
+    final initialValue = item.quantity == 0 ? '' : (item.quantity % 1 == 0 ? item.quantity.toInt().toString() : item.quantity.toString());
     final controller = TextEditingController(text: initialValue);
 
     void saveContent() {
@@ -102,84 +100,133 @@ class _POSScreenState extends State<POSScreen> {
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        title: Text('${item.productName} - Miqdorni kiring ($unit)'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: controller,
-              autofocus: true,
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
-              onSubmitted: (_) => saveContent(),
-              decoration: InputDecoration(
-                labelText: 'Miqdor',
-                suffixText: unit,
-                filled: true,
-                fillColor: Theme.of(context).colorScheme.surface,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  borderSide: BorderSide.none,
-                ),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          void onNumPressed(String val) {
+            setDialogState(() {
+              if (val == 'C') {
+                controller.clear();
+              } else if (val == 'back') {
+                if (controller.text.isNotEmpty) {
+                  controller.text = controller.text.substring(0, controller.text.length - 1);
+                }
+              } else if (val == '.') {
+                if (!controller.text.contains('.')) {
+                  controller.text += '.';
+                }
+              } else {
+                controller.text += val;
+              }
+            });
+          }
+
+          return AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+            title: Row(
+              children: [
+                const Icon(Icons.add_shopping_cart_rounded, color: Colors.blue),
+                const SizedBox(width: 12),
+                Expanded(child: Text('${item.productName} ($unit)')),
+              ],
+            ),
+            content: SizedBox(
+              width: 320,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                   Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).dividerColor.withOpacity(0.05),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: Colors.blue.withOpacity(0.2)),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            controller.text.isEmpty ? '0' : controller.text,
+                            textAlign: TextAlign.right,
+                            style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w900, color: Colors.blue),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(unit, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  GridView.count(
+                    shrinkWrap: true,
+                    crossAxisCount: 3,
+                    mainAxisSpacing: 10,
+                    crossAxisSpacing: 10,
+                    childAspectRatio: 1.4,
+                    children: [
+                      for (var i = 1; i <= 9; i++) _buildDialogNumBtn(i.toString(), onNumPressed),
+                      _buildDialogNumBtn('.', onNumPressed, color: Colors.blue.shade50, textColor: Colors.blue),
+                      _buildDialogNumBtn('0', onNumPressed),
+                      _buildDialogNumBtn('back', onNumPressed, icon: Icons.backspace_outlined, color: Colors.grey.shade100),
+                    ],
+                  ),
+                  if (unit == 'kg') ...[
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 50,
+                      child: ElevatedButton.icon(
+                        onPressed: () async {
+                          try {
+                            final settings = context.read<SettingsProvider>();
+                            final weight = await ScaleService().readWeight(
+                              port: settings.scalePort,
+                              baudRate: settings.scaleBaudRate,
+                              protocol: settings.scaleProtocol,
+                            );
+                            setDialogState(() {
+                              controller.text = weight.toStringAsFixed(3);
+                            });
+                          } catch (e) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Tarozidan o\'qib bo\'lmadi: $e')),
+                            );
+                          }
+                        },
+                        icon: const Icon(Icons.scale_rounded),
+                        label: const Text('TAROZIDAN OLISH', style: TextStyle(fontWeight: FontWeight.bold)),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.orange.shade700,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
               ),
             ),
-            if (unit == 'kg') ...[
-              const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton.icon(
-                  onPressed: () async {
-                    try {
-                      final settings = context.read<SettingsProvider>();
-                      final weight = await ScaleService().readWeight(
-                        port: settings.scalePort,
-                        baudRate: settings.scaleBaudRate,
-                        protocol: settings.scaleProtocol,
-                      );
-                      controller.text = weight.toStringAsFixed(3);
-                    } catch (e) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Tarozidan o\'qib bo\'lmadi: $e')),
-                      );
-                    }
-                  },
-                  icon: const Icon(Icons.scale_rounded),
-                  label: const Text('TAROZIDAN OLISH', style: TextStyle(fontWeight: FontWeight.bold)),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.orange.shade700,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context), 
+                child: const Text('Bekor qilish')
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue.shade600,
+                  foregroundColor: Colors.white,
+                  minimumSize: const Size(120, 48),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
+                onPressed: saveContent,
+                child: const Text('SAQLASH', style: TextStyle(fontWeight: FontWeight.bold)),
               ),
             ],
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('Bekor qilish'),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.primary,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            onPressed: saveContent,
-            child: Text('Saqlash'),
-          ),
-        ],
+          );
+        }
       ),
     );
   }
-
 
   /// Normalize text for case-insensitive, Uzbek-aware search
   String _normalize(String text) {
@@ -356,10 +403,8 @@ class _POSScreenState extends State<POSScreen> {
                 selectedIndex: 0, // POS is index 0
                 onIndexChanged: (index) {
                   Navigator.pop(context); // close drawer
-                  if (index != 0) {
-                     Navigator.pop(context); // Return to MainLayout to switch tabs
-                     // Note: We'd need a better way to switch index in parent if it's not reactive, 
-                     // but for now this returns to the main view.
+                  if (index != 1) { // 1 is POS in global provider
+                    context.read<NavigationProvider>().setIndex(index);
                   }
                 },
               ),
@@ -418,7 +463,6 @@ class _POSScreenState extends State<POSScreen> {
                     ],
                   ),
                 ),
-                _buildBottomStatusBar(settings, auth),
               ],
             ),
             floatingActionButton: isMobile && sales.cart.isNotEmpty
@@ -708,6 +752,16 @@ class _POSScreenState extends State<POSScreen> {
               Text('${NumberFormat.currency(locale: 'uz_UZ', symbol: '', decimalDigits: 0).format(sales.cartProfit)} UZS', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14, color: Colors.green)),
             ],
           ),
+          if (sales.cartDiscount > 0) ...[
+            const SizedBox(height: 4),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('Chegirma:', style: TextStyle(color: Colors.red, fontSize: 13, fontWeight: FontWeight.bold)),
+                Text('-${NumberFormat.currency(locale: 'uz_UZ', symbol: '', decimalDigits: 0).format(sales.cartDiscount)} UZS', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14, color: Colors.red)),
+              ],
+            ),
+          ],
           const Divider(height: 24),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -734,9 +788,9 @@ class _POSScreenState extends State<POSScreen> {
 
   void _handlePayment(SalesProvider sales) async {
     final result = await Navigator.push(context, MaterialPageRoute(builder: (context) => const CheckoutScreen()));
-    // If checkout was successful, go back to sessions screen
+    // If checkout was successful, return to Sessions tab
     if (result == true && mounted) {
-      Navigator.pop(context);
+      context.read<NavigationProvider>().setIndex(0);
     }
   }
 
@@ -771,31 +825,154 @@ class _POSScreenState extends State<POSScreen> {
 
   void _showSuspendNoteDialog(BuildContext context, SalesProvider sales) {
     final controller = TextEditingController();
-    showDialog(
+    bool dialogCaps = true;
+
+    showGeneralDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Savdoni kutishga qo\'yish'),
-        content: TextField(
-          controller: controller,
-          decoration: const InputDecoration(
-            labelText: 'Izoh (Mijoz ismi yoki tel)',
-            hintText: 'Ixtiyoriy...',
-          ),
-          autofocus: true,
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Bekor qilish')),
-          ElevatedButton(
-            onPressed: () async {
-              await sales.suspendCurrentCart(note: controller.text);
-              if (mounted) {
-                Navigator.pop(context); // close dialog
-                Navigator.pop(context); // go back to sessions screen
+      barrierDismissible: true,
+      barrierLabel: 'Dismiss',
+      barrierColor: Colors.black.withOpacity(0.6),
+      transitionDuration: const Duration(milliseconds: 200),
+      pageBuilder: (context, anim1, anim2) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          void onKeyTap(String key) {
+            setDialogState(() {
+              if (key == 'back') {
+                if (controller.text.isNotEmpty) {
+                  controller.text = controller.text.substring(0, controller.text.length - 1);
+                }
+              } else if (key == 'space') {
+                controller.text += ' ';
+              } else if (key == 'caps') {
+                dialogCaps = !dialogCaps;
+              } else if (key == 'clear') {
+                controller.text = '';
+              } else if (key == 'enter') {
+                // Submit logic can be added here if needed
+              } else {
+                controller.text += dialogCaps ? key.toUpperCase() : key.toLowerCase();
               }
-            },
-            child: const Text('Saqlash'),
-          ),
-        ],
+            });
+          }
+
+          return Material(
+            color: Colors.transparent,
+            child: Stack(
+              children: [
+                // Background Tap to Dismiss
+                Positioned.fill(
+                  child: GestureDetector(onTap: () => Navigator.pop(context)),
+                ),
+                
+                // Central Input Dialog
+                Center(
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 350), // Lift it above keyboard
+                    child: Container(
+                      width: 500,
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).cardColor,
+                        borderRadius: BorderRadius.circular(24),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.4),
+                            blurRadius: 24,
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.all(24),
+                            child: Column(
+                              children: [
+                                const Text(
+                                  'SAVDONI KUTISHGA QO\'YISH',
+                                  style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16, letterSpacing: 0.5),
+                                ),
+                                const SizedBox(height: 24),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                                  decoration: BoxDecoration(
+                                    color: Theme.of(context).dividerColor.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(color: Theme.of(context).colorScheme.primary.withOpacity(0.2)),
+                                  ),
+                                  child: TextField(
+                                    controller: controller,
+                                    decoration: const InputDecoration(
+                                      labelText: 'Mijoz ismi yoki tel raqami',
+                                      hintText: 'Ixtiyoriy...',
+                                      border: InputBorder.none,
+                                    ),
+                                    style: const TextStyle(fontWeight: FontWeight.bold),
+                                    autofocus: true,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const Divider(height: 1),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: TextButton(
+                                    onPressed: () => Navigator.pop(context),
+                                    style: TextButton.styleFrom(
+                                      padding: const EdgeInsets.symmetric(vertical: 16),
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                    ),
+                                    child: const Text('BEKOR QILISH'),
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: ElevatedButton(
+                                    onPressed: () async {
+                                      await sales.suspendCurrentCart(note: controller.text);
+                                      if (context.mounted) {
+                                        Navigator.pop(context);
+                                        context.read<NavigationProvider>().setIndex(0);
+                                      }
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Theme.of(context).colorScheme.primary,
+                                      foregroundColor: Colors.white,
+                                      padding: const EdgeInsets.symmetric(vertical: 16),
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                      elevation: 0,
+                                    ),
+                                    child: const Text('SAQLASH', style: TextStyle(fontWeight: FontWeight.bold)),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                
+                // Bottom Fixed Keyboard
+                Positioned(
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  child: POSVirtualKeyboard(
+                    isCaps: dialogCaps,
+                    onKeyTap: onKeyTap,
+                    onHideKeyboard: () => Navigator.pop(context),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
@@ -864,12 +1041,7 @@ class _POSScreenState extends State<POSScreen> {
             onTap: () => _showReturnsDialog(sales),
             color: Colors.redAccent,
           ),
-          _buildActionBtn(
-            icon: Icons.print_rounded,
-            label: 'Chek',
-            onTap: () => _reprintLastReceipt(sales),
-            color: Colors.teal,
-          ),
+
           const Spacer(),
           _buildActionBtn(
             icon: Icons.pause_circle_filled_rounded,
@@ -887,9 +1059,20 @@ class _POSScreenState extends State<POSScreen> {
           ),
           const Divider(indent: 12, endIndent: 12),
           _buildActionBtn(
+            icon: settings.themeMode == ThemeMode.dark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
+            label: settings.themeMode == ThemeMode.dark ? 'KUN' : 'TUN',
+            onTap: () {
+              settings.setThemeMode(settings.themeMode == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark);
+            },
+            color: settings.themeMode == ThemeMode.dark ? Colors.amber : Colors.blueGrey,
+          ),
+          const Divider(indent: 12, endIndent: 12),
+          _buildActionBtn(
             icon: Icons.logout_rounded,
             label: 'Chiqish',
-            onTap: () => auth.logout(),
+            onTap: () {
+              context.read<NavigationProvider>().setIndex(0);
+            },
             color: Colors.blueGrey,
           ),
           const SizedBox(height: 8),
@@ -992,38 +1175,134 @@ class _POSScreenState extends State<POSScreen> {
 
   void _showDiscountDialog(SalesProvider sales) {
     if (sales.cart.isEmpty) return;
-    final controller = TextEditingController(text: sales.cartDiscount.toString());
+    
+    final controller = TextEditingController(
+      text: sales.cartDiscount == 0 ? '' : sales.cartDiscount.toStringAsFixed(0)
+    );
+    final fmt = NumberFormat.currency(locale: 'uz_UZ', symbol: '', decimalDigits: 0);
+
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Chegirma qo\'llash'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: controller,
-              keyboardType: TextInputType.number,
-              autofocus: true,
-              decoration: const InputDecoration(
-                labelText: 'Chegirma summasi (UZS)',
-                border: OutlineInputBorder(),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          void onNumPressed(String val) {
+            setDialogState(() {
+              if (val == 'C') {
+                controller.clear();
+              } else if (val == 'back') {
+                if (controller.text.isNotEmpty) {
+                  controller.text = controller.text.substring(0, controller.text.length - 1);
+                }
+              } else {
+                controller.text += val;
+              }
+            });
+          }
+
+          return AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+            title: const Row(
+              children: [
+                Icon(Icons.percent_rounded, color: Colors.purple),
+                SizedBox(width: 12),
+                Text('Chegirma qo\'llash'),
+              ],
+            ),
+            content: SizedBox(
+              width: 320,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                   Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).dividerColor.withOpacity(0.05),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: Colors.purple.withOpacity(0.2)),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            controller.text.isEmpty ? '0' : fmt.format(double.tryParse(controller.text) ?? 0),
+                            textAlign: TextAlign.right,
+                            style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w900, color: Colors.purple),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        const Text('UZS', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  GridView.count(
+                    shrinkWrap: true,
+                    crossAxisCount: 3,
+                    mainAxisSpacing: 10,
+                    crossAxisSpacing: 10,
+                    childAspectRatio: 1.4,
+                    children: [
+                      for (var i = 1; i <= 9; i++) _buildDialogNumBtn(i.toString(), onNumPressed),
+                      _buildDialogNumBtn('C', onNumPressed, color: Colors.red.shade50, textColor: Colors.red),
+                      _buildDialogNumBtn('0', onNumPressed),
+                      _buildDialogNumBtn('back', onNumPressed, icon: Icons.backspace_outlined, color: Colors.grey.shade100),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Eslatma: Chegirma umumiy savat summasidan ayriladi.', 
+                    style: TextStyle(fontSize: 11, color: Colors.grey, fontStyle: FontStyle.italic),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 16),
-            const Text('Eslatma: Chegirma umumiy savat summasidan ayriladi.', style: TextStyle(fontSize: 12, color: Colors.grey)),
-          ],
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context), 
+                child: const Text('Bekor qilish')
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.purple,
+                  foregroundColor: Colors.white,
+                  minimumSize: const Size(120, 48),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                onPressed: () {
+                  final discount = double.tryParse(controller.text) ?? 0.0;
+                  sales.setCartDiscount(discount);
+                  Navigator.pop(context);
+                },
+                child: const Text('QO\'LLASH', style: TextStyle(fontWeight: FontWeight.bold)),
+              ),
+            ],
+          );
+        }
+      ),
+    );
+  }
+
+  Widget _buildDialogNumBtn(String val, Function(String) onTap, {Color? color, Color? textColor, IconData? icon}) {
+    return Material(
+      color: color ?? Theme.of(context).dividerColor.withOpacity(0.05),
+      borderRadius: BorderRadius.circular(14),
+      child: InkWell(
+        onTap: () => onTap(val),
+        borderRadius: BorderRadius.circular(14),
+        child: Center(
+          child: icon != null
+              ? Icon(icon, color: Colors.grey.shade700, size: 22)
+              : Text(
+                  val,
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: textColor ?? Theme.of(context).colorScheme.onSurface,
+                  ),
+                ),
         ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Bekor qilish')),
-          ElevatedButton(
-            onPressed: () {
-              final discount = double.tryParse(controller.text) ?? 0.0;
-              sales.setCartDiscount(discount);
-              Navigator.pop(context);
-            },
-            child: const Text('Qo\'llash'),
-          ),
-        ],
       ),
     );
   }

@@ -27,6 +27,7 @@ import 'screens/write_offs_history_screen.dart';
 import 'screens/sales_sessions_screen.dart';
 import 'widgets/app_end_drawer.dart';
 import 'widgets/app_status_bar.dart';
+import '../providers/features/navigation_provider.dart';
 
 class MainLayout extends StatefulWidget {
   const MainLayout({super.key});
@@ -36,7 +37,6 @@ class MainLayout extends StatefulWidget {
 }
 
 class _MainLayoutState extends State<MainLayout> {
-  int _selectedIndex = 0;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   
   ThemeData get theme => Theme.of(context);
@@ -79,6 +79,7 @@ class _MainLayoutState extends State<MainLayout> {
     final auth = context.watch<AuthProvider>();
     final settings = context.watch<SettingsProvider>();
     final sync = context.watch<SyncProvider>();
+    final nav = context.watch<NavigationProvider>();
     
     return Listener(
       onPointerDown: (_) => _resetInactivityTimer(),
@@ -94,9 +95,9 @@ class _MainLayoutState extends State<MainLayout> {
           endDrawer: Drawer(
             width: 280,
             child: AppEndDrawer(
-              selectedIndex: _selectedIndex,
+              selectedIndex: nav.selectedIndex,
               onIndexChanged: (index) {
-                setState(() => _selectedIndex = index);
+                nav.setIndex(index);
                 if (_scaffoldKey.currentState?.isEndDrawerOpen ?? false) {
                   Navigator.pop(context);
                 }
@@ -134,11 +135,10 @@ class _MainLayoutState extends State<MainLayout> {
                       children: [
                         if (showPermanentSidebar) 
                           SizedBox(
-                            width: isMedium ? 80 : 280,
+                            width: 280,
                             child: AppEndDrawer(
-                              selectedIndex: _selectedIndex,
-                              onIndexChanged: (index) => setState(() => _selectedIndex = index),
-                              isMedium: isMedium,
+                              selectedIndex: nav.selectedIndex,
+                              onIndexChanged: (index) => nav.setIndex(index),
                             ),
                           ),
                         if (showPermanentSidebar)
@@ -148,14 +148,9 @@ class _MainLayoutState extends State<MainLayout> {
                             color: Color(0xFFF1F5F9),
                           ),
                         Expanded(
-                          child: Center(
-                            child: ConstrainedBox(
-                              constraints: const BoxConstraints(maxWidth: 1440),
-                              child: IndexedStack(
-                                index: _selectedIndex,
-                                children: screens,
-                              ),
-                            ),
+                          child: IndexedStack(
+                            index: nav.selectedIndex,
+                            children: screens,
                           ),
                         ),
                       ],
@@ -217,7 +212,8 @@ class _MainLayoutState extends State<MainLayout> {
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               children: [
                 ...titles.entries.where((e) => _canAccess(e.key, auth.currentUser?.role)).map((e) {
-                  final isSelected = _selectedIndex == e.key;
+                  final nav = context.read<NavigationProvider>();
+                  final isSelected = nav.selectedIndex == e.key;
                   return _buildSidebarItem(
                     e.key,
                     e.value,
@@ -238,70 +234,79 @@ class _MainLayoutState extends State<MainLayout> {
 
   Widget _buildSidebarHeader(bool isCollapsed, SettingsProvider settings, bool isDark) {
     return Container(
-      padding: EdgeInsets.all(isCollapsed ? 12 : 24),
+      padding: EdgeInsets.symmetric(horizontal: isCollapsed ? 12 : 20, vertical: 24),
       decoration: BoxDecoration(
         color: isDark ? AppTheme.darkSurface : AppTheme.lightBg,
         border: Border(
             bottom: BorderSide(
                 color: theme.dividerColor.withOpacity(0.1))),
       ),
-      child: Row(
-        mainAxisAlignment:
-            isCollapsed ? MainAxisAlignment.center : MainAxisAlignment.start,
+      child: Column(
         children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: AppTheme.primaryColor,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: const Icon(Icons.shopping_bag_rounded,
-                color: Colors.white, size: 20),
+          Row(
+            mainAxisAlignment: isCollapsed ? MainAxisAlignment.center : MainAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryColor,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(Icons.shopping_bag_rounded, color: Colors.white, size: 20),
+              ),
+              if (!isCollapsed) ...[
+                const SizedBox(width: 12),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      AppConstants.appName,
+                      style: GoogleFonts.outfit(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 18,
+                        letterSpacing: -0.5,
+                      ),
+                    ),
+                    Text(
+                      (settings.organizationName ?? 'Biznes Nomi').toUpperCase(),
+                      style: GoogleFonts.outfit(
+                        fontSize: 11,
+                        color: theme.colorScheme.onSurface.withOpacity(0.5),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(width: 4),
+                _buildThemeToggle(settings, isDark),
+              ],
+            ],
           ),
-          if (!isCollapsed) ...[
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    AppConstants.appName,
-                    style: GoogleFonts.outfit(
-                      fontWeight: FontWeight.w900,
-                      fontSize: 18,
-                      letterSpacing: -0.5,
-                    ),
-                  ),
-                  Text(
-                    settings.organizationName ?? 'Savdo Tizimi',
-                    style: GoogleFonts.outfit(
-                      fontSize: 11,
-                      color: theme.colorScheme.onSurface.withOpacity(0.5),
-                      fontWeight: FontWeight.w600,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-            ),
-            IconButton(
-              icon: Icon(
-                settings.themeMode == ThemeMode.dark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
-                size: 20,
-              ),
-              onPressed: () {
-                if (settings.themeMode == ThemeMode.dark) {
-                  settings.setThemeMode(ThemeMode.light);
-                } else {
-                  settings.setThemeMode(ThemeMode.dark);
-                }
-              },
-              tooltip: 'Mavzuni almashtirish',
-            ),
+          if (isCollapsed) ...[
+            const SizedBox(height: 12),
+            _buildThemeToggle(settings, isDark),
+          ],
+          if (isCollapsed) ...[
+            const SizedBox(height: 16),
+            _buildThemeToggle(settings, isDark),
           ],
         ],
       ),
+    );
+  }
+
+  Widget _buildThemeToggle(SettingsProvider settings, bool isDark) {
+    return IconButton(
+      visualDensity: VisualDensity.compact,
+      icon: Icon(
+        isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
+        color: isDark ? Colors.amber[300] : Colors.blueGrey[700],
+        size: 20,
+      ),
+      onPressed: () {
+        settings.setThemeMode(isDark ? ThemeMode.light : ThemeMode.dark);
+      },
+      tooltip: isDark ? 'Yorug\' rejim' : 'Qorong\'u rejim',
     );
   }
 
@@ -314,7 +319,7 @@ class _MainLayoutState extends State<MainLayout> {
       padding: const EdgeInsets.only(bottom: 4),
       child: InkWell(
         onTap: () {
-          setState(() => _selectedIndex = index);
+          context.read<NavigationProvider>().setIndex(index);
           if (_scaffoldKey.currentState?.isEndDrawerOpen ?? false) {
             Navigator.pop(context);
           }
@@ -799,9 +804,10 @@ class _MainLayoutState extends State<MainLayout> {
 
 
   Widget _buildBottomNav() {
+    final nav = context.watch<NavigationProvider>();
     return BottomNavigationBar(
-      currentIndex: _selectedIndex % 4, // simplistic
-      onTap: (index) => setState(() => _selectedIndex = index),
+      currentIndex: nav.selectedIndex % 4, // simplistic
+      onTap: (index) => nav.setIndex(index),
       items: const [
         BottomNavigationBarItem(icon: Icon(Icons.point_of_sale), label: 'POS'),
         BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Stats'),

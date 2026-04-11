@@ -9,6 +9,8 @@ import '../../providers/features/inventory_provider.dart';
 import '../../providers/features/sales_provider.dart';
 import '../../providers/app_state.dart';
 import '../../models/models.dart';
+import '../../services/print_service.dart';
+import '../../services/sync_service.dart';
 import '../../services/update_service.dart';
 import '../dialogs/app_update_dialog.dart';
 import 'terminal_management_screen.dart';
@@ -439,9 +441,40 @@ class SettingsScreen extends StatelessWidget {
                 leading: const Icon(Icons.wifi, color: Colors.blue),
                 title: const Text('Network Printer (Direct IP)', style: TextStyle(fontWeight: FontWeight.bold)),
                 subtitle: Text(settings.networkPrinterIp ?? 'Hali kiritilmagan'),
-                trailing: settings.selectedPrinterName == 'Network'
-                    ? Icon(Icons.check_circle, color: Theme.of(context).colorScheme.primary)
-                    : const Icon(Icons.edit_note),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (settings.networkPrinterIp != null && settings.networkPrinterIp!.isNotEmpty)
+                      IconButton(
+                        icon: const Icon(Icons.print_rounded, color: Colors.blue, size: 20),
+                        tooltip: 'Test chop etish',
+                        onPressed: () async {
+                          try {
+                            await PrintService.testPrint(
+                              printerName: null,
+                              ipAddress: settings.networkPrinterIp,
+                              registerName: settings.currentRegister?.name ?? 'Kassa',
+                              width: settings.receiptWidth,
+                            );
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Test cheki yuborildi'), backgroundColor: Colors.green),
+                              );
+                            }
+                          } catch (e) {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('Xatolik: $e'), backgroundColor: Colors.red),
+                              );
+                            }
+                          }
+                        },
+                      ),
+                    settings.selectedPrinterName == 'Network'
+                        ? Icon(Icons.check_circle, color: Theme.of(context).colorScheme.primary)
+                        : const Icon(Icons.edit_note),
+                  ],
+                ),
                 onTap: () {
                   _showIpInputDialog(context, settings, isBarcode: false);
                 },
@@ -541,9 +574,40 @@ class SettingsScreen extends StatelessWidget {
                 leading: const Icon(Icons.wifi, color: Colors.blue),
                 title: const Text('Network Printer (Direct IP)', style: TextStyle(fontWeight: FontWeight.bold)),
                 subtitle: Text(settings.networkBarcodePrinterIp ?? 'Hali kiritilmagan'),
-                trailing: settings.barcodePrinterName == 'Network'
-                    ? Icon(Icons.check_circle, color: Theme.of(context).colorScheme.primary)
-                    : const Icon(Icons.edit_note),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (settings.networkBarcodePrinterIp != null && settings.networkBarcodePrinterIp!.isNotEmpty)
+                      IconButton(
+                        icon: const Icon(Icons.print_rounded, color: Colors.blue, size: 20),
+                        tooltip: 'Test chop etish',
+                        onPressed: () async {
+                          try {
+                            await PrintService.testPrint(
+                              printerName: null,
+                              ipAddress: settings.networkBarcodePrinterIp,
+                              registerName: settings.currentRegister?.name ?? 'Kassa',
+                              width: 80, // standardized test
+                            );
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Test cheki yuborildi'), backgroundColor: Colors.green),
+                              );
+                            }
+                          } catch (e) {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('Xatolik: $e'), backgroundColor: Colors.red),
+                              );
+                            }
+                          }
+                        },
+                      ),
+                    settings.barcodePrinterName == 'Network'
+                        ? Icon(Icons.check_circle, color: Theme.of(context).colorScheme.primary)
+                        : const Icon(Icons.edit_note),
+                  ],
+                ),
                 onTap: () {
                   _showIpInputDialog(context, settings, isBarcode: true);
                 },
