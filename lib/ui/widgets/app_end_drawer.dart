@@ -188,27 +188,43 @@ class AppEndDrawer extends StatelessWidget {
   }
 
   Widget _buildFooter(BuildContext context, bool isDark) {
+    final settings = context.watch<SettingsProvider>();
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
         border: Border(top: BorderSide(color: Theme.of(context).dividerColor.withOpacity(0.1))),
       ),
-      child: isMedium
-          ? const Icon(Icons.bolt, color: Colors.amber, size: 18)
-          : const Row(
-              children: [
-                Icon(Icons.bolt, color: Colors.amber, size: 14),
-                SizedBox(width: 10),
-                Text(
-                  'Premium Version',
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.bolt, color: Colors.amber, size: 14),
+              const SizedBox(width: 8),
+              if (!isMedium)
+                const Text(
+                  'Premium',
                   style: TextStyle(
-                    fontSize: 11,
+                    fontSize: 10,
                     fontWeight: FontWeight.w700,
                     color: Colors.amber,
                   ),
                 ),
-              ],
+            ],
+          ),
+          IconButton(
+            icon: Icon(
+              isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
+              size: 20,
+              color: isDark ? Colors.amber : Colors.blueGrey,
             ),
+            onPressed: () {
+              settings.setThemeMode(isDark ? ThemeMode.light : ThemeMode.dark);
+            },
+            tooltip: isDark ? 'Yorug\' rejim' : 'Tungi rejim',
+          ),
+        ],
+      ),
     );
   }
 }
