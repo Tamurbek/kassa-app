@@ -49,7 +49,6 @@ class _SalesSessionsScreenState extends State<SalesSessionsScreen> with SingleTi
               ],
             ),
           ),
-          _buildBottomSummary(context, sales),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
@@ -300,89 +299,6 @@ class _SalesSessionsScreenState extends State<SalesSessionsScreen> with SingleTi
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildBottomSummary(BuildContext context, SalesProvider sales) {
-    final fmt = NumberFormat.currency(locale: 'uz_UZ', symbol: '', decimalDigits: 0);
-    
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        border: Border(top: BorderSide(color: Theme.of(context).dividerColor.withOpacity(0.5))),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, -4),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _buildSummaryItem(
-            context,
-            label: 'BUGINGI SAVDO',
-            value: '${fmt.format(sales.todaySalesTotal)} so\'m',
-            icon: Icons.payments_rounded,
-            color: Colors.green,
-          ),
-          _buildSummaryItem(
-            context,
-            label: 'SAVDOLAR SONI',
-            value: '${sales.todaySalesCount} ta',
-            icon: Icons.shopping_bag_rounded,
-            color: Colors.blue,
-          ),
-          _buildSummaryItem(
-            context,
-            label: 'O\'RTACHA CHEK',
-            value: '${fmt.format(sales.averageCheck)} so\'m',
-            icon: Icons.analytics_rounded,
-            color: Colors.purple,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSummaryItem(
-    BuildContext context, {
-    required String label,
-    required String value,
-    required IconData icon,
-    required Color color,
-  }) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Row(
-          children: [
-            Icon(icon, size: 14, color: color),
-            const SizedBox(width: 8),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.w900,
-                color: Colors.grey.shade500,
-                letterSpacing: 1,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 4),
-        Text(
-          value,
-          style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w900,
-            letterSpacing: -0.5,
-          ),
-        ),
-      ],
     );
   }
 
