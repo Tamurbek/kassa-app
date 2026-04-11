@@ -212,16 +212,29 @@ class AppEndDrawer extends StatelessWidget {
                 ),
             ],
           ),
-          IconButton(
-            icon: Icon(
-              isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
-              size: 20,
-              color: isDark ? Colors.amber : Colors.blueGrey,
-            ),
-            onPressed: () {
-              settings.setThemeMode(isDark ? ThemeMode.light : ThemeMode.dark);
-            },
-            tooltip: isDark ? 'Yorug\' rejim' : 'Tungi rejim',
+          Row(
+            children: [
+              IconButton(
+                icon: Icon(
+                  settings.isFullScreen ? Icons.fullscreen_exit_rounded : Icons.fullscreen_rounded,
+                  size: 20,
+                  color: settings.isFullScreen ? Colors.green : Colors.blueGrey,
+                ),
+                onPressed: () => settings.toggleFullScreen(),
+                tooltip: settings.isFullScreen ? 'Oynali rejim' : 'Butun ekran',
+              ),
+              IconButton(
+                icon: Icon(
+                  isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
+                  size: 20,
+                  color: isDark ? Colors.amber : Colors.blueGrey,
+                ),
+                onPressed: () {
+                  settings.setThemeMode(isDark ? ThemeMode.light : ThemeMode.dark);
+                },
+                tooltip: isDark ? 'Yorug\' rejim' : 'Tungi rejim',
+              ),
+            ],
           ),
         ],
       ),
