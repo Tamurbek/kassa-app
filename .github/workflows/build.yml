@@ -14,10 +14,11 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # Job 1: Windows
+  # Job 1: Windows Build & Release
   build-windows:
-    name: Windows Build
+    name: Windows Build & Release
     runs-on: windows-latest
+    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
     steps:
       - uses: actions/checkout@v4
         with:
@@ -47,15 +48,6 @@ jobs:
         run: |
           Invoke-WebRequest -Uri "https://aka.ms/vs/17/release/vc_redist.x64.exe" -OutFile "windows/vc_redist.x64.exe"
 
-      - name: Verify build output
-        shell: pwsh
-        run: |
-          if (-Not (Test-Path "build/windows/x64/runner/Release/simple_sale.exe")) {
-            Write-Error "Build output not found!"
-            exit 1
-          }
-          Write-Host "Build output verified."
-
       - name: Get Version from pubspec.yaml
         id: get_version
         shell: pwsh
@@ -69,16 +61,38 @@ jobs:
         shell: pwsh
         run: iscc /DMyAppVersion=${{ steps.get_version.outputs.VERSION }} windows/installer.iss
 
-      - name: Upload Windows Setup
-        uses: actions/upload-artifact@v4
+      - name: Create GitHub Release & Upload Windows
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/v')
         with:
-          name: simple-sale-windows-setup
-          path: build/windows/x64/runner/Release/installer/SimpleSale_Setup.exe
+          files: |
+            build/windows/x64/runner/Release/installer/SimpleSale_Setup.exe
+          name: Release ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  # Job 2: Android
+      - name: Notify Railway Server
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: pwsh
+        run: |
+          $VERSION = "${{ github.ref_name }}"
+          $VERSION_CLEAN = $VERSION.Replace("v", "")
+          $FILE_URL = "https://github.com/${{ github.repository }}/releases/download/$VERSION/SimpleSale_Setup.exe"
+          
+          Write-Host "Notifying Railway about version $VERSION_CLEAN..."
+          curl.exe -X POST -G `
+            --data-urlencode "version=$VERSION_CLEAN" `
+            --data-urlencode "url=$FILE_URL" `
+            --data-urlencode "changelog=Yangi v$VERSION_CLEAN versiyasi chiqarildi. Barqarorlik va UI yaxshilanishlari mavjud." `
+            "https://web-production-d2ed7.up.railway.app/update/remote"
+
+  # Job 2: Android Build & Release
   build-android:
-    name: Android Build
+    name: Android Build & Release
     runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
     steps:
       - uses: actions/checkout@v4
         with:
@@ -103,55 +117,14 @@ jobs:
       - name: Build Android APK
         run: flutter build apk --release
 
-      - name: Build Android AppBundle
-        run: flutter build appbundle --release
-
-      - name: Upload Android Build
-        uses: actions/upload-artifact@v4
-        with:
-          name: simple-sale-android
-          path: build/app/outputs/flutter-apk/app-release.apk
-
-  # Job 3: Create Release
-  create-release:
-    name: Create Release
-    needs: [build-windows, build-android]
-    runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/v')
-    steps:
-      - name: Download Windows Setup
-        uses: actions/download-artifact@v4
-        with:
-          name: simple-sale-windows-setup
-
-      - name: Download Android Build
-        uses: actions/download-artifact@v4
-        with:
-          name: simple-sale-android
-
-      - name: Create GitHub Release
+      - name: Upload Android to Release
         uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/v')
         with:
           files: |
-            SimpleSale_Setup.exe
-            app-release.apk
+            build/app/outputs/flutter-apk/app-release.apk
           name: Release ${{ github.ref_name }}
           draft: false
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Notify Railway Server
-        run: |
-          VERSION="${{ github.ref_name }}"
-          # Strip 'v' prefix for the backend
-          VERSION_CLEAN="${VERSION#v}"
-          # The download link for the Windows Setup
-          FILE_URL="https://github.com/${{ github.repository }}/releases/download/${VERSION}/SimpleSale_Setup.exe"
-          
-          echo "Notifying Railway about version $VERSION_CLEAN..."
-          curl -X POST -G \
-            --data-urlencode "version=${VERSION_CLEAN}" \
-            --data-urlencode "url=${FILE_URL}" \
-            --data-urlencode "changelog=Yangi v${VERSION_CLEAN} versiyasi chiqarildi. Barqarorlik va UI yaxshilanishlari mavjud." \
-            "https://web-production-d2ed7.up.railway.app/update/remote"
