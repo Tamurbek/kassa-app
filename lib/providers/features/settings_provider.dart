@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:window_manager/window_manager.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 import '../../services/database_service.dart';
@@ -29,6 +31,7 @@ class SettingsProvider extends ChangeNotifier {
   
   bool isBarcodeScanMode = false;
   bool shouldTrackInventory = true;
+  bool isFullScreen = false;
   String appVersion = AppConstants.appVersion;
   String? deviceId;
 
@@ -138,6 +141,12 @@ class SettingsProvider extends ChangeNotifier {
       scalePort = dbSettings['scalePort'] ?? prefs.getString('scalePort');
       scaleBaudRate = int.tryParse(dbSettings['scaleBaudRate'] ?? '') ?? prefs.getInt('scaleBaudRate') ?? 9600;
       scaleProtocol = dbSettings['scaleProtocol'] ?? prefs.getString('scaleProtocol') ?? 'NCI';
+
+      // 7. Full Screen Mode
+      isFullScreen = getSafeBool('isFullScreen', defaultValue: false);
+      if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
+        windowManager.setFullScreen(isFullScreen);
+      }
 
       notifyListeners();
     } catch (e) {
@@ -281,6 +290,16 @@ class SettingsProvider extends ChangeNotifier {
       scaleProtocol = protocol;
       await prefs.setString('scaleProtocol', protocol);
       await DatabaseService.saveSetting('scaleProtocol', protocol);
+    }
+    notifyListeners();
+  }
+
+  Future<void> toggleFullScreen() async {
+    isFullScreen = !isFullScreen;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('isFullScreen', isFullScreen);
+    if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
+      await windowManager.setFullScreen(isFullScreen);
     }
     notifyListeners();
   }

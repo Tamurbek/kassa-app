@@ -181,7 +181,20 @@ class SettingsScreen extends StatelessWidget {
                           ),
                           onTap: () => settings.toggleInventoryTracking(),
                         ),
+                        _buildSettingsTile(
+                          context,
+                          icon: Icons.fullscreen_rounded,
+                          color: Colors.blueGrey,
+                          title: 'Butun ekran rejimi',
+                          subtitle: settings.isFullScreen ? 'Yoqilgan' : 'O\'chirilgan',
+                          trailing: Switch(
+                            value: settings.isFullScreen,
+                            onChanged: (v) => settings.toggleFullScreen(),
+                          ),
+                          onTap: () => settings.toggleFullScreen(),
+                        ),
                       ],
+
                     ),
                     const SizedBox(height: 24),
                     _buildSection(
