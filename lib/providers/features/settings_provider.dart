@@ -145,7 +145,11 @@ class SettingsProvider extends ChangeNotifier {
       // 7. Full Screen Mode
       isFullScreen = getSafeBool('isFullScreen', defaultValue: false);
       if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
-        windowManager.setFullScreen(isFullScreen);
+        await windowManager.setFullScreen(isFullScreen);
+        if (!isFullScreen) {
+          await windowManager.setSize(const Size(1280, 800));
+          await windowManager.center();
+        }
       }
 
       notifyListeners();
@@ -298,8 +302,15 @@ class SettingsProvider extends ChangeNotifier {
     isFullScreen = !isFullScreen;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('isFullScreen', isFullScreen);
+    
     if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
-      await windowManager.setFullScreen(isFullScreen);
+      if (isFullScreen) {
+        await windowManager.setFullScreen(true);
+      } else {
+        await windowManager.setFullScreen(false);
+        await windowManager.setSize(const Size(1280, 800));
+        await windowManager.center();
+      }
     }
     notifyListeners();
   }
