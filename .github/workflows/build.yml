@@ -138,8 +138,9 @@ jobs:
           FILE_URL="https://github.com/${{ github.repository }}/releases/download/${VERSION}/SimpleSale_Setup.exe"
           
           echo "Notifying Railway about version $VERSION_CLEAN..."
-          curl -X POST -G \
+          # Added --retry and better error handling for professional deployment
+          curl -v --retry 3 --retry-delay 5 -f -X POST -G \
             --data-urlencode "version=${VERSION_CLEAN}" \
             --data-urlencode "url=${FILE_URL}" \
-            --data-urlencode "changelog=Yangi v${VERSION_CLEAN} versiyasi chiqarildi. Barqarorlik va UI yaxshilanishlari mavjud." \
+            --data-urlencode "changelog=Yangi v${VERSION_CLEAN} versiyasi chiqarildi. Professional testlar va barqarorlik yaxshilanishlari mavjud." \
             "https://web-production-d2ed7.up.railway.app/update/remote"
