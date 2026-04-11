@@ -7,6 +7,7 @@ import '../../models/models.dart';
 import '../../providers/features/navigation_provider.dart';
 import 'pos_screen.dart';
 import '../../services/print_service.dart';
+import '../widgets/pos/pos_virtual_keyboard.dart';
 
 class SalesSessionsScreen extends StatefulWidget {
   final VoidCallback? onMenuPressed;
@@ -20,6 +21,8 @@ class _SalesSessionsScreenState extends State<SalesSessionsScreen> with SingleTi
   late TabController _tabController;
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
+  bool _showKeyboard = false;
+  bool _isCaps = true;
 
   @override
   void initState() {
@@ -54,6 +57,31 @@ class _SalesSessionsScreenState extends State<SalesSessionsScreen> with SingleTi
               ],
             ),
           ),
+          if (_showKeyboard)
+            POSVirtualKeyboard(
+              isCaps: _isCaps,
+              onKeyTap: (key) {
+                setState(() {
+                  if (key == 'back') {
+                    if (_searchController.text.isNotEmpty) {
+                      _searchController.text = _searchController.text.substring(0, _searchController.text.length - 1);
+                    }
+                  } else if (key == 'space') {
+                    _searchController.text += ' ';
+                  } else if (key == 'caps') {
+                    _isCaps = !_isCaps;
+                  } else if (key == 'clear') {
+                    _searchController.text = '';
+                  } else if (key == 'enter') {
+                    _showKeyboard = false;
+                  } else {
+                    _searchController.text += _isCaps ? key.toUpperCase() : key.toLowerCase();
+                  }
+                  _searchQuery = _searchController.text.toLowerCase();
+                });
+              },
+              onHideKeyboard: () => setState(() => _showKeyboard = false),
+            ),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
@@ -114,7 +142,15 @@ class _SalesSessionsScreenState extends State<SalesSessionsScreen> with SingleTi
                 hintText: 'Mijoz ismi, tel yoki chek raqami bo\'yicha qidirish...',
                 hintStyle: TextStyle(fontSize: 14, color: Colors.grey.withOpacity(0.7)),
                 border: InputBorder.none,
-                icon: const Icon(Icons.search, size: 20, color: Colors.grey),
+                prefixIcon: IconButton(
+                  icon: Icon(
+                    Icons.keyboard_alt_rounded, 
+                    size: 20, 
+                    color: _showKeyboard ? Theme.of(context).colorScheme.primary : Colors.grey
+                  ),
+                  onPressed: () => setState(() => _showKeyboard = !_showKeyboard),
+                  tooltip: 'Virtual klaviatura',
+                ),
                 suffixIcon: _searchQuery.isNotEmpty 
                   ? IconButton(
                       icon: const Icon(Icons.clear, size: 20),
