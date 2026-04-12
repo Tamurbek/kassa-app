@@ -38,7 +38,7 @@ class AppState extends ChangeNotifier {
   List<InventoryEntry> inventories = [];
   List<StockEntry> stockEntries = [];
   List<StockTransfer> stockTransfers = [];
-  List<SaleItem> cart = [];
+
 
   ThemeMode _themeMode = ThemeMode.system;
   ThemeMode get themeMode => _themeMode;

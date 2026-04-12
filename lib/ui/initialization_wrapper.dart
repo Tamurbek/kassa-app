@@ -6,6 +6,8 @@ import 'dialogs/app_update_dialog.dart';
 import '../providers/app_state.dart';
 import '../providers/features/auth_provider.dart';
 import '../providers/features/settings_provider.dart';
+import '../providers/features/sales_provider.dart';
+import '../providers/features/navigation_provider.dart';
 import '../models/models.dart';
 import '../core/theme/app_theme.dart';
 import '../core/constants/app_constants.dart';
@@ -60,10 +62,14 @@ class _InitializationWrapperState extends State<InitializationWrapper> {
     final state = context.watch<AppState>();
     final authProvider = context.watch<AuthProvider>();
 
-    // If user was logged in and now is not, clear any open dialogs/screens
+    // If user was logged in and now is not, clear any open dialogs/screens and session data
     if (_lastUser != null && authProvider.currentUser == null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
+          // Clear session data centrally
+          context.read<SalesProvider>().clearCart();
+          context.read<NavigationProvider>().setIndex(0, clearHistory: true);
+          
           Navigator.of(context).popUntil((route) => route.isFirst);
         }
       });

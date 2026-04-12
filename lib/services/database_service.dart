@@ -253,7 +253,24 @@ class DatabaseService {
   }
 
   static Future<void> saveProductsBatch(List<Product> products) async {
-    for (var p in products) await ProductRepository.saveProduct(p);
+    final db = await database;
+    await db.transaction((txn) async {
+      for (var p in products) {
+        // Use repo logic but within txn
+        await txn.insert(
+          'products',
+          {...p.toJson(), 'updatedAt': DateTime.now().toIso8601String(), 'isSynced': 0}..remove('stocks')..remove('additionalBarcodes'),
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
+        await txn.delete('product_additional_barcodes', where: 'productId = ?', whereArgs: [p.id]);
+        for (var b in p.additionalBarcodes) {
+          await txn.insert('product_additional_barcodes', {'productId': p.id, 'barcode': b});
+        }
+        for (var s in p.stocks.entries) {
+          await txn.insert('stocks', {'productId': p.id, 'warehouseId': s.key, 'quantity': s.value}, conflictAlgorithm: ConflictAlgorithm.replace);
+        }
+      }
+    });
     triggerUpdate();
   }
 
@@ -261,43 +278,77 @@ class DatabaseService {
     await SyncRepository.markAsSynced(table, id);
     triggerUpdate(skipPush: true);
   }
-  static Future<Map<String, List<Map<String, dynamic>>>> getUnsyncedRecords() => SyncRepository.getUnsyncedRecords();
 
-  // Bridging some missing methods if any
-  static Future<void> saveSyncedRecord(String table, Map<String, dynamic> data) async {
-    // This is complex, I'll keep the logic here for now or move to SyncRepository
+  static Future<void> markAsSyncedBatch(Map<String, List<String>> tableToIds) async {
     final db = await database;
     await db.transaction((txn) async {
-      final Map<String, dynamic> mutable = Map.from(data);
-      final List<dynamic>? items = mutable.remove('items') as List<dynamic>?;
-      mutable['isSynced'] = 1;
-      final id = table == 'settings' ? mutable['key'] : mutable['id'];
+      for (var entry in tableToIds.entries) {
+        final table = entry.key;
+        for (var id in entry.value) {
+          await txn.update(
+            table,
+            {'isSynced': 1},
+            where: table == 'settings' ? 'key = ?' : 'id = ?',
+            whereArgs: [id],
+          );
+        }
+      }
+    });
+    triggerUpdate(skipPush: true);
+  }
 
-      await txn.insert(table, mutable, conflictAlgorithm: ConflictAlgorithm.replace);
+  static Future<Map<String, List<Map<String, dynamic>>>> getUnsyncedRecords() => SyncRepository.getUnsyncedRecords();
 
-      if (items != null) {
-        String itemTable = '';
-        String idCol = '';
-        if (table == 'sales') { itemTable = 'sale_items'; idCol = 'saleId'; }
-        else if (table == 'returns') { itemTable = 'return_items'; idCol = 'returnId'; }
-        else if (table == 'write_offs') { itemTable = 'write_off_items'; idCol = 'writeOffId'; }
-        else if (table == 'inventories') { itemTable = 'inventory_items'; idCol = 'inventoryId'; }
-        else if (table == 'stock_entries') { itemTable = 'stock_entry_items'; idCol = 'entryId'; }
-        else if (table == 'stock_transfers') { itemTable = 'stock_transfer_items'; idCol = 'transferId'; }
+  static Future<void> saveSyncedRecordsBatch(List<dynamic> events) async {
+    if (events.isEmpty) return;
+    
+    final db = await database;
+    bool needsRecalculate = false;
 
-        if (itemTable.isNotEmpty) {
-          await txn.delete(itemTable, where: '$idCol = ?', whereArgs: [id]);
-          for (var item in items) {
-            await txn.insert(itemTable, Map<String, dynamic>.from(item));
+    await db.transaction((txn) async {
+      for (var event in events) {
+        final tableName = event['table_name'] as String;
+        final data = event['data'] as Map<String, dynamic>;
+        
+        final Map<String, dynamic> mutable = Map.from(data);
+        final List<dynamic>? items = mutable.remove('items') as List<dynamic>?;
+        mutable['isSynced'] = 1;
+        final id = tableName == 'settings' ? mutable['key'] : mutable['id'];
+
+        await txn.insert(tableName, mutable, conflictAlgorithm: ConflictAlgorithm.replace);
+
+        if (items != null) {
+          String itemTable = '';
+          String idCol = '';
+          if (tableName == 'sales') { itemTable = 'sale_items'; idCol = 'saleId'; }
+          else if (tableName == 'returns') { itemTable = 'return_items'; idCol = 'returnId'; }
+          else if (tableName == 'write_offs') { itemTable = 'write_off_items'; idCol = 'writeOffId'; }
+          else if (tableName == 'inventories') { itemTable = 'inventory_items'; idCol = 'inventoryId'; }
+          else if (tableName == 'stock_entries') { itemTable = 'stock_entry_items'; idCol = 'entryId'; }
+          else if (tableName == 'stock_transfers') { itemTable = 'stock_transfer_items'; idCol = 'transferId'; }
+
+          if (itemTable.isNotEmpty) {
+            await txn.delete(itemTable, where: '$idCol = ?', whereArgs: [id]);
+            for (var item in items) {
+              await txn.insert(itemTable, Map<String, dynamic>.from(item));
+            }
           }
+        }
+
+        if (['sales', 'returns', 'write_offs', 'stock_entries', 'stock_transfers', 'inventories'].contains(tableName)) {
+          needsRecalculate = true;
         }
       }
     });
 
-    if (['sales', 'returns', 'write_offs', 'stock_entries', 'stock_transfers', 'inventories'].contains(table)) {
+    if (needsRecalculate) {
       await recalculateStocks(skipNotify: true);
     }
     triggerUpdate(skipPush: true);
+  }
+
+  static Future<void> saveSyncedRecord(String table, Map<String, dynamic> data) async {
+    await saveSyncedRecordsBatch([{'table_name': table, 'data': data}]);
   }
 
   static Future<void> deleteSyncedRecord(String table, String id) async {

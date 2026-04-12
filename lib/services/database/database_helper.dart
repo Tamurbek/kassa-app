@@ -605,16 +605,17 @@ class DatabaseHelper {
   static Future<void> clearAllData() async {
     final db = await database;
     await db.transaction((txn) async {
-       final tables = [
-         'categories', 'products', 'warehouses', 'registers', 
-         'sales', 'sale_items', 'returns', 'return_items', 
-         'write_offs', 'write_off_items', 'inventories', 'inventory_items', 
-         'stock_entries', 'stock_entry_items', 'users', 'settings', 
-         'stock_transfers', 'stock_transfer_items', 'stocks', 'product_additional_barcodes'
-       ];
-       for (var t in tables) {
-         try { await txn.delete(t); } catch(_) {}
-       }
+        final tables = [
+          'categories', 'products', 'warehouses', 'registers', 
+          'sales', 'sale_items', 'returns', 'return_items', 
+          'write_offs', 'write_off_items', 'inventories', 'inventory_items', 
+          'stock_entries', 'stock_entry_items', 'users', 'settings', 
+          'stock_transfers', 'stock_transfer_items', 'stocks', 'product_additional_barcodes',
+          'suspended_sales', 'suspended_sale_items'
+        ];
+        for (var t in tables) {
+          try { await txn.delete(t); } catch(_) {}
+        }
     });
   }
 }

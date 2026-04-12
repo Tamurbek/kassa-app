@@ -291,13 +291,12 @@ class SyncProvider extends ChangeNotifier {
         final List events = jsonDecode(response.body);
         if (events.isEmpty) return;
 
+        // Use batched saving
+        await DatabaseService.saveSyncedRecordsBatch(events);
+
         int maxId = lastId;
         for (var event in events) {
           final id = event['id'] as int;
-          final tableName = event['table_name'] as String;
-          final data = event['data'] as Map<String, dynamic>;
-
-          await DatabaseService.saveSyncedRecord(tableName, data);
           if (id > maxId) maxId = id;
         }
 
@@ -328,14 +327,13 @@ class SyncProvider extends ChangeNotifier {
       ).timeout(const Duration(seconds: 15));
 
       if (response.statusCode == 200) {
-        // Success! Mark everything as synced
+        // Success! Mark everything as synced in batches
+        final Map<String, List<String>> toMark = {};
         for (var entry in data.entries) {
           final table = entry.key;
-          for (var record in entry.value) {
-            final id = table == 'settings' ? record['key'] : record['id'];
-            await DatabaseService.markAsSynced(table, id);
-          }
+          toMark[table] = entry.value.map((r) => (table == 'settings' ? r['key'] : r['id']).toString()).toList();
         }
+        await DatabaseService.markAsSyncedBatch(toMark);
         debugPrint("Professional Sync: Cloud incremental sync successful");
       }
     } catch (e) {
@@ -355,13 +353,12 @@ class SyncProvider extends ChangeNotifier {
       ).timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
+        final Map<String, List<String>> toMark = {};
         for (var entry in data.entries) {
           final table = entry.key;
-          for (var record in entry.value) {
-            final id = table == 'settings' ? record['key'] : record['id'];
-            await DatabaseService.markAsSynced(table, id);
-          }
+          toMark[table] = entry.value.map((r) => (table == 'settings' ? r['key'] : r['id']).toString()).toList();
         }
+        await DatabaseService.markAsSyncedBatch(toMark);
         debugPrint("Professional Sync: Master incremental sync successful");
       }
     } catch (e) {
