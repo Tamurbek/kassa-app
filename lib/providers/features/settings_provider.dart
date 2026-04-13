@@ -149,12 +149,15 @@ class SettingsProvider extends ChangeNotifier {
       if (isInitialLoad && (Platform.isWindows || Platform.isMacOS || Platform.isLinux)) {
         if (isFullScreen) {
           if (Platform.isWindows) {
+            await windowManager.setAsFrameless();
+            await windowManager.setHasShadow(false);
             await windowManager.setTitleBarStyle(TitleBarStyle.hidden);
           }
           await windowManager.setFullScreen(true);
         } else {
           if (Platform.isWindows) {
             await windowManager.setTitleBarStyle(TitleBarStyle.normal);
+            await windowManager.setHasShadow(true);
           }
           await windowManager.setFullScreen(false);
           await windowManager.setSize(const Size(1280, 800));
@@ -323,12 +326,17 @@ class SettingsProvider extends ChangeNotifier {
     if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
       if (isFullScreen) {
         if (Platform.isWindows) {
+          await windowManager.setAsFrameless();
+          await windowManager.setHasShadow(false);
           await windowManager.setTitleBarStyle(TitleBarStyle.hidden);
         }
         await windowManager.setFullScreen(true);
       } else {
         if (Platform.isWindows) {
           await windowManager.setTitleBarStyle(TitleBarStyle.normal);
+          await windowManager.setHasShadow(true);
+          // Note: window_manager doesn't have an explicit 'unsetFrameless', 
+          // but normal title bar style usually restores the frame.
         }
         await windowManager.setFullScreen(false);
         await windowManager.setSize(const Size(1280, 800));
