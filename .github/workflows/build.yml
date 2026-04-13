@@ -134,13 +134,9 @@ jobs:
           VERSION="${{ github.ref_name }}"
           # Strip 'v' prefix for the backend
           VERSION_CLEAN="${VERSION#v}"
-          # The download link for the Windows Setup
-          FILE_URL="https://github.com/${{ github.repository }}/releases/download/${VERSION}/SimpleSale_Setup.exe"
           
-          echo "Notifying Railway about version $VERSION_CLEAN..."
-          # Added --retry and better error handling for professional deployment
-          curl -v --retry 3 --retry-delay 5 -f -X POST -G \
-            --data-urlencode "version=${VERSION_CLEAN}" \
-            --data-urlencode "url=${FILE_URL}" \
-            --data-urlencode "changelog=Yangi v${VERSION_CLEAN} versiyasi chiqarildi. Professional testlar va barqarorlik yaxshilanishlari mavjud." \
-            "https://web-production-d2ed7.up.railway.app/update/remote"
+          echo "Uploading SimpleSale_Setup.exe directly to Railway..."
+          # Direct file upload works even for Private repositories
+          curl -v -f -X POST \
+            -F "file=@SimpleSale_Setup.exe" \
+            "https://web-production-d2ed7.up.railway.app/update/upload?version=${VERSION_CLEAN}&changelog=Yangi%20v${VERSION_CLEAN}%20versiyasi%20chiqarildi.%20Tizim%20barqarorligi%20va%20xavfsizligi%20oshirildi."
