@@ -147,8 +147,16 @@ class SettingsProvider extends ChangeNotifier {
       isStarterDataLoaded = getSafeBool('isStarterDataLoaded', defaultValue: false);
       isFullScreen = getSafeBool('isFullScreen', defaultValue: false);
       if (isInitialLoad && (Platform.isWindows || Platform.isMacOS || Platform.isLinux)) {
-        await windowManager.setFullScreen(isFullScreen);
-        if (!isFullScreen) {
+        if (isFullScreen) {
+          if (Platform.isWindows) {
+            await windowManager.setTitleBarStyle(TitleBarStyle.hidden);
+          }
+          await windowManager.setFullScreen(true);
+        } else {
+          if (Platform.isWindows) {
+            await windowManager.setTitleBarStyle(TitleBarStyle.normal);
+          }
+          await windowManager.setFullScreen(false);
           await windowManager.setSize(const Size(1280, 800));
           await windowManager.center();
         }
@@ -314,8 +322,14 @@ class SettingsProvider extends ChangeNotifier {
     
     if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
       if (isFullScreen) {
+        if (Platform.isWindows) {
+          await windowManager.setTitleBarStyle(TitleBarStyle.hidden);
+        }
         await windowManager.setFullScreen(true);
       } else {
+        if (Platform.isWindows) {
+          await windowManager.setTitleBarStyle(TitleBarStyle.normal);
+        }
         await windowManager.setFullScreen(false);
         await windowManager.setSize(const Size(1280, 800));
         await windowManager.center();

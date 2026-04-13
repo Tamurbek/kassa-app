@@ -32,6 +32,8 @@ class _CatalogScreenState extends State<CatalogScreen>
   
   Timer? _debounce;
 
+  InventoryProvider? _inventoryProvider;
+
   @override
   void initState() {
     super.initState();
@@ -49,7 +51,8 @@ class _CatalogScreenState extends State<CatalogScreen>
     });
 
     // Listen to DB changes to refresh
-    context.read<InventoryProvider>().addListener(_handleInventoryUpdate);
+    _inventoryProvider = context.read<InventoryProvider>();
+    _inventoryProvider?.addListener(_handleInventoryUpdate);
   }
 
   void _handleInventoryUpdate() {
@@ -68,13 +71,15 @@ class _CatalogScreenState extends State<CatalogScreen>
   }
 
   Future<void> _loadProducts({bool reset = false}) async {
+    if (_isLoadingMore) return;
+
     if (reset) {
       _offset = 0;
       _hasMore = true;
       // We don't clear _products here to avoid the "flicker"
     }
 
-    if (!_hasMore || _isLoadingMore) return;
+    if (!_hasMore) return;
 
     setState(() {
       _isLoadingMore = true;
@@ -82,7 +87,7 @@ class _CatalogScreenState extends State<CatalogScreen>
     });
 
     try {
-      final newProducts = await context.read<InventoryProvider>().getProductsPaged(
+      final products = await context.read<InventoryProvider>().getProductsPaged(
         limit: _limit,
         offset: _offset,
         search: _searchText,
@@ -91,12 +96,12 @@ class _CatalogScreenState extends State<CatalogScreen>
       if (mounted) {
         setState(() {
           if (reset) {
-            _products = newProducts;
+            _products = products;
           } else {
-            _products.addAll(newProducts);
+            _products.addAll(products);
           }
           _offset += _limit;
-          _hasMore = newProducts.length == _limit;
+          _hasMore = products.length == _limit;
           _isLoadingMore = false;
           _isSearching = false;
         });
@@ -115,7 +120,7 @@ class _CatalogScreenState extends State<CatalogScreen>
     _searchController.dispose();
     _scrollController.dispose();
     _debounce?.cancel();
-    context.read<InventoryProvider>().removeListener(_handleInventoryUpdate);
+    _inventoryProvider?.removeListener(_handleInventoryUpdate);
     super.dispose();
   }
 
