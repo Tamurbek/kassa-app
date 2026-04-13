@@ -252,24 +252,56 @@ class DatabaseService {
     triggerUpdate();
   }
 
+  static Future<void> saveCategoriesBatch(List<Category> categories) async {
+    final db = await database;
+    await db.transaction((txn) async {
+      final batch = txn.batch();
+      for (var c in categories) {
+        batch.insert(
+          'categories',
+          {
+            ...c.toJson(),
+            'isDeleted': c.isDeleted ? 1 : 0,
+          },
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
+      }
+      await batch.commit(noResult: true);
+    });
+    triggerUpdate();
+  }
+
   static Future<void> saveProductsBatch(List<Product> products) async {
     final db = await database;
     await db.transaction((txn) async {
+      final batch = txn.batch();
+      final now = DateTime.now().toIso8601String();
       for (var p in products) {
-        // Use repo logic but within txn
-        await txn.insert(
+        batch.insert(
           'products',
-          {...p.toJson(), 'updatedAt': DateTime.now().toIso8601String(), 'isSynced': 0}..remove('stocks')..remove('additionalBarcodes'),
+          {
+            ...p.toJson(),
+            'isDeleted': p.isDeleted ? 1 : 0,
+            'trackStock': p.trackStock ? 1 : 0,
+            'updatedAt': now,
+            'isSynced': 0,
+          }..remove('stocks')..remove('additionalBarcodes'),
           conflictAlgorithm: ConflictAlgorithm.replace,
         );
-        await txn.delete('product_additional_barcodes', where: 'productId = ?', whereArgs: [p.id]);
+        
+        batch.delete('product_additional_barcodes', where: 'productId = ?', whereArgs: [p.id]);
         for (var b in p.additionalBarcodes) {
-          await txn.insert('product_additional_barcodes', {'productId': p.id, 'barcode': b});
+          batch.insert('product_additional_barcodes', {'productId': p.id, 'barcode': b});
         }
         for (var s in p.stocks.entries) {
-          await txn.insert('stocks', {'productId': p.id, 'warehouseId': s.key, 'quantity': s.value}, conflictAlgorithm: ConflictAlgorithm.replace);
+          batch.insert(
+            'stocks',
+            {'productId': p.id, 'warehouseId': s.key, 'quantity': s.value},
+            conflictAlgorithm: ConflictAlgorithm.replace,
+          );
         }
       }
+      await batch.commit(noResult: true);
     });
     triggerUpdate();
   }

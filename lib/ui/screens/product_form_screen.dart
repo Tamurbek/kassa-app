@@ -33,12 +33,6 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.product?.name ?? '');
-    _priceController = TextEditingController(
-      text: widget.product?.price.toStringAsFixed(0) ?? '',
-    );
-    _costPriceController = TextEditingController(
-      text: widget.product?.costPrice.toStringAsFixed(0) ?? '',
-    );
     _barcodeController = TextEditingController(
       text: widget.product?.barcode ?? '',
     );
@@ -52,8 +46,6 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
   @override
   void dispose() {
     _nameController.dispose();
-    _priceController.dispose();
-    _costPriceController.dispose();
     _barcodeController.dispose();
     for (var c in _additionalBarcodeControllers) {
       c.dispose();
@@ -78,8 +70,8 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
       }
 
       final name = _nameController.text;
-      final price = double.tryParse(_priceController.text.replaceAll(' ', '')) ?? 0.0;
-      final costPrice = double.tryParse(_costPriceController.text.replaceAll(' ', '')) ?? 0.0;
+      final price = widget.product?.price ?? 0.0;
+      final costPrice = widget.product?.costPrice ?? 0.0;
       final barcode = _barcodeController.text.trim();
       
       // Check barcode uniqueness
@@ -225,29 +217,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                   ),
                   SizedBox(height: 20),
                   _buildCategoryDropdown(inventory),
-                  SizedBox(height: 20),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildTextField(
-                          'Tannarxi (so\'m)',
-                          _costPriceController,
-                          Icons.shopping_bag_outlined,
-                          isNumber: true,
-                        ),
-                      ),
-                      SizedBox(width: 16),
-                      Expanded(
-                        child: _buildTextField(
-                          'Narxi (so\'m)',
-                          _priceController,
-                          Icons.payments_outlined,
-                          isNumber: true,
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 20),
+                  const SizedBox(height: 20),
                   Row(
                     children: [
                       Expanded(

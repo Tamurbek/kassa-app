@@ -132,13 +132,13 @@ class _CatalogScreenState extends State<CatalogScreen>
                 onTap: () => ExcelImportService.importFromExcel(context),
                 color: Colors.green,
               ),
-              const SizedBox(width: 12),
-              _buildActionButton(
-                icon: Icons.auto_awesome_motion_rounded,
-                label: isNarrow ? null : '1000 Mahsulot',
-                onTap: () => _confirmLoadStarterData(context),
-                color: Colors.orange,
-              ),
+              if (!context.watch<SettingsProvider>().isStarterDataLoaded)
+                _buildActionButton(
+                  icon: Icons.auto_awesome_motion_rounded,
+                  label: isNarrow ? null : '1000 Mahsulot',
+                  onTap: () => _confirmLoadStarterData(context),
+                  color: Colors.orange,
+                ),
               const SizedBox(width: 12),
               _buildActionButton(
                 icon: Icons.add_circle_outline_rounded,
@@ -250,7 +250,7 @@ class _CatalogScreenState extends State<CatalogScreen>
             final p = products[index];
             return _buildListItem(
               title: p.name,
-              subtitle: 'Shtrix: ${p.barcode} • Narhi: ${p.price.toStringAsFixed(0)} s',
+              subtitle: 'Shtrix: ${p.barcode}',
               onEdit: () => Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -422,6 +422,7 @@ class _CatalogScreenState extends State<CatalogScreen>
                 final count = await StarterDataService.seed1000Products();
                 if (context.mounted) {
                   Navigator.pop(context); // Close indicator
+                  await context.read<SettingsProvider>().markStarterDataAsLoaded();
                   await context.read<InventoryProvider>().reloadData(skipRecalculate: true);
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('$count ta mahsulot muvaffaqiyatli yuklandi!'), backgroundColor: Colors.green),

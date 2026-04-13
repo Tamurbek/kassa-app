@@ -11,32 +11,37 @@ class StarterDataService {
       
       List<Product> productsToSeed = [];
       Map<String, String> categoryMap = {};
+      List<Category> newCategories = [];
 
       // 1. Get/Create Categories
       final existingCats = await DatabaseService.getCategories();
-      final categories = data.map((item) => item['category'] as String).toSet().toList();
+      final categoryNames = data.map((item) => item['category'] as String).toSet().toList();
       
-      for (var catName in categories) {
+      for (var catName in categoryNames) {
         var cat = existingCats.where((c) => c.name == catName).firstOrNull;
         if (cat == null) {
           cat = Category(
             id: DateTime.now().millisecondsSinceEpoch.toString() + catName.hashCode.toString(),
             name: catName,
           );
-          await DatabaseService.saveCategory(cat);
+          newCategories.add(cat);
         }
         categoryMap[catName] = cat.id;
+      }
+
+      if (newCategories.isNotEmpty) {
+        await DatabaseService.saveCategoriesBatch(newCategories);
       }
 
       // 2. Prepare Products
       for (var item in data) {
         productsToSeed.add(Product.create(
           item['name'],
-          item['price'].toDouble(),
+          (item['price'] as num).toDouble(),
           categoryMap[item['category']]!,
           item['barcode'],
-          costPrice: item['costPrice'].toDouble(),
-          unit: item['unit'],
+          costPrice: (item['costPrice'] as num).toDouble(),
+          unit: item['unit'] ?? 'dona',
         ));
       }
 

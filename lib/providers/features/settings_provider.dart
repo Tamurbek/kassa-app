@@ -32,6 +32,7 @@ class SettingsProvider extends ChangeNotifier {
   bool isBarcodeScanMode = false;
   bool shouldTrackInventory = true;
   bool isFullScreen = false;
+  bool isStarterDataLoaded = false;
   String appVersion = AppConstants.appVersion;
   String? deviceId;
 
@@ -143,6 +144,7 @@ class SettingsProvider extends ChangeNotifier {
       scaleProtocol = dbSettings['scaleProtocol'] ?? prefs.getString('scaleProtocol') ?? 'NCI';
 
       // 7. Full Screen Mode (Apply window size only on startup or explicit toggle)
+      isStarterDataLoaded = getSafeBool('isStarterDataLoaded', defaultValue: false);
       isFullScreen = getSafeBool('isFullScreen', defaultValue: false);
       if (isInitialLoad && (Platform.isWindows || Platform.isMacOS || Platform.isLinux)) {
         await windowManager.setFullScreen(isFullScreen);
@@ -295,6 +297,13 @@ class SettingsProvider extends ChangeNotifier {
       await prefs.setString('scaleProtocol', protocol);
       await DatabaseService.saveSetting('scaleProtocol', protocol);
     }
+    notifyListeners();
+  }
+
+  Future<void> markStarterDataAsLoaded() async {
+    isStarterDataLoaded = true;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('isStarterDataLoaded', true);
     notifyListeners();
   }
 
