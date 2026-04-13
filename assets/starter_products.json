@@ -1,5 +1,20 @@
 [
   {
+    "name": "Lay's Chips 140g",
+    "category": "Shirinliklar va qandolat",
+    "costPrice": 0.0,
+    "price": 0.0,
+    "barcode": "4600680001258",
+    "additionalBarcodes": [
+      "4690388034504",
+      "4690388034511",
+      "4600680001234",
+      "4690388106096",
+      "4690388034528"
+    ],
+    "unit": "dona"
+  },
+  {
     "name": "Coca-Cola Klassik 1.5l",
     "category": "Ichimliklar",
     "costPrice": 0.0,

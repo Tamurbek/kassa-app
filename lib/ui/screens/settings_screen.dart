@@ -170,10 +170,10 @@ class SettingsScreen extends StatelessWidget {
                           context,
                           icon: Icons.inventory_2_rounded,
                           color: Colors.orange,
-                          title: 'Ombor ayirish rejimi',
+                          title: 'Ombor ayirish rejimi (Sotuvda)',
                           subtitle: settings.shouldTrackInventory 
-                              ? 'Yoqilgan (ombordan ayiradi)' 
-                              : 'O\'chirilgan (ayirmasdan sotish)',
+                              ? 'Yoqilgan (sotuvdan keyin ombordan ayriladi)' 
+                              : 'O\'chirilgan (sotuvlar omborga ta\'sir qilmaydi)',
                           trailing: Switch(
                             value: settings.shouldTrackInventory,
                             activeColor: Colors.orange,

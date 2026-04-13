@@ -10,8 +10,8 @@ class ProductRepository {
     List<dynamic>? whereArgs;
 
     if (searchQuery != null && searchQuery.isNotEmpty) {
-      whereClause += ' AND (name LIKE ? OR barcode LIKE ?)';
-      whereArgs = ['%$searchQuery%', '%$searchQuery%'];
+      whereClause += ' AND (name LIKE ? OR barcode LIKE ? OR id IN (SELECT productId FROM product_additional_barcodes WHERE barcode LIKE ?))';
+      whereArgs = ['%$searchQuery%', '%$searchQuery%', '%$searchQuery%'];
     }
 
     final List<Map<String, dynamic>> maps = await db.query(

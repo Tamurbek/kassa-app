@@ -35,6 +35,12 @@ class StarterDataService {
 
       // 2. Prepare Products
       for (var item in data) {
+        var additionalB = item['additionalBarcodes'];
+        List<String> barcodes = [];
+        if (additionalB != null && additionalB is List) {
+          barcodes = additionalB.map((e) => e.toString()).toList();
+        }
+
         productsToSeed.add(Product.create(
           item['name'],
           (item['price'] as num).toDouble(),
@@ -42,7 +48,7 @@ class StarterDataService {
           item['barcode'],
           costPrice: (item['costPrice'] as num).toDouble(),
           unit: item['unit'] ?? 'dona',
-        ));
+        ).copyWith(additionalBarcodes: barcodes));
       }
 
       await DatabaseService.saveProductsBatch(productsToSeed, skipPush: true);

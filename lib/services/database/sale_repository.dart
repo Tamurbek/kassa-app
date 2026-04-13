@@ -35,21 +35,27 @@ class SaleRepository {
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
       
+      // Get global stock tracking setting
+      final settingsRes = await txn.query('settings', where: "key = ?", whereArgs: ['shouldTrackInventory']);
+      final bool globalTracking = settingsRes.isEmpty || settingsRes.first['value'] == '1';
+
       await txn.delete('sale_items', where: 'saleId = ?', whereArgs: [sale.id]);
       for (var item in sale.items) {
         await txn.insert('sale_items', {...item.toJson(), 'saleId': sale.id});
         
-        // Stock management (decrement only if trackStock is true)
-        final List<Map<String, dynamic>> products = await txn.query(
-          'products', 
-          where: 'id = ?', 
-          whereArgs: [item.productId]
-        );
-        if (products.isNotEmpty && (products.first['trackStock'] == 1 || products.first['trackStock'] == true)) {
-          await txn.execute('''
-            UPDATE stocks SET quantity = quantity - ? 
-            WHERE productId = ? AND warehouseId = ?
-          ''', [item.quantity, item.productId, sale.warehouseId]);
+        // Stock management (decrement only if both global and product-level trackStock are true)
+        if (globalTracking) {
+          final List<Map<String, dynamic>> products = await txn.query(
+            'products', 
+            where: 'id = ?', 
+            whereArgs: [item.productId]
+          );
+          if (products.isNotEmpty && (products.first['trackStock'] == 1 || products.first['trackStock'] == true)) {
+            await txn.execute('''
+              UPDATE stocks SET quantity = quantity - ? 
+              WHERE productId = ? AND warehouseId = ?
+            ''', [item.quantity, item.productId, sale.warehouseId]);
+          }
         }
       }
     });
