@@ -165,6 +165,23 @@ class AuthProvider extends ChangeNotifier {
           .timeout(const Duration(seconds: 20));
 
       if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final prefs = await SharedPreferences.getInstance();
+        
+        // Save organization details from verification response
+        if (data['organization_name'] != null) {
+          await prefs.setString('organizationName', data['organization_name']);
+          await DatabaseService.saveSetting('organizationName', data['organization_name']);
+        }
+        if (data['organization_address'] != null) {
+          await prefs.setString('organizationAddress', data['organization_address']);
+          await DatabaseService.saveSetting('organizationAddress', data['organization_address']);
+        }
+        if (data['instagram'] != null) {
+          await prefs.setString('instagramUsername', data['instagram']);
+          await DatabaseService.saveSetting('instagramUsername', data['instagram']);
+        }
+        
         await setActivated(true, cleanCode);
       } else {
         final errorMsg = response.statusCode == 404 ? "Server topilmadi" : "Kod noto'g'ri";
@@ -238,8 +255,10 @@ class AuthProvider extends ChangeNotifier {
           changed = true;
         }
 
-        if (data['instagram_username'] != null) {
-          await DatabaseService.saveSetting('instagramUsername', data['instagram_username']);
+        if (data['instagram'] != null || data['instagram_username'] != null) {
+          final ig = data['instagram'] ?? data['instagram_username'];
+          await prefs.setString('instagramUsername', ig);
+          await DatabaseService.saveSetting('instagramUsername', ig);
           changed = true;
         }
 

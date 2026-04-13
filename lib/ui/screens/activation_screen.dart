@@ -216,27 +216,23 @@ class _ActivationScreenState extends State<ActivationScreen> {
                           debugPrint('Auto-restore skipped or failed: $backupError');
                         }
                         
+                        // 1. Commit Activation (This captures the data from the server)
+                        await auth.activate(code);
+                        
                         // 2. Refresh ALL providers (Crucial for memory management)
-                        // Note: We don't check 'mounted' here for reloads because providers are independent of the widget,
-                        // and we want them to finish even if the screen is being unmounted by a state change.
                         await appState.loadSettings();
                         await settings.loadSettings();
                         await auth.reloadUsers();
-                        await inventory.reloadData(forceRecalculate: true); // Force once after cloud restore
+                        await inventory.reloadData(forceRecalculate: true);
                         await sales.reloadSalesData();
                         await sync.loadSync();
-
-                        // 3. Commit Activation (This triggers the UI switch via notifyListeners)
-                        if (mounted) {
-                          await auth.activate(code);
                           
-                          // Final UI polish
-                          if (mounted) {
-                            ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('✅ Faollashtirildi!'), backgroundColor: Colors.green),
-                            );
-                          }
+                        // Final UI polish
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('✅ Faollashtirildi!'), backgroundColor: Colors.green),
+                          );
                         }
                       } catch (e) {
                         if (mounted) {
