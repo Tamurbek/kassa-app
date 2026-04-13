@@ -30,8 +30,8 @@ class DatabaseService {
   static Future<void> replaceDatabase(File newFile) => DatabaseHelper.replaceDatabase(newFile);
 
   // --- Product ---
-  static Future<List<Product>> getProducts({int? limit, int? offset, String? searchQuery}) => 
-    ProductRepository.getProducts(limit: limit, offset: offset, searchQuery: searchQuery);
+  static Future<List<Product>> getProducts({int? limit, int? offset, String? searchQuery, String? categoryId}) => 
+    ProductRepository.getProducts(limit: limit, offset: offset, searchQuery: searchQuery, categoryId: categoryId);
   static Future<void> saveProduct(Product product) async {
     await ProductRepository.saveProduct(product);
     triggerUpdate();

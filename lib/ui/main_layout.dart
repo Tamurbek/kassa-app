@@ -159,6 +159,7 @@ class _MainLayoutState extends State<MainLayout> {
                   AppStatusBar(
                     settings: settings,
                     auth: auth,
+                    sync: sync,
                     onExit: () => auth.logout(),
                   ),
                   if (isSmall) _buildBottomNav(),
@@ -600,7 +601,7 @@ class _MainLayoutState extends State<MainLayout> {
               icon: Icons.cloud_outlined,
               label: 'Bulutli xizmat',
               onTap: () => _showCloudSyncDialog(context, sync),
-              isActive: auth.isActivated,
+              isActive: true, // Always allow opening the cloud dialog to see status/activate
               isLoading: sync.isSyncingCloud,
               isDark: isDark,
             ),
@@ -623,7 +624,7 @@ class _MainLayoutState extends State<MainLayout> {
                   );
                 }
               },
-              isActive: sync.isConnected,
+              isActive: true, // Always allow manual sync attempt
               isDark: isDark,
             ),
             const SizedBox(width: 12),

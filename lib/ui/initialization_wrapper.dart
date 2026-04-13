@@ -76,7 +76,7 @@ class _InitializationWrapperState extends State<InitializationWrapper> {
     }
     _lastUser = authProvider.currentUser;
 
-    if (!state.isInitialized) {
+    if (!state.isInitialized || !authProvider.isInitialized) {
       return _buildSplashScreen(context);
     }
 

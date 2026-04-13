@@ -12,6 +12,7 @@ import '../widgets/pos/pos_product_card.dart';
 import '../widgets/pos/pos_cart_item.dart';
 import '../widgets/pos/pos_virtual_keyboard.dart';
 import '../widgets/app_status_bar.dart';
+import '../../providers/features/sync_provider.dart';
 import '../widgets/pos/pos_category_selector.dart';
 import '../../core/constants/app_constants.dart';
 import 'checkout_screen.dart';
@@ -354,6 +355,7 @@ class _POSScreenState extends State<POSScreen> {
     final sales = context.watch<SalesProvider>();
     final settings = context.watch<SettingsProvider>();
     final auth = context.watch<AuthProvider>();
+    final sync = context.watch<SyncProvider>();
 
     final activeCategories = inventory.activeCategories;
     final categories = ['Barchasi', ...activeCategories.map((c) => c.name)];
@@ -771,10 +773,11 @@ class _POSScreenState extends State<POSScreen> {
     );
   }
 
-  Widget _buildBottomStatusBar(SettingsProvider settings, AuthProvider auth) {
+  Widget _buildBottomStatusBar(SettingsProvider settings, AuthProvider auth, SyncProvider sync) {
     return AppStatusBar(
       settings: settings,
       auth: auth,
+      sync: sync,
       onExit: () => Navigator.pop(context),
     );
   }

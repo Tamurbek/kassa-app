@@ -21,6 +21,7 @@ class _CatalogScreenState extends State<CatalogScreen>
   late TabController _tabController;
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  String? _selectedCategoryId; // null means "Barchasi"
   String _searchText = '';
   
   List<Product> _products = [];
@@ -91,6 +92,7 @@ class _CatalogScreenState extends State<CatalogScreen>
         limit: _limit,
         offset: _offset,
         search: _searchText,
+        categoryId: _selectedCategoryId,
       );
 
       if (mounted) {
@@ -146,6 +148,7 @@ class _CatalogScreenState extends State<CatalogScreen>
                 ],
               ),
               _buildSearchBar(),
+              if (_tabController.index == 0) _buildCategoryFilterBar(),
               Expanded(
                 child: TabBarView(
                   controller: _tabController,
@@ -201,6 +204,20 @@ class _CatalogScreenState extends State<CatalogScreen>
                     ),
                   ],
                 ),
+              if (!isNarrow) ...[
+                const SizedBox(width: 32),
+                _buildCountChip(
+                  label: 'Mahsulotlar:',
+                  count: context.watch<InventoryProvider>().activeProducts.length,
+                  color: Colors.blue,
+                ),
+                const SizedBox(width: 12),
+                _buildCountChip(
+                  label: 'Kategoriyalar:',
+                  count: context.watch<InventoryProvider>().activeCategories.length,
+                  color: Colors.purple,
+                ),
+              ],
             ],
           ),
           Row(
@@ -305,6 +322,102 @@ class _CatalogScreenState extends State<CatalogScreen>
         if (_isSearching)
           const LinearProgressIndicator(minHeight: 2),
       ],
+    );
+  }
+
+  Widget _buildCategoryFilterBar() {
+    final inventory = context.watch<InventoryProvider>();
+    final categories = inventory.activeCategories;
+
+    return Container(
+      height: 60,
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        children: [
+          _buildCategoryChip(
+            id: null,
+            name: 'Barchasi',
+            isSelected: _selectedCategoryId == null,
+            onTap: () {
+              setState(() => _selectedCategoryId = null);
+              _loadProducts(reset: true);
+            },
+          ),
+          ...categories.map((c) => _buildCategoryChip(
+                id: c.id,
+                name: c.name,
+                isSelected: _selectedCategoryId == c.id,
+                onTap: () {
+                  setState(() => _selectedCategoryId = c.id);
+                  _loadProducts(reset: true);
+                },
+              )),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCategoryChip({
+    required String? id,
+    required String name,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: FilterChip(
+        label: Text(name),
+        selected: isSelected,
+        onSelected: (_) => onTap(),
+        backgroundColor: Theme.of(context).cardColor,
+        selectedColor: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+        labelStyle: TextStyle(
+          fontSize: 12,
+          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+          color: isSelected ? Theme.of(context).colorScheme.primary : null,
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      ),
+    );
+  }
+
+  Widget _buildCountChip({
+    required String label,
+    required int count,
+    required Color color,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: color.withOpacity(0.2)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              color: color.withOpacity(0.7),
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(width: 6),
+          Text(
+            count.toString(),
+            style: TextStyle(
+              fontSize: 14,
+              color: color,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+        ],
+      ),
     );
   }
 

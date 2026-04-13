@@ -1,17 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import '../../providers/features/settings_provider.dart';
 import '../../providers/features/auth_provider.dart';
+import '../../providers/features/sync_provider.dart';
+import '../../models/models.dart';
 
 class AppStatusBar extends StatelessWidget {
   final SettingsProvider settings;
   final AuthProvider auth;
+  final SyncProvider sync;
   final VoidCallback? onExit;
 
   const AppStatusBar({
     super.key,
     required this.settings,
     required this.auth,
+    required this.sync,
     this.onExit,
   });
 
@@ -44,11 +49,11 @@ class AppStatusBar extends StatelessWidget {
           const SizedBox(width: 10),
           _buildStatusTag(
             context,
-            icon: Icons.cloud_done_rounded,
-            iconColor: const Color(0xFF0EA5E9), // Sky Blue
-            label: 'Bulutga ulandi',
-            bgColor: const Color(0xFF0EA5E9).withOpacity(0.08),
-            textColor: const Color(0xFF075985),
+            icon: auth.cloudStatus.contains('Bulut') ? Icons.cloud_done_rounded : Icons.cloud_off_rounded,
+            iconColor: auth.cloudStatus.contains('Bulut') ? const Color(0xFF0EA5E9) : Colors.orange,
+            label: auth.cloudStatus,
+            bgColor: (auth.cloudStatus.contains('Bulut') ? const Color(0xFF0EA5E9) : Colors.orange).withOpacity(0.08),
+            textColor: auth.cloudStatus.contains('Bulut') ? const Color(0xFF075985) : Colors.orange.shade900,
           ),
           const SizedBox(width: 16),
           Icon(Icons.person_rounded, size: 18, color: Colors.grey.shade600),
@@ -83,27 +88,36 @@ class AppStatusBar extends StatelessWidget {
           const Spacer(),
 
           // Right side: Sync and Quit
-          Icon(Icons.history_rounded, size: 18, color: Colors.grey.shade600),
+          Icon(
+            sync.lastCloudSync != null ? Icons.cloud_done_rounded : Icons.cloud_off_rounded, 
+            size: 18, 
+            color: sync.lastCloudSync != null ? const Color(0xFF3B82F6) : Colors.grey.shade600
+          ),
           const SizedBox(width: 6),
           Text(
-            'Oxirgi sync: ${DateFormat('HH:mm').format(DateTime.now())}',
+            'Zaxira: ${sync.lastCloudSync != null ? DateFormat('HH:mm').format(sync.lastCloudSync!) : 'Yo\'q'}',
             style: TextStyle(
               fontSize: 12,
-              color: Colors.grey.shade600,
+              color: sync.lastCloudSync != null ? const Color(0xFF1E40AF) : Colors.grey.shade600,
               fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(width: 20),
-          Icon(Icons.cloud_outlined, size: 18, color: Colors.grey.shade600),
-          const SizedBox(width: 6),
-          Text(
-            'Bulutli xizmat',
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey.shade600,
-              fontWeight: FontWeight.w600,
+          if (auth.currentUser?.role == UserRole.admin) ...[
+            const SizedBox(width: 8),
+            Tooltip(
+              message: 'Hozir sinxronlash',
+              child: InkWell(
+                onTap: sync.isSyncingCloud ? null : () => sync.performFullSync(context),
+                borderRadius: BorderRadius.circular(4),
+                child: Padding(
+                  padding: const EdgeInsets.all(4),
+                  child: sync.isSyncingCloud 
+                    ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
+                    : Icon(Icons.sync_rounded, size: 18, color: Theme.of(context).colorScheme.primary),
+                ),
+              ),
             ),
-          ),
+          ],
           
           if (onExit != null) ...[
             const SizedBox(width: 28),

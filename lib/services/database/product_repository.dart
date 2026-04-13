@@ -3,21 +3,26 @@ import '../../models/models.dart';
 import 'database_helper.dart';
 
 class ProductRepository {
-  static Future<List<Product>> getProducts({int? limit, int? offset, String? searchQuery}) async {
+  static Future<List<Product>> getProducts({int? limit, int? offset, String? searchQuery, String? categoryId}) async {
     final db = await DatabaseHelper.database;
     
-    String? whereClause = 'isDeleted = 0';
-    List<dynamic>? whereArgs;
+    String whereClause = 'isDeleted = 0';
+    List<dynamic> whereArgs = [];
 
     if (searchQuery != null && searchQuery.isNotEmpty) {
       whereClause += ' AND (name LIKE ? OR barcode LIKE ? OR id IN (SELECT productId FROM product_additional_barcodes WHERE barcode LIKE ?))';
-      whereArgs = ['%$searchQuery%', '%$searchQuery%', '%$searchQuery%'];
+      whereArgs.addAll(['%$searchQuery%', '%$searchQuery%', '%$searchQuery%']);
+    }
+
+    if (categoryId != null && categoryId.isNotEmpty) {
+      whereClause += ' AND categoryId = ?';
+      whereArgs.add(categoryId);
     }
 
     final List<Map<String, dynamic>> maps = await db.query(
       'products',
       where: whereClause,
-      whereArgs: whereArgs,
+      whereArgs: whereArgs.isNotEmpty ? whereArgs : null,
       orderBy: 'name ASC',
       limit: limit,
       offset: offset,

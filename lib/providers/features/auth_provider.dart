@@ -22,6 +22,7 @@ class AuthProvider extends ChangeNotifier {
   String? deviceId;
 
   List<User> _users = [];
+  bool isInitialized = false;
   List<User> get activeUsers => _users.where((u) => !u.isDeleted).toList();
   List<User> get deletedUsers => _users.where((u) => u.isDeleted).toList();
 
@@ -58,6 +59,9 @@ class AuthProvider extends ChangeNotifier {
     }
     await reloadUsers();
     
+    isInitialized = true;
+    notifyListeners();
+
     // Start background check for organization status and license
     if (_isActivated) {
       startBackgroundMonitoring();

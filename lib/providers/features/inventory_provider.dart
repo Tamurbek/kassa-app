@@ -13,6 +13,15 @@ class InventoryProvider extends ChangeNotifier {
   List<InventoryEntry> inventories = [];
   List<StockTransfer> transfers = [];
   
+  List<Category> _activeCategories = [];
+  List<Category> _deletedCategories = [];
+  List<Product> _activeProducts = [];
+  List<Product> _deletedProducts = [];
+  List<Warehouse> _activeWarehouses = [];
+  List<Warehouse> _deletedWarehouses = [];
+  List<Register> _activeRegisters = [];
+  List<Register> _deletedRegisters = [];
+  
   bool _isLoading = false;
   bool get isLoading => _isLoading;
   Timer? _reloadDebounce;
@@ -22,7 +31,7 @@ class InventoryProvider extends ChangeNotifier {
     _dbSubscription = DatabaseService.dbUpdateStream.stream.listen((_) {
       debugPrint("InventoryProvider: Background data change detected. Debouncing reload...");
       if (_reloadDebounce?.isActive ?? false) _reloadDebounce?.cancel();
-      _reloadDebounce = Timer(const Duration(milliseconds: 300), () {
+      _reloadDebounce = Timer(const Duration(milliseconds: 500), () {
         reloadData(skipRecalculate: true); // Background reloads shouldn't hit the heavy stock calculation
       });
     });
@@ -35,25 +44,23 @@ class InventoryProvider extends ChangeNotifier {
     super.dispose();
   }
 
-  // --- Filtered Accessors ---
-  List<Category> get activeCategories => categories.where((c) => !c.isDeleted).toList();
-  List<Category> get deletedCategories => categories.where((c) => c.isDeleted).toList();
+  // --- Filtered Accessors (Cached) ---
+  List<Category> get activeCategories => _activeCategories;
+  List<Category> get deletedCategories => _deletedCategories;
   
-  List<Product> get activeProducts => products.where((p) => !p.isDeleted).toList();
-  List<Product> get deletedProducts => products.where((p) => p.isDeleted).toList();
+  List<Product> get activeProducts => _activeProducts;
+  List<Product> get deletedProducts => _deletedProducts;
 
-  List<Warehouse> get activeWarehouses => warehouses.where((w) => !w.isDeleted).toList();
-  List<Warehouse> get deletedWarehouses => warehouses.where((w) => w.isDeleted).toList();
+  List<Warehouse> get activeWarehouses => _activeWarehouses;
+  List<Warehouse> get deletedWarehouses => _deletedWarehouses;
 
-  List<Register> get activeRegisters => registers.where((r) => !r.isDeleted).toList();
-  List<Register> get deletedRegisters => registers.where((r) => r.isDeleted).toList();
+  List<Register> get activeRegisters => _activeRegisters;
+  List<Register> get deletedRegisters => _deletedRegisters;
 
-  List<Organization> get activeOrganizations => organizations.where((o) => !o.isDeleted).toList();
-  List<Organization> get deletedOrganizations => organizations.where((o) => o.isDeleted).toList();
-
-  Warehouse? get mainWarehouse => activeWarehouses.where((w) => w.isMain).firstOrNull ?? (activeWarehouses.isNotEmpty ? activeWarehouses.first : null);
+  Warehouse? get mainWarehouse => _activeWarehouses.where((w) => w.isMain).firstOrNull ?? (_activeWarehouses.isNotEmpty ? _activeWarehouses.first : null);
 
   Future<void> reloadData({bool forceRecalculate = false, bool skipRecalculate = false}) async {
+    if (_isLoading) return;
     try {
       _isLoading = true;
       notifyListeners();
@@ -66,10 +73,8 @@ class InventoryProvider extends ChangeNotifier {
         }
       }
 
-      categories = await DatabaseService.getCategories(); // getCategories filters deleted by default in repository
-      products = await DatabaseService.getProducts(); // getProducts filters deleted by default
-      
-      // We use 'getAll' for internal lists so provider can manage active/deleted filtering
+      categories = await DatabaseService.getCategories();
+      products = await DatabaseService.getProducts(); 
       warehouses = await DatabaseService.getAllWarehouses();
       registers = await DatabaseService.getAllRegisters();
       organizations = await DatabaseService.getOrganizations();
@@ -78,8 +83,16 @@ class InventoryProvider extends ChangeNotifier {
       inventories = await DatabaseService.getInventories();
       transfers = await DatabaseService.getStockTransfers();
       
-      // Also need to fetch ALL categories/products if we want them in Trash as well, 
-      // but repos often filter them. We'll stick to active for now and fix repos if needed.
+      // Update cached filtered lists
+      _activeCategories = categories.where((c) => !c.isDeleted).toList();
+      _deletedCategories = categories.where((c) => c.isDeleted).toList();
+      _activeProducts = products.where((p) => !p.isDeleted).toList();
+      _deletedProducts = products.where((p) => p.isDeleted).toList();
+      _activeWarehouses = warehouses.where((w) => !w.isDeleted).toList();
+      _deletedWarehouses = warehouses.where((w) => w.isDeleted).toList();
+      _activeRegisters = registers.where((r) => !r.isDeleted).toList();
+      _deletedRegisters = registers.where((r) => r.isDeleted).toList();
+
     } catch (e) {
       debugPrint('InventoryProvider reloadData error: $e');
     } finally {
@@ -163,8 +176,8 @@ class InventoryProvider extends ChangeNotifier {
   }
 
   // --- Product & Category Management ---
-  Future<List<Product>> getProductsPaged({int? limit, int? offset, String? search}) async {
-    return DatabaseService.getProducts(limit: limit, offset: offset, searchQuery: search);
+  Future<List<Product>> getProductsPaged({int? limit, int? offset, String? search, String? categoryId}) async {
+    return DatabaseService.getProducts(limit: limit, offset: offset, searchQuery: search, categoryId: categoryId);
   }
 
   Future<void> saveProduct(Product product) async {
