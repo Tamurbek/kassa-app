@@ -50,9 +50,9 @@ class TerminalManagementScreen extends StatelessWidget {
                 constraints: const BoxConstraints(maxWidth: 1000),
                 child: ListView.builder(
                   padding: const EdgeInsets.all(24),
-                  itemCount: inventory.registers.length,
+                  itemCount: inventory.activeRegisters.length,
                   itemBuilder: (context, index) {
-                    final reg = inventory.registers[index];
+                    final reg = inventory.activeRegisters[index];
                     final warehouse = inventory.warehouses.firstWhere(
                       (w) => w.id == reg.warehouseId,
                       orElse: () => Warehouse(id: '', name: 'Noma\'lum'),

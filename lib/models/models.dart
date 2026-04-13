@@ -11,3 +11,4 @@ export 'entities/inventory_entry.dart';
 export 'entities/suspended_sale.dart';
 export 'entities/user.dart';
 export 'entities/customer.dart';
+export 'entities/organization.dart';

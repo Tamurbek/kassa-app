@@ -9,7 +9,7 @@ class DatabaseHelper {
   static Future<Database>? _initFuture;
   static bool _factoryInitialized = false;
 
-  static const int databaseVersion = 23;
+  static const int databaseVersion = 24;
   static const String databaseName = 'simple_sale.db';
 
   static Future<Database> get database async {
@@ -307,6 +307,17 @@ class DatabaseHelper {
         costPrice REAL NOT NULL DEFAULT 0
       )
     ''');
+    await db.execute('''
+      CREATE TABLE organizations (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        address TEXT,
+        instagram TEXT,
+        isDeleted INTEGER NOT NULL DEFAULT 0,
+        updatedAt TEXT,
+        isSynced INTEGER NOT NULL DEFAULT 0
+      )
+    ''');
   }
 
   static Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -600,6 +611,19 @@ class DatabaseHelper {
       try { await db.execute('ALTER TABLE sales ADD COLUMN customerId TEXT'); } catch(_) {}
       try { await db.execute('ALTER TABLE sales ADD COLUMN customerName TEXT'); } catch(_) {}
     }
+    if (oldVersion < 24) {
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS organizations (
+          id TEXT PRIMARY KEY,
+          name TEXT NOT NULL,
+          address TEXT,
+          instagram TEXT,
+          isDeleted INTEGER NOT NULL DEFAULT 0,
+          updatedAt TEXT,
+          isSynced INTEGER NOT NULL DEFAULT 0
+        )
+      ''');
+    }
   }
 
   static Future<void> clearAllData() async {
@@ -611,7 +635,7 @@ class DatabaseHelper {
           'write_offs', 'write_off_items', 'inventories', 'inventory_items', 
           'stock_entries', 'stock_entry_items', 'users', 'settings', 
           'stock_transfers', 'stock_transfer_items', 'stocks', 'product_additional_barcodes',
-          'suspended_sales', 'suspended_sale_items'
+          'suspended_sales', 'suspended_sale_items', 'organizations'
         ];
         for (var t in tables) {
           try { await txn.delete(t); } catch(_) {}

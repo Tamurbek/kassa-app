@@ -238,12 +238,14 @@ class AppState extends ChangeNotifier {
         case 'write_off':
         case 'inventory':
         case 'stock_transfer':
+        case 'organization':
           String table = type;
           if (type == 'category') table = 'categories';
           if (type == 'product') table = 'products';
           if (type == 'warehouse') table = 'warehouses';
           if (type == 'register') table = 'registers';
           if (type == 'user') table = 'users';
+          if (type == 'organization') table = 'organizations';
           if (type == 'stock_entry') table = 'stock_entries';
           if (type == 'sale') table = 'sales';
           if (type == 'return') table = 'returns';
@@ -258,6 +260,9 @@ class AppState extends ChangeNotifier {
           break;
         case 'register_delete':
           await DatabaseService.deleteRegister(data['id']);
+          break;
+        case 'organization_delete':
+          await DatabaseService.deleteOrganization(data['id']);
           break;
         case 'setting':
           await DatabaseService.saveSetting(data['key'], data['value'].toString());
@@ -371,6 +376,14 @@ class AppState extends ChangeNotifier {
             if (table == 'sales') type = 'sale';
             if (table == 'returns') type = 'return';
             if (table == 'users') type = 'user';
+      if (type == 'stock_transfer') type = 'stock_transfer';
+            if (type == 'categories') type = 'category';
+            if (type == 'products') type = 'product';
+            if (type == 'warehouses') type = 'warehouse';
+            if (type == 'registers') type = 'register';
+            if (type == 'sales') type = 'sale';
+            if (type == 'returns') type = 'return';
+            if (type == 'users') type = 'user';
 
             await _applyRemoteUpdate(type, record);
             SyncService.broadcast(type, record);
@@ -387,6 +400,7 @@ class AppState extends ChangeNotifier {
         final returns = await DatabaseService.getReturns();
         final writeOffs = await DatabaseService.getWriteOffs();
         final inventories = await DatabaseService.getInventories();
+        final organizations = await DatabaseService.getOrganizations();
         final prefs = await SharedPreferences.getInstance();
 
         return {
@@ -398,6 +412,7 @@ class AppState extends ChangeNotifier {
           'writeOffs': writeOffs.map((w) => w.toJson()).toList(),
           'inventories': inventories.map((i) => i.toJson()).toList(),
           'users': users.map((u) => u.toJson()).toList(),
+          'organizations': organizations.map((o) => o.toJson()).toList(),
           'organizationName': prefs.getString('organizationName'),
           'organizationAddress': prefs.getString('organizationAddress'),
           'instagramUsername': prefs.getString('instagramUsername'),

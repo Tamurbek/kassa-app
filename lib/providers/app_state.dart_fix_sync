@@ -1,0 +1,30 @@
+      onSyncRequested: () async {
+        final users = await DatabaseService.getUsers();
+        final categories = await DatabaseService.getCategories();
+        final products = await DatabaseService.getProducts();
+        final warehouses = await DatabaseService.getWarehouses();
+        final registers = await DatabaseService.getRegisters();
+        final returns = await DatabaseService.getReturns();
+        final writeOffs = await DatabaseService.getWriteOffs();
+        final inventories = await DatabaseService.getInventories();
+        final organizations = await DatabaseService.getOrganizations();
+        final prefs = await SharedPreferences.getInstance();
+
+        return {
+          'categories': categories.map((c) => c.toJson()).toList(),
+          'products': products.map((p) => p.toJson()).toList(),
+          'warehouses': warehouses.map((w) => w.toJson()).toList(),
+          'registers': registers.map((r) => r.toJson()).toList(),
+          'returns': returns.map((r) => r.toJson()).toList(),
+          'writeOffs': writeOffs.map((w) => w.toJson()).toList(),
+          'inventories': inventories.map((i) => i.toJson()).toList(),
+          'users': users.map((u) => u.toJson()).toList(),
+          'organizations': organizations.map((o) => o.toJson()).toList(),
+          'organizationName': prefs.getString('organizationName'),
+          'organizationAddress': prefs.getString('organizationAddress'),
+          'instagramUsername': prefs.getString('instagramUsername'),
+          'settings': {
+            'barcodePrinterName': prefs.getString('barcodePrinterName') ?? '',
+          }
+        };
+      },

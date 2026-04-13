@@ -241,6 +241,7 @@ class SyncProvider extends ChangeNotifier {
       case 'stock_entry': return 'stock_entries';
       case 'stock_transfer': return 'stock_transfers';
       case 'user': return 'users';
+      case 'organization': return 'organizations';
       default: return type.endsWith('s') ? type : '${type}s';
     }
   }
@@ -257,6 +258,7 @@ class SyncProvider extends ChangeNotifier {
     if (table == 'sales') return 'sale';
     if (table == 'returns') return 'return';
     if (table == 'users') return 'user';
+    if (table == 'organizations') return 'organization';
     return table.endsWith('s') ? table.substring(0, table.length - 1) : table;
   }
 
@@ -438,7 +440,7 @@ class SyncProvider extends ChangeNotifier {
             const entities = [
               'category', 'product', 'warehouse', 'register', 
               'sale', 'return', 'write_off', 'inventory', 
-              'stock_entry', 'user', 'stock_transfer'
+              'stock_entry', 'user', 'stock_transfer', 'organization'
             ];
             
             if (entities.contains(type)) {

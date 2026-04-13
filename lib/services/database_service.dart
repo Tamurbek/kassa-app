@@ -13,6 +13,7 @@ import 'database/repository_utils.dart';
 import 'database/sync_repository.dart';
 import 'database/stock_utils.dart';
 import 'database/suspended_sale_repository.dart';
+import 'database/organization_repository.dart';
 
 class DatabaseService {
   static Future<Database> get database => DatabaseHelper.database;
@@ -61,6 +62,11 @@ class DatabaseService {
     await WarehouseRepository.deleteWarehouse(id);
     triggerUpdate();
   }
+  static Future<List<Warehouse>> getAllWarehouses() async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query('warehouses', orderBy: 'name ASC');
+    return List.generate(maps.length, (i) => Warehouse.fromJson(maps[i]));
+  }
 
   // --- Register ---
   static Future<List<Register>> getRegisters() => RegisterRepository.getRegisters();
@@ -71,6 +77,11 @@ class DatabaseService {
   static Future<void> deleteRegister(String id) async {
     await RegisterRepository.deleteRegister(id);
     triggerUpdate();
+  }
+  static Future<List<Register>> getAllRegisters() async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query('registers', orderBy: 'name ASC');
+    return List.generate(maps.length, (i) => Register.fromJson(maps[i]));
   }
 
   // --- Sale ---
@@ -159,6 +170,30 @@ class DatabaseService {
   }
   static Future<void> deleteUser(String id) async {
     await UserRepository.deleteUser(id);
+    triggerUpdate();
+  }
+  static Future<List<User>> getAllUsers() async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query('users', orderBy: 'name ASC');
+    return List.generate(maps.length, (i) => User.fromJson(maps[i]));
+  }
+
+  // --- Organization ---
+  static Future<List<Organization>> getOrganizations() => OrganizationRepository.getOrganizations();
+  static Future<void> saveOrganization(Organization org) async {
+    await OrganizationRepository.saveOrganization(org);
+    triggerUpdate();
+  }
+  static Future<void> deleteOrganization(String id) async {
+    await OrganizationRepository.deleteOrganization(id);
+    triggerUpdate();
+  }
+  static Future<void> restoreOrganization(String id) async {
+    await OrganizationRepository.restoreOrganization(id);
+    triggerUpdate();
+  }
+  static Future<void> permanentDeleteOrganization(String id) async {
+    await OrganizationRepository.permanentDeleteOrganization(id);
     triggerUpdate();
   }
 

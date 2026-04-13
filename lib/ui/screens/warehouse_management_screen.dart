@@ -50,9 +50,9 @@ class WarehouseManagementScreen extends StatelessWidget {
                 constraints: const BoxConstraints(maxWidth: 1000),
                 child: ListView.builder(
                   padding: const EdgeInsets.all(24),
-                  itemCount: inventory.warehouses.length,
+                  itemCount: inventory.activeWarehouses.length,
                   itemBuilder: (context, index) {
-                    final warehouse = inventory.warehouses[index];
+                    final warehouse = inventory.activeWarehouses[index];
                     return Container(
                       margin: const EdgeInsets.only(bottom: 16),
                       decoration: BoxDecoration(

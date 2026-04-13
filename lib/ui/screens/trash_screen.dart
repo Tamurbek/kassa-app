@@ -16,13 +16,14 @@ class _TrashScreenState extends State<TrashScreen> {
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 3,
+      length: 5, // Increased from 3
       child: Container(
         color: Theme.of(context).scaffoldBackgroundColor,
         child: Column(
           children: [
             _buildHeader(),
             TabBar(
+              isScrollable: true,
               labelColor: Theme.of(context).colorScheme.primary,
               unselectedLabelColor: Colors.grey.shade400,
               indicatorColor: Theme.of(context).colorScheme.primary,
@@ -30,6 +31,8 @@ class _TrashScreenState extends State<TrashScreen> {
                 Tab(text: 'Mahsulotlar'),
                 Tab(text: 'Kategoriyalar'),
                 Tab(text: 'Hodimlar'),
+                Tab(text: 'Omborlar'),
+                Tab(text: 'Kassalar'),
               ],
             ),
             Expanded(
@@ -38,6 +41,8 @@ class _TrashScreenState extends State<TrashScreen> {
                   _buildDeletedProducts(),
                   _buildDeletedCategories(),
                   _buildDeletedUsers(),
+                  _buildDeletedWarehouses(),
+                  _buildDeletedRegisters(),
                 ],
               ),
             ),
@@ -169,6 +174,56 @@ class _TrashScreenState extends State<TrashScreen> {
                   'Role: ${u.role == UserRole.admin ? "Admin" : "Kassir"}',
               icon: Icons.person_outline,
               onRestore: () => auth.restoreUser(u.id),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildDeletedWarehouses() {
+    return Consumer<InventoryProvider>(
+      builder: (context, inventory, child) {
+        final items = inventory.deletedWarehouses;
+        if (items.isEmpty) {
+          return _buildEmptyState('O\'chirilgan omborlar yo\'q');
+        }
+
+        return ListView.builder(
+          padding: const EdgeInsets.all(24),
+          itemCount: items.length,
+          itemBuilder: (context, index) {
+            final w = items[index];
+            return _buildTrashCard(
+              title: w.name,
+              subtitle: 'ID: ${w.id.substring(0, 8)}...',
+              icon: Icons.warehouse_rounded,
+              onRestore: () => inventory.restoreWarehouse(w.id),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildDeletedRegisters() {
+    return Consumer<InventoryProvider>(
+      builder: (context, inventory, child) {
+        final items = inventory.deletedRegisters;
+        if (items.isEmpty) {
+          return _buildEmptyState('O\'chirilgan kassalar yo\'q');
+        }
+
+        return ListView.builder(
+          padding: const EdgeInsets.all(24),
+          itemCount: items.length,
+          itemBuilder: (context, index) {
+            final r = items[index];
+            return _buildTrashCard(
+              title: r.name,
+              subtitle: 'ID: ${r.id.substring(0, 8)}...',
+              icon: Icons.storefront_rounded,
+              onRestore: () => inventory.restoreRegister(r.id),
             );
           },
         );
