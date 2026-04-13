@@ -43,17 +43,9 @@ high_quality_names = [
     "Duracell AA", "Energizer AAA", "Logitech Mouse", "SanDisk Flash 64GB"
 ]
 
-categories = [
-    "Sut mahsulotlari", "Konservalar", "Baqqollik", "Ichimliklar", 
-    "Yog'lar va souslar", "Oziq-ovqat", "Shirinliklar va qandolat", 
-    "Maishiy kimyo", "Shaxsiy gigiyena", "Kantselyariya", "Elektronika"
-]
-
 def generate_barcode(prefix):
-    # Ensure 13 digits
     suffix = "".join([str(random.randint(0, 9)) for _ in range(12 - len(prefix))])
     code = f"{prefix}{suffix}"
-    # Simple check digit (not 100% compliant but looks real)
     check = random.randint(0, 9)
     return f"{code}{check}"
 
@@ -70,11 +62,11 @@ for rp in real_products:
         "unit": "dona"
     })
 
-# Spread more variations
+# Reduced count to 500 for better speed
 prefixes = ["478", "544", "482", "500", "761", "800", "871", "301", "400"]
 units = ["dona", "kg", "litr"]
 
-while len(products) < 1000:
+while len(products) < 500:
     base_name = random.choice(high_quality_names)
     cat = "Oziq-ovqat"
     if "Sut" in base_name or "Yogurt" in base_name: cat = "Sut mahsulotlari"

@@ -135,7 +135,7 @@ class _CatalogScreenState extends State<CatalogScreen>
               if (!context.watch<SettingsProvider>().isStarterDataLoaded)
                 _buildActionButton(
                   icon: Icons.auto_awesome_motion_rounded,
-                  label: isNarrow ? null : '1000 Mahsulot',
+                  label: isNarrow ? null : '500 Mahsulot',
                   onTap: () => _confirmLoadStarterData(context),
                   color: Colors.orange,
                 ),

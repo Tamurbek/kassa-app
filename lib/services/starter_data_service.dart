@@ -30,7 +30,7 @@ class StarterDataService {
       }
 
       if (newCategories.isNotEmpty) {
-        await DatabaseService.saveCategoriesBatch(newCategories);
+        await DatabaseService.saveCategoriesBatch(newCategories, skipNotify: true);
       }
 
       // 2. Prepare Products
@@ -45,7 +45,7 @@ class StarterDataService {
         ));
       }
 
-      await DatabaseService.saveProductsBatch(productsToSeed);
+      await DatabaseService.saveProductsBatch(productsToSeed, skipPush: true);
       return productsToSeed.length;
     } catch (e) {
        rethrow;

@@ -252,7 +252,7 @@ class DatabaseService {
     triggerUpdate();
   }
 
-  static Future<void> saveCategoriesBatch(List<Category> categories) async {
+  static Future<void> saveCategoriesBatch(List<Category> categories, {bool skipNotify = false, bool skipPush = false}) async {
     final db = await database;
     await db.transaction((txn) async {
       final batch = txn.batch();
@@ -268,10 +268,10 @@ class DatabaseService {
       }
       await batch.commit(noResult: true);
     });
-    triggerUpdate();
+    if (!skipNotify) triggerUpdate(skipPush: skipPush);
   }
 
-  static Future<void> saveProductsBatch(List<Product> products) async {
+  static Future<void> saveProductsBatch(List<Product> products, {bool skipNotify = false, bool skipPush = false}) async {
     final db = await database;
     await db.transaction((txn) async {
       final batch = txn.batch();
@@ -303,7 +303,7 @@ class DatabaseService {
       }
       await batch.commit(noResult: true);
     });
-    triggerUpdate();
+    if (!skipNotify) triggerUpdate(skipPush: skipPush);
   }
 
   static Future<void> markAsSynced(String table, String id) async {
