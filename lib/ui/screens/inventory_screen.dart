@@ -340,7 +340,6 @@ class _InventoryScreenState extends State<InventoryScreen> {
       items: finalItems,
     );
 
-    final appState = context.read<AppState>();
     if (widget.inventory == null) {
       await inventoryProv.addInventory(entry);
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Inventarizatsiya saqlandi')));
@@ -349,7 +348,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Inventarizatsiya tahrirlandi')));
     }
     
-    await appState.reloadData();
+    
     if (mounted) Navigator.pop(context);
   }
 }

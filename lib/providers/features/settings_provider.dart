@@ -45,7 +45,7 @@ class SettingsProvider extends ChangeNotifier {
   SettingsProvider() {
     _dbSubscription = DatabaseService.dbUpdateStream.stream.listen((_) {
       debugPrint("SettingsProvider: Background data change detected. Reloading...");
-      loadSettings();
+      loadSettings(isInitialLoad: false);
     });
   }
 
@@ -55,7 +55,7 @@ class SettingsProvider extends ChangeNotifier {
     super.dispose();
   }
 
-  Future<void> loadSettings() async {
+  Future<void> loadSettings({bool isInitialLoad = false}) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       
@@ -142,16 +142,16 @@ class SettingsProvider extends ChangeNotifier {
       scaleBaudRate = int.tryParse(dbSettings['scaleBaudRate'] ?? '') ?? prefs.getInt('scaleBaudRate') ?? 9600;
       scaleProtocol = dbSettings['scaleProtocol'] ?? prefs.getString('scaleProtocol') ?? 'NCI';
 
-      // 7. Full Screen Mode
+      // 7. Full Screen Mode (Apply window size only on startup or explicit toggle)
       isFullScreen = getSafeBool('isFullScreen', defaultValue: false);
-      if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
+      if (isInitialLoad && (Platform.isWindows || Platform.isMacOS || Platform.isLinux)) {
         await windowManager.setFullScreen(isFullScreen);
         if (!isFullScreen) {
           await windowManager.setSize(const Size(1280, 800));
           await windowManager.center();
         }
       }
-
+      
       notifyListeners();
     } catch (e) {
       debugPrint('Error loading settings: $e');

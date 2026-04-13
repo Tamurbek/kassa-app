@@ -33,7 +33,7 @@ void main() async {
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (context) => SettingsProvider()..loadSettings()),
+        ChangeNotifierProvider(create: (context) => SettingsProvider()..loadSettings(isInitialLoad: true)),
         ChangeNotifierProvider(create: (context) => AuthProvider()..loadAuth()),
         ChangeNotifierProvider(create: (context) => InventoryProvider()..reloadData()),
         ChangeNotifierProvider(create: (context) => SalesProvider()..reloadSalesData()),
