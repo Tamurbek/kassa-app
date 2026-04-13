@@ -4,6 +4,7 @@ import '../../providers/app_state.dart';
 import '../../providers/features/inventory_provider.dart';
 import '../../providers/features/settings_provider.dart';
 import '../../models/models.dart';
+import '../widgets/custom_app_bar.dart';
 
 class WarehouseManagementScreen extends StatelessWidget {
   const WarehouseManagementScreen({super.key});
@@ -13,37 +14,9 @@ class WarehouseManagementScreen extends StatelessWidget {
     final inventory = context.watch<InventoryProvider>();
 
     return Scaffold(
+      appBar: const CustomAppBar(title: 'Omborlar Boshqaruvi'),
       body: Column(
         children: [
-          Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 1000),
-              child: AppBar(
-                title: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: Image.asset(
-                        'assets/icon.png',
-                        width: 28,
-                        height: 28,
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    const Text(
-                      'Omborlar Boshqaruvi',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ],
-                ),
-                backgroundColor: Colors.transparent,
-                elevation: 0,
-                centerTitle: true,
-              ),
-            ),
-          ),
           Expanded(
             child: Center(
               child: ConstrainedBox(

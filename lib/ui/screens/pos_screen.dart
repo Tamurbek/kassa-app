@@ -507,14 +507,7 @@ class _POSScreenState extends State<POSScreen> {
           IconButton(
             icon: const Icon(Icons.menu_rounded),
             color: Theme.of(context).colorScheme.primary,
-            onPressed: () {
-              if (widget.onMenuPressed != null) {
-                // If it's part of indexed stack, parent might handle it
-                _scaffoldKey.currentState?.openEndDrawer();
-              } else {
-                _scaffoldKey.currentState?.openEndDrawer();
-              }
-            },
+            onPressed: widget.onMenuPressed ?? () => _scaffoldKey.currentState?.openEndDrawer(),
             tooltip: 'Menyu',
           ),
         ],

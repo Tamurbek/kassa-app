@@ -8,6 +8,7 @@ import '../../providers/features/sales_provider.dart';
 import '../../providers/features/auth_provider.dart';
 import '../../providers/features/settings_provider.dart';
 import '../widgets/app_status_bar.dart';
+import '../widgets/custom_app_bar.dart';
 import '../../providers/app_state.dart';
 
 class ReturnScreen extends StatefulWidget {
@@ -85,26 +86,11 @@ class _ReturnScreenState extends State<ReturnScreen> {
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(kToolbarHeight),
-        child: Container(
-          color: Theme.of(context).cardColor,
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 1400),
-              child: AppBar(
-                title: Text(widget.saleReturn == null ? 'Yangi Vazvrat' : 'Vazvratni Tahrirlash', 
-                    style: const TextStyle(fontWeight: FontWeight.bold)),
-                backgroundColor: Colors.transparent,
-                elevation: 0,
-                actions: [
-                  IconButton(icon: const Icon(Icons.save_rounded), onPressed: _save),
-                  const SizedBox(width: 8),
-                ],
-              ),
-            ),
-          ),
-        ),
+      appBar: CustomAppBar(
+        title: widget.saleReturn == null ? 'Yangi Vazvrat' : 'Vazvratni Tahrirlash',
+        actions: [
+          IconButton(icon: const Icon(Icons.save_rounded), onPressed: _save),
+        ],
       ),
       body: Column(
         children: [

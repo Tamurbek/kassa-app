@@ -52,7 +52,13 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                           ),
                         ),
                       )
-                    : null),
+                    : (Navigator.canPop(context)
+                        ? IconButton(
+                            icon: const Icon(Icons.arrow_back_ios_new_rounded),
+                            onPressed: () => Navigator.pop(context),
+                            color: theme.colorScheme.primary,
+                          )
+                        : null)),
             title: Row(
               mainAxisSize: MainAxisSize.min,
               children: [

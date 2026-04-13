@@ -275,12 +275,12 @@ class _WarehouseScreenState extends State<WarehouseScreen> {
               icon: Icon(Icons.refresh_rounded, color: Theme.of(context).colorScheme.primary),
               onPressed: () => inventory.reloadData(),
             ),
-            const SizedBox(width: 8),
-            IconButton(
-              icon: Icon(Icons.menu_rounded, color: Theme.of(context).colorScheme.primary),
-              onPressed: widget.onMenuPressed,
-            ),
           ],
+          IconButton(
+            icon: Icon(Icons.menu_rounded, color: Theme.of(context).colorScheme.primary),
+            onPressed: widget.onMenuPressed,
+            tooltip: 'Menyu',
+          ),
         ],
       ),
     );

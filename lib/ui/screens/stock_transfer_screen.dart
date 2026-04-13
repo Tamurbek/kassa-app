@@ -6,6 +6,7 @@ import '../../providers/features/inventory_provider.dart';
 import '../../providers/features/auth_provider.dart';
 import '../../providers/features/settings_provider.dart';
 import '../widgets/app_status_bar.dart';
+import '../widgets/custom_app_bar.dart';
 import '../../providers/app_state.dart';
 
 class StockTransferScreen extends StatefulWidget {
@@ -67,22 +68,8 @@ class _StockTransferScreenState extends State<StockTransferScreen> {
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(kToolbarHeight),
-        child: Container(
-          color: Theme.of(context).cardColor,
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 1400),
-              child: AppBar(
-                title: Text(widget.transfer == null ? 'Omborlararo Ko\'chirish' : 'O\'tkazmani Tahrirlash', 
-                    style: const TextStyle(fontWeight: FontWeight.bold)),
-                backgroundColor: Colors.transparent,
-                elevation: 0,
-              ),
-            ),
-          ),
-        ),
+      appBar: CustomAppBar(
+        title: widget.transfer == null ? 'Omborlararo Ko\'chirish' : 'O\'tkazmani Tahrirlash',
       ),
       body: Column(
         children: [

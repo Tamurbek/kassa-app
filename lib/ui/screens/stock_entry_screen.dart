@@ -9,6 +9,7 @@ import '../../services/excel_import_service.dart';
 import '../../providers/features/auth_provider.dart';
 import '../../providers/features/settings_provider.dart';
 import '../widgets/app_status_bar.dart';
+import '../widgets/custom_app_bar.dart';
 
 class StockEntryScreen extends StatefulWidget {
   final StockEntry? entry;
@@ -88,52 +89,36 @@ class _StockEntryScreenState extends State<StockEntryScreen> {
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(kToolbarHeight),
-        child: Container(
-          color: Theme.of(context).cardColor,
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 1400),
-              child: AppBar(
-                title: Text(widget.entry == null ? 'Yangi Kirim' : 'Kirimni Tahrirlash', 
-                    style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 20)),
-                centerTitle: false,
-                backgroundColor: Colors.transparent,
-                elevation: 0,
-                actions: [
-                  _buildAppBarAction(
-                    Icons.upload_file_rounded,
-                    'Excel',
-                    () {
-                      if (entryWarehouseId != null) {
-                        _importExcel();
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Avval omborni tanlang')));
-                      }
-                    },
-                    Colors.green.shade800,
-                  ),
-                  const SizedBox(width: 8),
-                  _buildAppBarAction(
-                    Icons.file_download_outlined,
-                    'Shablon',
-                    () => ExcelImportService.downloadStockEntryTemplate(context, inventory.activeProducts),
-                    Colors.amber.shade800,
-                  ),
-                  const SizedBox(width: 8),
-                  _buildAppBarAction(
-                    Icons.save_rounded,
-                    'Saqlash',
-                    _save,
-                    Theme.of(context).colorScheme.primary,
-                  ),
-                  const SizedBox(width: 16),
-                ],
-              ),
-            ),
+      appBar: CustomAppBar(
+        title: widget.entry == null ? 'Yangi Kirim' : 'Kirimni Tahrirlash',
+        actions: [
+          _buildAppBarAction(
+            Icons.upload_file_rounded,
+            'Excel',
+            () {
+              if (entryWarehouseId != null) {
+                _importExcel();
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Avval omborni tanlang')));
+              }
+            },
+            Colors.green.shade800,
           ),
-        ),
+          const SizedBox(width: 8),
+          _buildAppBarAction(
+            Icons.file_download_outlined,
+            'Shablon',
+            () => ExcelImportService.downloadStockEntryTemplate(context, inventory.activeProducts),
+            Colors.amber.shade800,
+          ),
+          const SizedBox(width: 8),
+          _buildAppBarAction(
+            Icons.save_rounded,
+            'Saqlash',
+            _save,
+            Theme.of(context).colorScheme.primary,
+          ),
+        ],
       ),
       body: Column(
         children: [

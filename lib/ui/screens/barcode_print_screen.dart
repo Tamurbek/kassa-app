@@ -6,6 +6,7 @@ import '../../providers/features/auth_provider.dart';
 import '../../models/models.dart';
 import '../../services/print_service.dart';
 import '../widgets/app_status_bar.dart';
+import '../widgets/custom_app_bar.dart';
 
 class BarcodePrintScreen extends StatefulWidget {
   final List<Map<String, dynamic>>? initialItems;
@@ -66,22 +67,8 @@ class _BarcodePrintScreenState extends State<BarcodePrintScreen> {
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(kToolbarHeight),
-        child: Container(
-          color: Theme.of(context).cardColor,
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 1400),
-              child: AppBar(
-                title: const Text('Shtrix-kodlarni chop etish', 
-                    style: TextStyle(fontWeight: FontWeight.bold)),
-                backgroundColor: Colors.transparent,
-                elevation: 0,
-              ),
-            ),
-          ),
-        ),
+      appBar: const CustomAppBar(
+        title: 'Shtrix-kodlarni chop etish',
       ),
       body: Column(
         children: [
