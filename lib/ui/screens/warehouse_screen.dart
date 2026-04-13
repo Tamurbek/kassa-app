@@ -73,7 +73,7 @@ class _WarehouseScreenState extends State<WarehouseScreen> {
                       constraints: const BoxConstraints(maxWidth: 1400),
                       child: Column(
                         children: [
-                          _buildHeader(inventory, isNarrow),
+                          _buildHeader(inventory, constraints.maxWidth),
                           TabBar(
                             isScrollable: true,
                             labelColor: Theme.of(context).colorScheme.primary,
@@ -183,7 +183,10 @@ class _WarehouseScreenState extends State<WarehouseScreen> {
     );
   }
 
-  Widget _buildHeader(InventoryProvider inventory, bool isNarrow) {
+  Widget _buildHeader(InventoryProvider inventory, double width) {
+    final bool showLabels = width > 1200;
+    final bool isNarrow = width < 850;
+
     return Container(
       padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
       decoration: BoxDecoration(
@@ -231,42 +234,42 @@ class _WarehouseScreenState extends State<WarehouseScreen> {
           if (!isNarrow) ...[
             _buildModernAction(
               icon: Icons.add_rounded,
-              label: 'Kirim',
+              label: showLabels ? 'Kirim' : null,
               onTap: () => Navigator.push(context, MaterialPageRoute(builder: (c) => const StockEntryScreen())),
               color: Theme.of(context).colorScheme.primary,
             ),
             const SizedBox(width: 8),
             _buildModernAction(
               icon: Icons.swap_horiz_rounded,
-              label: 'O\'tkazma',
+              label: showLabels ? 'O\'tkazma' : null,
               onTap: () => Navigator.push(context, MaterialPageRoute(builder: (c) => const StockTransferScreen())),
               color: Colors.indigo,
             ),
             const SizedBox(width: 8),
             _buildModernAction(
               icon: Icons.undo_rounded,
-              label: 'Vazvrat',
+              label: showLabels ? 'Vazvrat' : null,
               onTap: () => Navigator.push(context, MaterialPageRoute(builder: (c) => const ReturnScreen())),
               color: Colors.orange,
             ),
             const SizedBox(width: 8),
             _buildModernAction(
               icon: Icons.remove_circle_rounded,
-              label: 'Chiqit',
+              label: showLabels ? 'Chiqit' : null,
               onTap: () => Navigator.push(context, MaterialPageRoute(builder: (c) => const WriteOffScreen())),
               color: Colors.red,
             ),
             const SizedBox(width: 8),
             _buildModernAction(
               icon: Icons.fact_check_rounded,
-              label: 'Inventar',
+              label: showLabels ? 'Inventar' : null,
               onTap: () => Navigator.push(context, MaterialPageRoute(builder: (c) => const InventoryScreen())),
               color: Colors.teal,
             ),
             const SizedBox(width: 8),
             _buildModernAction(
               icon: Icons.qr_code_2_rounded,
-              label: 'Printer',
+              label: showLabels ? 'Printer' : null,
               onTap: () => Navigator.push(context, MaterialPageRoute(builder: (c) => const BarcodePrintScreen())),
               color: Colors.blueGrey,
             ),

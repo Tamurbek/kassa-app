@@ -89,6 +89,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildHeader(BuildContext context, SettingsProvider settings, SalesProvider sales, InventoryProvider inventory, double width, List<Sale> filteredSales) {
+    final bool showChip = width > 1100;
+    final bool showSubtitle = width > 700;
+
     return Container(
       padding: const EdgeInsets.all(24),
       color: Theme.of(context).cardColor,
@@ -106,13 +109,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     settings.organizationName ?? 'Dashboard',
                     style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900),
                   ),
-                  Text(
-                    'Savdo va ko\'rsatkichlar tahlili',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Theme.of(context).textTheme.bodySmall?.color,
+                  if (showSubtitle)
+                    Text(
+                      'Savdo va ko\'rsatkichlar tahlili',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Theme.of(context).textTheme.bodySmall?.color,
+                      ),
                     ),
-                  ),
                 ],
               ),
             ],
@@ -157,7 +161,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 8),
               IconButton(
                 onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const StockTransferScreen())),
                 icon: const Icon(Icons.swap_horiz_rounded),
@@ -169,7 +173,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 8),
               IconButton(
                 onPressed: () => _showReportsMenu(context, settings, sales, inventory),
                 icon: const Icon(Icons.print_outlined),
@@ -181,15 +185,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
               ),
-              if (width > 800) ...[
-                const SizedBox(width: 16),
+              if (showChip) ...[
+                const SizedBox(width: 12),
                 Chip(
                   label: Text(
-                    'Bugun: ${DateFormat('dd MMMM, yyyy').format(DateTime.now())}',
+                    'Bugun: ${DateFormat('dd MMMM').format(DateTime.now())}',
                   ),
                   avatar: Icon(
                     Icons.calendar_today,
-                    size: 16,
+                    size: 14,
                     color: Theme.of(context).colorScheme.primary,
                   ),
                   backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.05),

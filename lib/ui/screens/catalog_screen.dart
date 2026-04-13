@@ -130,13 +130,11 @@ class _CatalogScreenState extends State<CatalogScreen>
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final isNarrow = constraints.maxWidth < 700;
-
         return Scaffold(
           backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           body: Column(
             children: [
-              _buildHeader(isNarrow),
+              _buildHeader(constraints.maxWidth),
               TabBar(
                 controller: _tabController,
                 labelColor: Theme.of(context).colorScheme.primary,
@@ -165,7 +163,11 @@ class _CatalogScreenState extends State<CatalogScreen>
     );
   }
 
-  Widget _buildHeader(bool isNarrow) {
+  Widget _buildHeader(double width) {
+    final bool showLabels = width > 1100;
+    final bool showChips = width > 900;
+    final bool showTitle = width > 700;
+
     return Container(
       padding: const EdgeInsets.all(24),
       color: Theme.of(context).cardColor,
@@ -183,8 +185,8 @@ class _CatalogScreenState extends State<CatalogScreen>
                   fit: BoxFit.cover,
                 ),
               ),
-              if (!isNarrow) const SizedBox(width: 16),
-              if (!isNarrow)
+              if (showTitle) const SizedBox(width: 16),
+              if (showTitle)
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -195,16 +197,9 @@ class _CatalogScreenState extends State<CatalogScreen>
                         fontWeight: FontWeight.w900,
                       ),
                     ),
-                    Text(
-                      'Kategoriyalar va mahsulotlar boshqaruvi',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Theme.of(context).textTheme.bodySmall?.color,
-                      ),
-                    ),
                   ],
                 ),
-              if (!isNarrow) ...[
+              if (showChips) ...[
                 const SizedBox(width: 32),
                 _buildCountChip(
                   label: 'Mahsulotlar:',
@@ -224,28 +219,28 @@ class _CatalogScreenState extends State<CatalogScreen>
             children: [
               _buildActionButton(
                 icon: Icons.download_rounded,
-                label: isNarrow ? null : 'Shablon',
+                label: showLabels ? 'Shablon' : null,
                 onTap: () => ExcelImportService.downloadTemplate(context),
                 color: Colors.blueGrey,
               ),
               const SizedBox(width: 12),
               _buildActionButton(
                 icon: Icons.upload_file_rounded,
-                label: isNarrow ? null : 'Excel Import',
+                label: showLabels ? 'Excel Import' : null,
                 onTap: () => ExcelImportService.importFromExcel(context),
                 color: Colors.green,
               ),
               if (!context.watch<SettingsProvider>().isStarterDataLoaded)
                 _buildActionButton(
                   icon: Icons.auto_awesome_motion_rounded,
-                  label: isNarrow ? null : 'Katalogni to\'ldirish',
+                  label: showLabels ? 'Katalogni to\'ldirish' : null,
                   onTap: () => _loadStarterData(context),
                   color: Colors.orange,
                 ),
               const SizedBox(width: 12),
               _buildActionButton(
                 icon: Icons.add_circle_outline_rounded,
-                label: isNarrow ? null : 'Yangi qo\'shish',
+                label: showLabels ? 'Yangi qo\'shish' : null,
                 onTap: () {
                   if (_tabController.index == 0) {
                     Navigator.push(

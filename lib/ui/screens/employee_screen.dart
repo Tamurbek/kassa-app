@@ -12,27 +12,35 @@ class EmployeeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
 
-    return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: Column(
-        children: [
-          _buildHeader(context, auth),
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(24),
-              itemCount: auth.activeUsers.length,
-              itemBuilder: (context, index) {
-                final user = auth.activeUsers[index];
-                return _buildUserCard(context, auth, user);
-              },
-            ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return Scaffold(
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+          body: Column(
+            children: [
+              _buildHeader(context, auth, constraints.maxWidth),
+              Expanded(
+                child: ListView.builder(
+                  padding: const EdgeInsets.all(24),
+                  itemCount: auth.activeUsers.length,
+                  itemBuilder: (context, index) {
+                    final user = auth.activeUsers[index];
+                    return _buildUserCard(context, auth, user);
+                  },
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
-  Widget _buildHeader(BuildContext context, AuthProvider auth) {
+  Widget _buildHeader(BuildContext context, AuthProvider auth, double width) {
+    final bool showSubtitle = width > 700;
+    final bool showTitle = width > 400;
+    final bool showFullButtonLabel = width > 1000;
+
     return Container(
       padding: const EdgeInsets.all(24),
       color: Theme.of(context).cardColor,
@@ -50,35 +58,37 @@ class EmployeeScreen extends StatelessWidget {
                   fit: BoxFit.cover,
                 ),
               ),
-              SizedBox(width: 16),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Hodimlar',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w900,
-                      color: Theme.of(context).colorScheme.onSurface,
+              const SizedBox(width: 16),
+              if (showTitle)
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Hodimlar',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w900,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
                     ),
-                  ),
-                  Text(
-                    'Tizim foydalanuvchilarini boshqarish',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Theme.of(context).textTheme.bodySmall?.color,
-                    ),
-                  ),
-                ],
-              ),
+                    if (showSubtitle)
+                      Text(
+                        'Tizim foydalanuvchilarini boshqarish',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Theme.of(context).textTheme.bodySmall?.color,
+                        ),
+                      ),
+                  ],
+                ),
             ],
           ),
           Row(
             children: [
               ElevatedButton.icon(
                 onPressed: () => _showAddUserDialog(context, auth),
-                icon: Icon(Icons.person_add_alt_1_rounded),
-                label: Text('Yangi hodim'),
+                icon: const Icon(Icons.person_add_alt_1_rounded),
+                label: Text(showFullButtonLabel ? 'Yangi hodim' : 'Qo\'shish'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Theme.of(context).colorScheme.primary,
                   foregroundColor: Colors.white,
@@ -91,13 +101,14 @@ class EmployeeScreen extends StatelessWidget {
                   ),
                 ),
               ),
+              const SizedBox(width: 8),
+              IconButton(
+                icon: const Icon(Icons.menu_rounded, size: 28),
+                onPressed: onMenuPressed,
+                color: Theme.of(context).colorScheme.primary,
+                tooltip: 'Menyu',
+              ),
             ],
-          ),
-          IconButton(
-            icon: const Icon(Icons.menu_rounded, size: 28),
-            onPressed: onMenuPressed,
-            color: Theme.of(context).colorScheme.primary,
-            tooltip: 'Menyu',
           ),
         ],
       ),
