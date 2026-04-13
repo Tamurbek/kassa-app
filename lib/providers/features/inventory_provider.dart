@@ -89,6 +89,10 @@ class InventoryProvider extends ChangeNotifier {
     await reloadData();
   }
 
+  Future<List<Product>> getProductsPaged({int? limit, int? offset, String? search}) async {
+    return DatabaseService.getProducts(limit: limit, offset: offset, searchQuery: search);
+  }
+
   Future<void> saveRegister(Register register) async {
     await DatabaseService.saveRegister(register);
     await reloadData();

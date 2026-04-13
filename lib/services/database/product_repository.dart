@@ -3,42 +3,62 @@ import '../../models/models.dart';
 import 'database_helper.dart';
 
 class ProductRepository {
-  static Future<List<Product>> getProducts() async {
+  static Future<List<Product>> getProducts({int? limit, int? offset, String? searchQuery}) async {
     final db = await DatabaseHelper.database;
-    final List<Map<String, dynamic>> maps = await db.query(
-      'products', 
-      where: 'isDeleted = 0',
-      orderBy: 'name ASC'
-    );
     
-    List<Product> products = [];
-    for (var m in maps) {
-      final additionalBarcodes = await db.query(
-        'product_additional_barcodes',
-        where: 'productId = ?',
-        whereArgs: [m['id']],
-      );
-      
-      final stocksList = await db.query(
-        'stocks',
-        where: 'productId = ?',
-        whereArgs: [m['id']],
-      );
-      
-      Map<String, double> stocks = {};
-      for (var s in stocksList) {
-        stocks[s['warehouseId'] as String] = (s['quantity'] as num).toDouble();
-      }
+    String? whereClause = 'isDeleted = 0';
+    List<dynamic>? whereArgs;
 
+    if (searchQuery != null && searchQuery.isNotEmpty) {
+      whereClause += ' AND (name LIKE ? OR barcode LIKE ?)';
+      whereArgs = ['%$searchQuery%', '%$searchQuery%'];
+    }
+
+    final List<Map<String, dynamic>> maps = await db.query(
+      'products',
+      where: whereClause,
+      whereArgs: whereArgs,
+      orderBy: 'name ASC',
+      limit: limit,
+      offset: offset,
+    );
+
+    if (maps.isEmpty) return [];
+
+    final productIds = maps.map((m) => "'${m['id']}'").join(',');
+
+    // Fetch all barcodes for these products in ONE query
+    final List<Map<String, dynamic>> allBarcodes = await db.rawQuery(
+      'SELECT * FROM product_additional_barcodes WHERE productId IN ($productIds)'
+    );
+
+    // Fetch all stocks for these products in ONE query
+    final List<Map<String, dynamic>> allStocks = await db.rawQuery(
+      'SELECT * FROM stocks WHERE productId IN ($productIds)'
+    );
+
+    // Categorize data by productId for O(1) lookup
+    Map<String, List<String>> barcodeMap = {};
+    for (var b in allBarcodes) {
+      final pid = b['productId'] as String;
+      barcodeMap.putIfAbsent(pid, () => []).add(b['barcode'] as String);
+    }
+
+    Map<String, Map<String, double>> stockMap = {};
+    for (var s in allStocks) {
+      final pid = s['productId'] as String;
+      stockMap.putIfAbsent(pid, () => {})[s['warehouseId'] as String] = (s['quantity'] as num).toDouble();
+    }
+
+    return maps.map((m) {
+      final pid = m['id'] as String;
       final productMap = Map<String, dynamic>.from(m);
-      productMap['additionalBarcodes'] = additionalBarcodes.map((e) => e['barcode']).toList();
-      productMap['stocks'] = stocks;
+      productMap['additionalBarcodes'] = barcodeMap[pid] ?? [];
+      productMap['stocks'] = stockMap[pid] ?? {};
       productMap['isDeleted'] = m['isDeleted'] == 1;
       productMap['trackStock'] = m['trackStock'] == 1;
-      
-      products.add(Product.fromJson(productMap));
-    }
-    return products;
+      return Product.fromJson(productMap);
+    }).toList();
   }
 
   static Future<void> saveProduct(Product product) async {

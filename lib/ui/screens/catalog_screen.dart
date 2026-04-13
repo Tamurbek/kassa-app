@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/features/inventory_provider.dart';
@@ -19,7 +20,16 @@ class _CatalogScreenState extends State<CatalogScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final TextEditingController _searchController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
   String _searchText = '';
+  
+  List<Product> _products = [];
+  int _offset = 0;
+  bool _hasMore = true;
+  bool _isLoadingMore = false;
+  final int _limit = 50;
+  
+  Timer? _debounce;
 
   @override
   void initState() {
@@ -29,12 +39,68 @@ class _CatalogScreenState extends State<CatalogScreen>
       if (_tabController.indexIsChanging) return;
       setState(() {});
     });
+    
+    _scrollController.addListener(_onScroll);
+    
+    // Initial load
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadProducts(reset: true);
+    });
+
+    // Listen to DB changes to refresh
+    context.read<InventoryProvider>().addListener(_handleInventoryUpdate);
+  }
+
+  void _handleInventoryUpdate() {
+    if (mounted) _loadProducts(reset: true);
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200) {
+      if (!_isLoadingMore && _hasMore && _tabController.index == 0) {
+        _loadProducts();
+      }
+    }
+  }
+
+  Future<void> _loadProducts({bool reset = false}) async {
+    if (reset) {
+      _offset = 0;
+      _hasMore = true;
+      _products = [];
+    }
+
+    if (!_hasMore || _isLoadingMore) return;
+
+    setState(() => _isLoadingMore = true);
+
+    try {
+      final newProducts = await context.read<InventoryProvider>().getProductsPaged(
+        limit: _limit,
+        offset: _offset,
+        search: _searchText,
+      );
+
+      if (mounted) {
+        setState(() {
+          _products.addAll(newProducts);
+          _offset += _limit;
+          _hasMore = newProducts.length == _limit;
+          _isLoadingMore = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) setState(() => _isLoadingMore = false);
+    }
   }
 
   @override
   void dispose() {
     _tabController.dispose();
     _searchController.dispose();
+    _scrollController.dispose();
+    _debounce?.cancel();
+    context.read<InventoryProvider>().removeListener(_handleInventoryUpdate);
     super.dispose();
   }
 
@@ -150,7 +216,7 @@ class _CatalogScreenState extends State<CatalogScreen>
                       MaterialPageRoute(
                         builder: (_) => const ProductFormScreen(),
                       ),
-                    );
+                    ).then((_) => _loadProducts(reset: true));
                   } else {
                     final inventory = context.read<InventoryProvider>();
                     _showCategoryDialog(inventory, null);
@@ -176,7 +242,15 @@ class _CatalogScreenState extends State<CatalogScreen>
       color: Theme.of(context).cardColor.withOpacity(0.5),
       child: TextField(
         controller: _searchController,
-        onChanged: (val) => setState(() => _searchText = val.toLowerCase()),
+        onChanged: (val) {
+          if (_debounce?.isActive ?? false) _debounce?.cancel();
+          _debounce = Timer(const Duration(milliseconds: 500), () {
+            if (mounted) {
+              setState(() => _searchText = val.toLowerCase());
+              if (_tabController.index == 0) _loadProducts(reset: true);
+            }
+          });
+        },
         decoration: InputDecoration(
           hintText: _tabController.index == 0
               ? 'Mahsulot nomi yoki shtrix-kodi bo\'yicha qidirish...'
@@ -188,6 +262,7 @@ class _CatalogScreenState extends State<CatalogScreen>
                   onPressed: () {
                     _searchController.clear();
                     setState(() => _searchText = '');
+                    if (_tabController.index == 0) _loadProducts(reset: true);
                   },
                 )
               : null,
@@ -227,43 +302,52 @@ class _CatalogScreenState extends State<CatalogScreen>
   }
 
   Widget _buildProductsTab() {
-    return Consumer<InventoryProvider>(
-      builder: (context, inventory, child) {
-        final products = inventory.activeProducts.where((p) {
-          if (_searchText.isEmpty) return true;
-          return p.name.toLowerCase().contains(_searchText) ||
-              p.barcode.toLowerCase().contains(_searchText);
-        }).toList();
+    if (_products.isEmpty && _isLoadingMore) {
+      return const Center(child: CircularProgressIndicator());
+    }
 
-        if (products.isEmpty) {
-          return Center(
-            child: Text(_searchText.isEmpty
-                ? 'Mahsulotlar mavjud emas'
-                : 'Qidiruv bo\'yicha mahsulot topilmadi'),
+    if (_products.isEmpty) {
+      return Center(
+        child: Text(_searchText.isEmpty
+            ? 'Mahsulotlar mavjud emas'
+            : 'Qidiruv bo\'yicha mahsulot topilmadi'),
+      );
+    }
+
+    final inventory = context.read<InventoryProvider>();
+
+    return ListView.builder(
+      controller: _scrollController,
+      padding: const EdgeInsets.all(24),
+      itemCount: _products.length + (_hasMore ? 1 : 0),
+      itemBuilder: (context, index) {
+        if (index == _products.length) {
+          return const Center(
+            child: Padding(
+              padding: EdgeInsets.all(16.0),
+              child: CircularProgressIndicator(),
+            ),
           );
         }
 
-        return ListView.builder(
-          padding: const EdgeInsets.all(24),
-          itemCount: products.length,
-          itemBuilder: (context, index) {
-            final p = products[index];
-            return _buildListItem(
-              title: p.name,
-              subtitle: 'Shtrix: ${p.barcode}',
-              onEdit: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => ProductFormScreen(product: p),
-                ),
-              ),
-              onDelete: () => _confirmDelete(
-                context,
-                'Mahsulotni o\'chirmoqchimisiz?',
-                () => inventory.deleteProduct(p.id),
-              ),
-            );
-          },
+        final p = _products[index];
+        return _buildListItem(
+          title: p.name,
+          subtitle: 'Shtrix: ${p.barcode}',
+          onEdit: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => ProductFormScreen(product: p),
+            ),
+          ).then((_) => _loadProducts(reset: true)),
+          onDelete: () => _confirmDelete(
+            context,
+            'Mahsulotni o\'chirmoqchimisiz?',
+            () async {
+              await inventory.deleteProduct(p.id);
+              _loadProducts(reset: true);
+            },
+          ),
         );
       },
     );
@@ -410,7 +494,7 @@ class _CatalogScreenState extends State<CatalogScreen>
       if (context.mounted) {
         Navigator.pop(context); // Close indicator
         await context.read<SettingsProvider>().markStarterDataAsLoaded();
-        await context.read<InventoryProvider>().reloadData(skipRecalculate: true);
+        // The listener will automatically trigger _loadProducts(reset: true)
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('$count ta real mahsulot muvaffaqiyatli yuklandi!'),
