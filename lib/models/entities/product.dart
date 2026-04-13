@@ -13,6 +13,10 @@ class Product {
   final bool isDeleted;
   final String unit; // 'dona', 'kg', 'litr', etc.
   final bool trackStock; // NEW: Should this item subtract from warehouse?
+  
+  // Performance optimization: pre-calculate normalized strings for search
+  late final String normalizedName;
+  late final String normalizedBarcode;
 
   Product({
     required this.id,
@@ -27,7 +31,19 @@ class Product {
     this.isDeleted = false,
     this.unit = 'dona',
     this.trackStock = true,
-  });
+  }) {
+    normalizedName = _normalize(name);
+    normalizedBarcode = _normalize(barcode);
+  }
+
+  static String _normalize(String text) {
+    return text
+        .toLowerCase()
+        .replaceAll('\u02bb', "'")
+        .replaceAll('\u02bc', "'")
+        .replaceAll('\u2018', "'")
+        .replaceAll('\u2019', "'");
+  }
 
   double get stock => stocks.values.fold(0.0, (sum, val) => sum + val);
 

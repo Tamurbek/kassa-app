@@ -367,8 +367,8 @@ class _POSScreenState extends State<POSScreen> {
           selectedCategory == 'Barchasi' ||
           (categoryName == selectedCategory);
       final matchesSearch = searchQuery.isEmpty ||
-          _normalize(p.name ?? '').contains(searchQuery) ||
-          _normalize(p.barcode ?? '').contains(searchQuery);
+          p.normalizedName.contains(searchQuery) ||
+          p.normalizedBarcode.contains(searchQuery);
       return matchesCategory && matchesSearch;
     }).toList();
 

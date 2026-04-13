@@ -9,7 +9,7 @@ class DatabaseHelper {
   static Future<Database>? _initFuture;
   static bool _factoryInitialized = false;
 
-  static const int databaseVersion = 24;
+  static const int databaseVersion = 25;
   static const String databaseName = 'simple_sale.db';
 
   static Future<Database> get database async {
@@ -318,9 +318,22 @@ class DatabaseHelper {
         isSynced INTEGER NOT NULL DEFAULT 0
       )
     ''');
+    await db.execute('CREATE INDEX idx_products_name ON products (name)');
+    await db.execute('CREATE INDEX idx_products_barcode ON products (barcode)');
+    await db.execute('CREATE INDEX idx_products_deleted ON products (isDeleted)');
+    await db.execute('CREATE INDEX idx_categories_deleted ON categories (isDeleted)');
+    await db.execute('CREATE INDEX idx_sales_date ON sales (date)');
+    await db.execute('CREATE INDEX idx_stock_entries_date ON stock_entries (date)');
   }
 
   static Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 25) {
+      try { await db.execute('CREATE INDEX IF NOT EXISTS idx_products_name ON products (name)'); } catch(_) {}
+      try { await db.execute('CREATE INDEX IF NOT EXISTS idx_products_barcode ON products (barcode)'); } catch(_) {}
+      try { await db.execute('CREATE INDEX IF NOT EXISTS idx_products_deleted ON products (isDeleted)'); } catch(_) {}
+      try { await db.execute('CREATE INDEX IF NOT EXISTS idx_categories_deleted ON categories (isDeleted)'); } catch(_) {}
+      try { await db.execute('CREATE INDEX IF NOT EXISTS idx_sales_date ON sales (date)'); } catch(_) {}
+    }
     if (oldVersion < 2) {
       await db.execute('''
         CREATE TABLE IF NOT EXISTS stock_entries (

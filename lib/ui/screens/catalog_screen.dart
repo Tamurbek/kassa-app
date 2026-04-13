@@ -27,6 +27,7 @@ class _CatalogScreenState extends State<CatalogScreen>
   int _offset = 0;
   bool _hasMore = true;
   bool _isLoadingMore = false;
+  bool _isSearching = false;
   final int _limit = 50;
   
   Timer? _debounce;
@@ -52,7 +53,10 @@ class _CatalogScreenState extends State<CatalogScreen>
   }
 
   void _handleInventoryUpdate() {
-    if (mounted) _loadProducts(reset: true);
+    // Only auto-reload if the user is NOT actively searching
+    if (mounted && _searchText.isEmpty) {
+      _loadProducts(reset: true);
+    }
   }
 
   void _onScroll() {
@@ -67,12 +71,15 @@ class _CatalogScreenState extends State<CatalogScreen>
     if (reset) {
       _offset = 0;
       _hasMore = true;
-      _products = [];
+      // We don't clear _products here to avoid the "flicker"
     }
 
     if (!_hasMore || _isLoadingMore) return;
 
-    setState(() => _isLoadingMore = true);
+    setState(() {
+      _isLoadingMore = true;
+      if (reset) _isSearching = true;
+    });
 
     try {
       final newProducts = await context.read<InventoryProvider>().getProductsPaged(
@@ -83,14 +90,22 @@ class _CatalogScreenState extends State<CatalogScreen>
 
       if (mounted) {
         setState(() {
-          _products.addAll(newProducts);
+          if (reset) {
+            _products = newProducts;
+          } else {
+            _products.addAll(newProducts);
+          }
           _offset += _limit;
           _hasMore = newProducts.length == _limit;
           _isLoadingMore = false;
+          _isSearching = false;
         });
       }
     } catch (e) {
-      if (mounted) setState(() => _isLoadingMore = false);
+      if (mounted) setState(() {
+        _isLoadingMore = false;
+        _isSearching = false;
+      });
     }
   }
 
@@ -236,49 +251,54 @@ class _CatalogScreenState extends State<CatalogScreen>
     );
   }
 
-  Widget _buildSearchBar() {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
-      color: Theme.of(context).cardColor.withOpacity(0.5),
-      child: TextField(
-        controller: _searchController,
-        onChanged: (val) {
-          if (_debounce?.isActive ?? false) _debounce?.cancel();
-          _debounce = Timer(const Duration(milliseconds: 500), () {
-            if (mounted) {
-              setState(() => _searchText = val.toLowerCase());
-              if (_tabController.index == 0) _loadProducts(reset: true);
-            }
-          });
-        },
-        decoration: InputDecoration(
-          hintText: _tabController.index == 0
-              ? 'Mahsulot nomi yoki shtrix-kodi bo\'yicha qidirish...'
-              : 'Kategoriya nomi bo\'yicha qidirish...',
-          prefixIcon: const Icon(Icons.search_rounded),
-          suffixIcon: _searchText.isNotEmpty
-              ? IconButton(
-                  icon: const Icon(Icons.close_rounded),
-                  onPressed: () {
-                    _searchController.clear();
-                    setState(() => _searchText = '');
-                    if (_tabController.index == 0) _loadProducts(reset: true);
-                  },
-                )
-              : null,
-          filled: true,
-          fillColor: Theme.of(context).scaffoldBackgroundColor,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: Theme.of(context).dividerColor),
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+          color: Theme.of(context).cardColor.withOpacity(0.5),
+          child: TextField(
+            controller: _searchController,
+            onChanged: (val) {
+              if (_debounce?.isActive ?? false) _debounce?.cancel();
+              _debounce = Timer(const Duration(milliseconds: 500), () {
+                if (mounted) {
+                  setState(() => _searchText = val.toLowerCase());
+                  if (_tabController.index == 0) _loadProducts(reset: true);
+                }
+              });
+            },
+            decoration: InputDecoration(
+              hintText: _tabController.index == 0
+                  ? 'Mahsulot nomi yoki shtrix-kodi bo\'yicha qidirish...'
+                  : 'Kategoriya nomi bo\'yicha qidirish...',
+              prefixIcon: const Icon(Icons.search_rounded),
+              suffixIcon: _searchText.isNotEmpty
+                  ? IconButton(
+                      icon: const Icon(Icons.close_rounded),
+                      onPressed: () {
+                        _searchController.clear();
+                        setState(() => _searchText = '');
+                        if (_tabController.index == 0) _loadProducts(reset: true);
+                      },
+                    )
+                  : null,
+              filled: true,
+              fillColor: Theme.of(context).scaffoldBackgroundColor,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: Theme.of(context).dividerColor),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: Theme.of(context).dividerColor),
+              ),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            ),
           ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: Theme.of(context).dividerColor),
-          ),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         ),
-      ),
+        if (_isSearching)
+          const LinearProgressIndicator(minHeight: 2),
+      ],
     );
   }
 
@@ -302,7 +322,7 @@ class _CatalogScreenState extends State<CatalogScreen>
   }
 
   Widget _buildProductsTab() {
-    if (_products.isEmpty && _isLoadingMore) {
+    if (_products.isEmpty && _isSearching) {
       return const Center(child: CircularProgressIndicator());
     }
 

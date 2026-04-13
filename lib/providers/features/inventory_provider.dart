@@ -15,18 +15,22 @@ class InventoryProvider extends ChangeNotifier {
   
   bool _isLoading = false;
   bool get isLoading => _isLoading;
-  StreamSubscription<void>? _dbSubscription;
+  Timer? _reloadDebounce;
 
   InventoryProvider() {
     _dbSubscription = DatabaseService.dbUpdateStream.stream.listen((_) {
-      debugPrint("InventoryProvider: Background data change detected. Reloading...");
-      reloadData();
+      debugPrint("InventoryProvider: Background data change detected. Debouncing reload...");
+      if (_reloadDebounce?.isActive ?? false) _reloadDebounce?.cancel();
+      _reloadDebounce = Timer(const Duration(milliseconds: 300), () {
+        reloadData(skipRecalculate: true); // Background reloads shouldn't hit the heavy stock calculation
+      });
     });
   }
 
   @override
   void dispose() {
     _dbSubscription?.cancel();
+    _reloadDebounce?.cancel();
     super.dispose();
   }
 
