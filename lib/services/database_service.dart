@@ -436,18 +436,21 @@ class DatabaseService {
     triggerUpdate(skipPush: true);
   }
   static Future<Sale?> getSaleById(String id) async {
-    final sales = await SaleRepository.getSales();
-    return sales.where((s) => s.id == id).firstOrNull;
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query('sales', where: 'id = ?', whereArgs: [id]);
+    if (maps.isEmpty) return null;
+    
+    final itemsMap = await db.query('sale_items', where: 'saleId = ?', whereArgs: [id]);
+    final saleMap = Map<String, dynamic>.from(maps.first);
+    saleMap['items'] = itemsMap;
+    return Sale.fromJson(saleMap);
   }
 
-  static Future<Product?> getProductById(String id) async {
-    final products = await ProductRepository.getProducts();
-    return products.where((p) => p.id == id).firstOrNull;
-  }
+  static Future<Product?> getProductById(String id) => ProductRepository.getProductById(id);
 
   static Future<Map<String, double>> getProductStocks(String productId) async {
-    final products = await ProductRepository.getProducts();
-    final product = products.where((p) => p.id == productId).firstOrNull;
-    return product?.stocks ?? {};
+    final db = await database;
+    final List<Map<String, dynamic>> stocks = await db.query('stocks', where: 'productId = ?', whereArgs: [productId]);
+    return {for (var s in stocks) s['warehouseId'].toString(): (s['quantity'] as num).toDouble()};
   }
 }

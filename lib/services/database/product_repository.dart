@@ -85,6 +85,24 @@ class ProductRepository {
     });
   }
 
+  static Future<Product?> getProductById(String id) async {
+    final db = await DatabaseHelper.database;
+    final List<Map<String, dynamic>> maps = await db.query('products', where: 'id = ?', whereArgs: [id]);
+    if (maps.isEmpty) return null;
+
+    final m = maps.first;
+    final List<Map<String, dynamic>> barcodes = await db.query('product_additional_barcodes', where: 'productId = ?', whereArgs: [id]);
+    final List<Map<String, dynamic>> stocks = await db.query('stocks', where: 'productId = ?', whereArgs: [id]);
+
+    final productMap = Map<String, dynamic>.from(m);
+    productMap['additionalBarcodes'] = barcodes.map((b) => b['barcode'] as String).toList();
+    productMap['stocks'] = {for (var s in stocks) s['warehouseId'].toString(): (s['quantity'] as num).toDouble()};
+    productMap['isDeleted'] = m['isDeleted'] == 1;
+    productMap['trackStock'] = m['trackStock'] == 1;
+
+    return Product.fromJson(productMap);
+  }
+
   static Future<void> deleteProduct(String id) async {
     final db = await DatabaseHelper.database;
     await db.update(

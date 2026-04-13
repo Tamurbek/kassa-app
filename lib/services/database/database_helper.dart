@@ -9,7 +9,7 @@ class DatabaseHelper {
   static Future<Database>? _initFuture;
   static bool _factoryInitialized = false;
 
-  static const int databaseVersion = 25;
+  static const int databaseVersion = 26;
   static const String databaseName = 'simple_sale.db';
 
   static Future<Database> get database async {
@@ -324,6 +324,8 @@ class DatabaseHelper {
     await db.execute('CREATE INDEX idx_categories_deleted ON categories (isDeleted)');
     await db.execute('CREATE INDEX idx_sales_date ON sales (date)');
     await db.execute('CREATE INDEX idx_stock_entries_date ON stock_entries (date)');
+    await db.execute('CREATE INDEX idx_additional_barcodes ON product_additional_barcodes (barcode)');
+    await db.execute('CREATE INDEX idx_stocks_product ON stocks (productId)');
   }
 
   static Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
