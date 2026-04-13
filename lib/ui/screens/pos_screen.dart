@@ -980,13 +980,13 @@ class _POSScreenState extends State<POSScreen> {
         title: const Text('Kutayotgan savdolar'),
         content: SizedBox(
           width: 400,
-          child: sales.suspendedSales.isEmpty
+          child: sales.suspendedSales.where((s) => s.id != sales.resumedSuspendedId).isEmpty
               ? const Center(child: Padding(padding: EdgeInsets.all(20), child: Text('Kutayotgan savdolar yo\'q')))
               : ListView.builder(
                   shrinkWrap: true,
-                  itemCount: sales.suspendedSales.length,
+                  itemCount: sales.suspendedSales.where((s) => s.id != sales.resumedSuspendedId).length,
                   itemBuilder: (context, index) {
-                    final s = sales.suspendedSales[index];
+                    final s = sales.suspendedSales.where((s) => s.id != sales.resumedSuspendedId).toList()[index];
                     return ListTile(
                       title: Text(s.note != null && s.note!.isNotEmpty ? s.note! : 'Nomsiz savdo #${s.id.substring(s.id.length - 4)}'),
                       subtitle: Text('${DateFormat('HH:mm').format(s.date)} • ${s.items.length} ta mahsulot • ${NumberFormat.currency(locale: 'uz_UZ', symbol: '', decimalDigits: 0).format(s.total)}'),

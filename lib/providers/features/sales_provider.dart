@@ -13,6 +13,9 @@ class SalesProvider extends ChangeNotifier {
   double _cartDiscount = 0.0;
   String? _cartCustomerId;
   String? _cartCustomerName;
+  String? _resumedSuspendedId;
+
+  String? get resumedSuspendedId => _resumedSuspendedId;
 
   double get cartDiscount => _cartDiscount;
   String? get cartCustomerId => _cartCustomerId;
@@ -210,6 +213,7 @@ class SalesProvider extends ChangeNotifier {
     _cartDiscount = 0.0;
     _cartCustomerId = null;
     _cartCustomerName = null;
+    _resumedSuspendedId = null;
     notifyListeners();
   }
 
@@ -234,17 +238,22 @@ class SalesProvider extends ChangeNotifier {
       note: note,
     );
     await DatabaseService.saveSuspendedSale(suspendedSale);
+
+    // If this was a resumed sale, delete the OLD record now
+    if (_resumedSuspendedId != null) {
+      await DatabaseService.deleteSuspendedSale(_resumedSuspendedId!);
+      _resumedSuspendedId = null;
+    }
+
     clearCart();
     await reloadSuspendedSales();
   }
 
   Future<void> resumeSuspendedSale(SuspendedSale suspendedSale) async {
-    // If current cart is not empty, suspend it first? 
-    // Or just merge? Usually, resuming replaces or merges. 
-    // Let's replace for simplicity, but maybe alert user.
+    // Fill cart with suspended items
     cart = List.from(suspendedSale.items);
-    await DatabaseService.deleteSuspendedSale(suspendedSale.id);
-    await reloadSuspendedSales();
+    _resumedSuspendedId = suspendedSale.id;
+    // We DON'T delete from DB yet, to prevent loss if app crashes or user backs out
     notifyListeners();
   }
 
@@ -277,6 +286,13 @@ class SalesProvider extends ChangeNotifier {
     );
 
     await DatabaseService.saveSale(sale);
+    
+    // If this was a resumed sale, delete it from suspended table now
+    if (_resumedSuspendedId != null) {
+      await DatabaseService.deleteSuspendedSale(_resumedSuspendedId!);
+      _resumedSuspendedId = null;
+    }
+    
     clearCart();
     await reloadSalesData();
   }
