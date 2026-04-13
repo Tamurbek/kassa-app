@@ -251,6 +251,7 @@ class _CatalogScreenState extends State<CatalogScreen>
     );
   }
 
+  Widget _buildSearchBar() {
     return Column(
       children: [
         Container(

@@ -16,6 +16,7 @@ class InventoryProvider extends ChangeNotifier {
   bool _isLoading = false;
   bool get isLoading => _isLoading;
   Timer? _reloadDebounce;
+  StreamSubscription<void>? _dbSubscription;
 
   InventoryProvider() {
     _dbSubscription = DatabaseService.dbUpdateStream.stream.listen((_) {
