@@ -70,6 +70,11 @@ class _StockTransferScreenState extends State<StockTransferScreen> {
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: CustomAppBar(
         title: widget.transfer == null ? 'Omborlararo Ko\'chirish' : 'O\'tkazmani Tahrirlash',
+        leading: IconButton(
+          onPressed: () => Navigator.pop(context),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded),
+          color: Theme.of(context).colorScheme.primary,
+        ),
       ),
       body: Column(
         children: [

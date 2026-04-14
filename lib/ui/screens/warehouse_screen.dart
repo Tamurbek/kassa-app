@@ -12,6 +12,7 @@ import 'inventory_screen.dart';
 import 'barcode_print_screen.dart';
 import 'stock_transfer_screen.dart';
 import '../../core/utils/responsive.dart';
+import '../../providers/features/navigation_provider.dart';
 
 class WarehouseScreen extends StatefulWidget {
   final VoidCallback? onMenuPressed;
@@ -225,6 +226,21 @@ class _WarehouseScreenState extends State<WarehouseScreen> {
       ),
       child: Row(
         children: [
+          if (Navigator.canPop(context)) ...[
+            IconButton(
+              onPressed: () => Navigator.pop(context),
+              icon: const Icon(Icons.arrow_back_ios_new_rounded),
+              color: Theme.of(context).colorScheme.primary,
+            ),
+            const SizedBox(width: 8),
+          ] else ...[
+            IconButton(
+              onPressed: () => context.read<NavigationProvider>().openSessions(),
+              icon: const Icon(Icons.arrow_back_ios_new_rounded),
+              color: Theme.of(context).colorScheme.primary,
+            ),
+            const SizedBox(width: 8),
+          ],
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(

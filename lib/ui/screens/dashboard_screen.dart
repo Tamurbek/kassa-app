@@ -8,6 +8,7 @@ import '../../models/models.dart';
 import '../../services/update_service.dart';
 import '../../services/print_service.dart';
 import '../dialogs/app_update_dialog.dart';
+import '../../providers/features/navigation_provider.dart';
 import 'stock_transfer_screen.dart';
 
 class DashboardScreen extends StatefulWidget {

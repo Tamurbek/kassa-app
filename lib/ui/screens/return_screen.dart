@@ -90,8 +90,13 @@ class _ReturnScreenState extends State<ReturnScreen> {
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: CustomAppBar(
         title: widget.saleReturn == null ? 'Yangi Vazvrat' : 'Vazvratni Tahrirlash',
+        leading: IconButton(
+          onPressed: () => Navigator.pop(context),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded),
+          color: Theme.of(context).colorScheme.primary,
+        ),
         actions: [
-          IconButton(icon: const Icon(Icons.save_rounded), onPressed: _save),
+          IconButton(icon: const Icon(Icons.save_rounded, color: Colors.orange), onPressed: _save),
         ],
       ),
       body: Column(

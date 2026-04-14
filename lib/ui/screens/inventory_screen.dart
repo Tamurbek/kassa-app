@@ -98,8 +98,13 @@ class _InventoryScreenState extends State<InventoryScreen> {
         title: widget.inventory == null
             ? 'Yangi Inventarizatsiya'
             : 'Inventarizatsiyani Tahrirlash',
+        leading: IconButton(
+          onPressed: () => Navigator.pop(context),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded),
+          color: Theme.of(context).colorScheme.primary,
+        ),
         actions: [
-          IconButton(icon: const Icon(Icons.save), onPressed: _save),
+          IconButton(icon: const Icon(Icons.save, color: Colors.teal), onPressed: _save),
         ],
       ),
       body: Column(

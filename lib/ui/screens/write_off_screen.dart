@@ -84,8 +84,13 @@ class _WriteOffScreenState extends State<WriteOffScreen> {
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: CustomAppBar(
         title: widget.writeOff == null ? 'Yangi Chiqit' : 'Chiqitni Tahrirlash',
+        leading: IconButton(
+          onPressed: () => Navigator.pop(context),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded),
+          color: Theme.of(context).colorScheme.primary,
+        ),
         actions: [
-          IconButton(icon: const Icon(Icons.save_rounded), onPressed: _save),
+          IconButton(icon: const Icon(Icons.save_rounded, color: Colors.red), onPressed: _save),
         ],
       ),
       body: Column(

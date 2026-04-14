@@ -94,6 +94,11 @@ class _StockEntryScreenState extends State<StockEntryScreen> {
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: CustomAppBar(
         title: widget.entry == null ? 'Yangi Kirim' : 'Kirimni Tahrirlash',
+        leading: IconButton(
+          onPressed: () => Navigator.pop(context),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded),
+          color: Theme.of(context).colorScheme.primary,
+        ),
         actions: [
           _buildAppBarAction(Icons.upload_file_rounded, 'Excel', () {
             if (entryWarehouseId != null) _importExcel();

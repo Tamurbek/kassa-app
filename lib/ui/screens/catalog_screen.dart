@@ -8,6 +8,7 @@ import 'product_form_screen.dart';
 import '../../services/excel_import_service.dart';
 import '../../services/starter_data_service.dart';
 import '../../core/utils/responsive.dart';
+import '../../providers/features/navigation_provider.dart';
 
 class CatalogScreen extends StatefulWidget {
   final VoidCallback? onMenuPressed;
@@ -181,15 +182,21 @@ class _CatalogScreenState extends State<CatalogScreen>
         children: [
           Row(
             children: [
-              if (Navigator.canPop(context))
-                Padding(
-                  padding: const EdgeInsets.only(right: 8.0),
-                  child: IconButton(
-                    icon: const Icon(Icons.arrow_back_rounded),
-                    onPressed: () => Navigator.pop(context),
-                    tooltip: 'Orqaga',
-                  ),
+              if (Navigator.canPop(context)) ...[
+                IconButton(
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.arrow_back_ios_new_rounded),
+                  color: Theme.of(context).colorScheme.primary,
                 ),
+                const SizedBox(width: 8),
+              ] else ...[
+                IconButton(
+                  onPressed: () => context.read<NavigationProvider>().openSessions(),
+                  icon: const Icon(Icons.arrow_back_ios_new_rounded),
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                const SizedBox(width: 8),
+              ],
               ClipRRect(
                 borderRadius: BorderRadius.circular(12),
                 child: Image.asset(

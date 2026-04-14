@@ -133,79 +133,81 @@ class _POSScreenState extends State<POSScreen> {
             ),
             content: SizedBox(
               width: 320,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).dividerColor.withOpacity(0.05),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: Colors.blue.withOpacity(0.2)),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            controller.text.isEmpty ? '0' : controller.text,
-                            textAlign: TextAlign.right,
-                            style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w900, color: Colors.blue),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                     Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).dividerColor.withOpacity(0.05),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.blue.withOpacity(0.2)),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              controller.text.isEmpty ? '0' : controller.text,
+                              textAlign: TextAlign.right,
+                              style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: Colors.blue),
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(unit, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  GridView.count(
-                    shrinkWrap: true,
-                    crossAxisCount: 3,
-                    mainAxisSpacing: 10,
-                    crossAxisSpacing: 10,
-                    childAspectRatio: 1.4,
-                    children: [
-                      for (var i = 1; i <= 9; i++) _buildDialogNumBtn(i.toString(), onNumPressed),
-                      _buildDialogNumBtn('.', onNumPressed, color: Colors.blue.shade50, textColor: Colors.blue),
-                      _buildDialogNumBtn('0', onNumPressed),
-                      _buildDialogNumBtn('back', onNumPressed, icon: Icons.backspace_outlined, color: Colors.grey.shade100),
-                    ],
-                  ),
-                  if (unit == 'kg') ...[
-                    const SizedBox(height: 16),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 50,
-                      child: ElevatedButton.icon(
-                        onPressed: () async {
-                          try {
-                            final settings = context.read<SettingsProvider>();
-                            final weight = await ScaleService().readWeight(
-                              port: settings.scalePort,
-                              baudRate: settings.scaleBaudRate,
-                              protocol: settings.scaleProtocol,
-                            );
-                            setDialogState(() {
-                              controller.text = weight.toStringAsFixed(3);
-                            });
-                          } catch (e) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Tarozidan o\'qib bo\'lmadi: $e')),
-                            );
-                          }
-                        },
-                        icon: const Icon(Icons.scale_rounded),
-                        label: const Text('TAROZIDAN OLISH', style: TextStyle(fontWeight: FontWeight.bold)),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.orange.shade700,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        ),
+                          const SizedBox(width: 8),
+                          Text(unit, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
+                        ],
                       ),
                     ),
+                    const SizedBox(height: 16),
+                    GridView.count(
+                      shrinkWrap: true,
+                      crossAxisCount: 3,
+                      mainAxisSpacing: 8,
+                      crossAxisSpacing: 8,
+                      childAspectRatio: 1.6,
+                      children: [
+                        for (var i = 1; i <= 9; i++) _buildDialogNumBtn(i.toString(), onNumPressed),
+                        _buildDialogNumBtn('.', onNumPressed, color: Colors.blue.shade50, textColor: Colors.blue),
+                        _buildDialogNumBtn('0', onNumPressed),
+                        _buildDialogNumBtn('back', onNumPressed, icon: Icons.backspace_outlined, color: Colors.grey.shade100),
+                      ],
+                    ),
+                    if (unit == 'kg') ...[
+                      const SizedBox(height: 12),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 44,
+                        child: ElevatedButton.icon(
+                          onPressed: () async {
+                            try {
+                              final settings = context.read<SettingsProvider>();
+                              final weight = await ScaleService().readWeight(
+                                port: settings.scalePort,
+                                baudRate: settings.scaleBaudRate,
+                                protocol: settings.scaleProtocol,
+                              );
+                              setDialogState(() {
+                                controller.text = weight.toStringAsFixed(3);
+                              });
+                            } catch (e) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('Tarozidan o\'qib bo\'lmadi: $e')),
+                              );
+                            }
+                          },
+                          icon: const Icon(Icons.scale_rounded, size: 20),
+                          label: const Text('TAROZIDAN OLISH', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.orange.shade700,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
+                        ),
+                      ),
+                    ],
                   ],
-                ],
+                ),
               ),
             ),
             actions: [
@@ -507,6 +509,13 @@ class _POSScreenState extends State<POSScreen> {
               isActive: false,
               onTap: () => Navigator.pop(context),
               tooltip: 'Ortga qaytish',
+            )
+          else
+            _buildTopBarAction(
+              icon: Icons.arrow_back_ios_new_rounded,
+              isActive: false,
+              onTap: () => context.read<NavigationProvider>().openSessions(),
+              tooltip: 'Savdo bo\'limiga qaytish',
             ),
           const Spacer(),
           if (!isMobile) ...[
@@ -1226,52 +1235,54 @@ class _POSScreenState extends State<POSScreen> {
             ),
             content: SizedBox(
               width: 320,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).dividerColor.withOpacity(0.05),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: Colors.purple.withOpacity(0.2)),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            controller.text.isEmpty ? '0' : fmt.format(double.tryParse(controller.text) ?? 0),
-                            textAlign: TextAlign.right,
-                            style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w900, color: Colors.purple),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                     Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).dividerColor.withOpacity(0.05),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.purple.withOpacity(0.2)),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              controller.text.isEmpty ? '0' : fmt.format(double.tryParse(controller.text) ?? 0),
+                              textAlign: TextAlign.right,
+                              style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: Colors.purple),
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 8),
-                        const Text('UZS', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
+                          const SizedBox(width: 8),
+                          const Text('UZS', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    GridView.count(
+                      shrinkWrap: true,
+                      crossAxisCount: 3,
+                      mainAxisSpacing: 8,
+                      crossAxisSpacing: 8,
+                      childAspectRatio: 1.6,
+                      children: [
+                        for (var i = 1; i <= 9; i++) _buildDialogNumBtn(i.toString(), onNumPressed),
+                        _buildDialogNumBtn('C', onNumPressed, color: Colors.red.shade50, textColor: Colors.red),
+                        _buildDialogNumBtn('0', onNumPressed),
+                        _buildDialogNumBtn('back', onNumPressed, icon: Icons.backspace_outlined, color: Colors.grey.shade100),
                       ],
                     ),
-                  ),
-                  const SizedBox(height: 24),
-                  GridView.count(
-                    shrinkWrap: true,
-                    crossAxisCount: 3,
-                    mainAxisSpacing: 10,
-                    crossAxisSpacing: 10,
-                    childAspectRatio: 1.4,
-                    children: [
-                      for (var i = 1; i <= 9; i++) _buildDialogNumBtn(i.toString(), onNumPressed),
-                      _buildDialogNumBtn('C', onNumPressed, color: Colors.red.shade50, textColor: Colors.red),
-                      _buildDialogNumBtn('0', onNumPressed),
-                      _buildDialogNumBtn('back', onNumPressed, icon: Icons.backspace_outlined, color: Colors.grey.shade100),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Eslatma: Chegirma umumiy savat summasidan ayriladi.', 
-                    style: TextStyle(fontSize: 11, color: Colors.grey, fontStyle: FontStyle.italic),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
+                    const SizedBox(height: 12),
+                    const Text(
+                      'Eslatma: Chegirma umumiy savat summasidan ayriladi.', 
+                      style: TextStyle(fontSize: 10, color: Colors.grey, fontStyle: FontStyle.italic),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
               ),
             ),
             actions: [
