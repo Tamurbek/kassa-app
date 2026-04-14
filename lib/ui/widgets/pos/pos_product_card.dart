@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import '../../../models/models.dart';
 import '../../../providers/features/sales_provider.dart';
 import '../../../providers/features/settings_provider.dart';
+import 'package:simple_sale/core/utils/responsive.dart';
 
 class POSProductCard extends StatelessWidget {
   final Product product;
@@ -38,24 +39,29 @@ class POSProductCard extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: Theme.of(context).cardColor,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(Responsive.borderRadius),
           border: Border.all(color: Theme.of(context).dividerColor.withOpacity(0.4)),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 12, offset: const Offset(0, 4))],
+          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10.sp, offset: Offset(0, 4.h))],
         ),
         child: Padding(
-          padding: const EdgeInsets.all(14),
+          padding: EdgeInsets.all(12.sp),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
                 child: Text(
                   product.name,
-                  style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14, height: 1.2),
+                  style: TextStyle(
+                    fontWeight: FontWeight.w900, 
+                    fontSize: 13.sp, 
+                    height: 1.1,
+                    color: Theme.of(context).textTheme.bodyLarge?.color?.withOpacity(0.9),
+                  ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              const SizedBox(height: 12),
+              SizedBox(height: 8.h),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -67,7 +73,7 @@ class POSProductCard extends StatelessWidget {
                         style: TextStyle(
                           color: Theme.of(context).colorScheme.primary,
                           fontWeight: FontWeight.w900,
-                          fontSize: 16,
+                          fontSize: 15.sp,
                         ),
                       ),
                     ),
@@ -82,7 +88,7 @@ class POSProductCard extends StatelessWidget {
                       child: Text(
                         '${stock % 1 == 0 ? stock.toInt() : stock.toStringAsFixed(1)} ${product.unit}',
                         style: TextStyle(
-                          fontSize: 11,
+                          fontSize: 10.sp,
                           fontWeight: FontWeight.w900,
                           color: isLowStock ? Colors.red : Colors.green,
                         ),

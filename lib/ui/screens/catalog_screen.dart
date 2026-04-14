@@ -7,6 +7,7 @@ import '../../models/models.dart';
 import 'product_form_screen.dart';
 import '../../services/excel_import_service.dart';
 import '../../services/starter_data_service.dart';
+import '../../core/utils/responsive.dart';
 
 class CatalogScreen extends StatefulWidget {
   final VoidCallback? onMenuPressed;
@@ -137,9 +138,12 @@ class _CatalogScreenState extends State<CatalogScreen>
               _buildHeader(constraints.maxWidth),
               TabBar(
                 controller: _tabController,
+                isScrollable: true,
                 labelColor: Theme.of(context).colorScheme.primary,
-                unselectedLabelColor: Colors.grey.shade400,
+                unselectedLabelColor: Colors.grey,
                 indicatorColor: Theme.of(context).colorScheme.primary,
+                indicatorWeight: 3.h,
+                labelStyle: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.sp),
                 tabs: const [
                   Tab(text: 'Mahsulotlar'),
                   Tab(text: 'Kategoriyalar'),
@@ -164,18 +168,28 @@ class _CatalogScreenState extends State<CatalogScreen>
   }
 
   Widget _buildHeader(double width) {
-    final bool showLabels = width > 1100;
-    final bool showChips = width > 900;
-    final bool showTitle = width > 700;
+    final bool isShort = Responsive.isShort(context);
+    final bool showLabels = width > 900;
+    final bool showChips = width > 1000;
+    final bool showTitle = width > 800;
 
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: EdgeInsets.all(isShort ? 12.sp : 24.sp),
       color: Theme.of(context).cardColor,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Row(
             children: [
+              if (Navigator.canPop(context))
+                Padding(
+                  padding: const EdgeInsets.only(right: 8.0),
+                  child: IconButton(
+                    icon: const Icon(Icons.arrow_back_rounded),
+                    onPressed: () => Navigator.pop(context),
+                    tooltip: 'Orqaga',
+                  ),
+                ),
               ClipRRect(
                 borderRadius: BorderRadius.circular(12),
                 child: Image.asset(
@@ -190,10 +204,10 @@ class _CatalogScreenState extends State<CatalogScreen>
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Katalog',
                       style: TextStyle(
-                        fontSize: 24,
+                        fontSize: 24.sp,
                         fontWeight: FontWeight.w900,
                       ),
                     ),
@@ -272,7 +286,7 @@ class _CatalogScreenState extends State<CatalogScreen>
     return Column(
       children: [
         Container(
-          padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+          padding: EdgeInsets.fromLTRB(24.sp, 16.sp, 24.sp, 0),
           color: Theme.of(context).cardColor.withOpacity(0.5),
           child: TextField(
             controller: _searchController,
@@ -287,9 +301,9 @@ class _CatalogScreenState extends State<CatalogScreen>
             },
             decoration: InputDecoration(
               hintText: _tabController.index == 0
-                  ? 'Mahsulot nomi yoki shtrix-kodi bo\'yicha qidirish...'
-                  : 'Kategoriya nomi bo\'yicha qidirish...',
-              prefixIcon: const Icon(Icons.search_rounded),
+                  ? 'Mahsulot nomi yoki shtrix-kodi...'
+                  : 'Kategoriya nomi...',
+              prefixIcon: Icon(Icons.search_rounded, size: 20.sp),
               suffixIcon: _searchText.isNotEmpty
                   ? IconButton(
                       icon: const Icon(Icons.close_rounded),
@@ -325,8 +339,8 @@ class _CatalogScreenState extends State<CatalogScreen>
     final categories = inventory.activeCategories;
 
     return Container(
-      height: 60,
-      padding: const EdgeInsets.symmetric(vertical: 10),
+      height: 50.h,
+      padding: EdgeInsets.symmetric(vertical: 6.h),
       child: ListView(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -384,11 +398,12 @@ class _CatalogScreenState extends State<CatalogScreen>
     required int count,
     required Color color,
   }) {
+    final bool isShort = Responsive.isShort(context);
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: EdgeInsets.symmetric(horizontal: 16.sp, vertical: isShort ? 6.h : 10.h),
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(color: color.withOpacity(0.2)),
       ),
       child: Row(
@@ -397,7 +412,7 @@ class _CatalogScreenState extends State<CatalogScreen>
           Text(
             label,
             style: TextStyle(
-              fontSize: 12,
+              fontSize: 13.sp,
               color: color.withOpacity(0.7),
               fontWeight: FontWeight.w600,
             ),
@@ -406,7 +421,7 @@ class _CatalogScreenState extends State<CatalogScreen>
           Text(
             count.toString(),
             style: TextStyle(
-              fontSize: 14,
+              fontSize: 14.sp,
               color: color,
               fontWeight: FontWeight.w900,
             ),
@@ -424,13 +439,15 @@ class _CatalogScreenState extends State<CatalogScreen>
   }) {
     return ElevatedButton.icon(
       onPressed: onTap,
-      icon: Icon(icon, size: 20),
-      label: label != null ? Text(label) : const SizedBox.shrink(),
+      icon: Icon(icon, size: 20.sp),
+      label: label != null 
+        ? Text(label, style: TextStyle(fontSize: 14.sp)) 
+        : const SizedBox.shrink(),
       style: ElevatedButton.styleFrom(
         backgroundColor: color ?? Theme.of(context).colorScheme.primary,
         foregroundColor: Colors.white,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(Responsive.borderRadius)),
       ),
     );
   }
@@ -534,12 +551,12 @@ class _CatalogScreenState extends State<CatalogScreen>
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(Responsive.borderRadius),
         border: Border.all(color: Theme.of(context).dividerColor),
       ),
       child: ListTile(
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-        subtitle: Text(subtitle),
+        title: Text(title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.sp)),
+        subtitle: Text(subtitle, style: TextStyle(fontSize: 12.sp)),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [

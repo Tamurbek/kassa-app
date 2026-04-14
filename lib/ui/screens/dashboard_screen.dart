@@ -241,64 +241,56 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final todayCount = todaySales.length - todayReturns.length;
     final avgCheck = todayCount <= 0 ? 0.0 : todayTotal / todayCount;
 
-    int crossAxisCount = width < 600
-        ? 1
-        : width < 1200
-        ? 2
-        : 5;
-    final fmt = NumberFormat.currency(
-      locale: 'uz_UZ',
-      symbol: '',
-      decimalDigits: 0,
-    );
+    int crossAxisCount = width < 600 ? 1 : width < 1200 ? 2 : 4;
+    final fmt = NumberFormat.currency(locale: 'uz_UZ', symbol: '', decimalDigits: 0);
 
     return GridView.count(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       crossAxisCount: crossAxisCount,
-      crossAxisSpacing: 24,
-      mainAxisSpacing: 24,
-      childAspectRatio: width < 1400 ? 1.3 : 1.6,
+      crossAxisSpacing: 16,
+      mainAxisSpacing: 16,
+      childAspectRatio: width < 600 ? 3.5 : (width < 1200 ? 2.5 : 2.2),
       children: [
         _buildStatCard(
           context,
           'Bugungi Savdo',
-          '${fmt.format(todayTotal)} so\'m',
-          Icons.payments_outlined,
+          '${fmt.format(todayTotal)} s',
+          Icons.payments_rounded,
           Colors.green,
           'Live',
+          subValue: 'Bugungi umumiy tushum',
+          trendData: [0.1, 0.4, 0.3, 0.7, 0.5, 0.9, 0.8], 
         ),
         _buildStatCard(
           context,
           'Cheklar soni',
           '$todayCount ta',
-          Icons.receipt_long_outlined,
+          Icons.receipt_long_rounded,
           Colors.blue,
           'Live',
+          subValue: 'Qaytarilgan: ${todayReturns.length} ta',
+          trendData: [0.2, 0.3, 0.5, 0.4, 0.6, 0.3, 0.5],
         ),
         _buildStatCard(
           context,
           'O\'rtacha chek',
-          '${fmt.format(avgCheck)} so\'m',
-          Icons.analytics_outlined,
+          '${fmt.format(avgCheck)} s',
+          Icons.analytics_rounded,
           Colors.orange,
           'Live',
+          subValue: 'Savdo samaradorligi',
+          trendData: [0.4, 0.4, 0.5, 0.5, 0.4, 0.6, 0.7],
         ),
         _buildStatCard(
           context,
           'Bugungi Foyda',
-          '${fmt.format(todayProfit)} so\'m',
+          '${fmt.format(todayProfit)} s',
           Icons.trending_up_rounded,
           Colors.teal,
           'Live',
-        ),
-        _buildStatCard(
-          context,
-          'Mahsulotlar',
-          '${inventory.products.length} turda',
-          Icons.inventory_2_outlined,
-          Colors.purple,
-          'Baza',
+          subValue: 'Sof tushum (foyda)',
+          trendData: [0.1, 0.2, 0.4, 0.6, 0.5, 0.8, 1.0],
         ),
       ],
     );
@@ -310,81 +302,137 @@ class _DashboardScreenState extends State<DashboardScreen> {
     String value,
     IconData icon,
     Color color,
-    String status,
-  ) {
-    final isBaza = status == 'Baza';
-    final statusColor = isBaza ? Colors.blue : Colors.green;
+    String status, {
+    String? subValue,
+    List<double>? trendData,
+  }) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     return Container(
-      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Theme.of(context).dividerColor),
+        color: theme.cardColor,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: theme.dividerColor.withOpacity(0.05)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(
-              Theme.of(context).brightness == Brightness.dark ? 0.3 : 0.02,
-            ),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: Colors.black.withOpacity(isDark ? 0.4 : 0.05),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(icon, color: color, size: 18),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: statusColor.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  status,
-                  style: TextStyle(
-                    color: statusColor,
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(24),
+        child: Stack(
+          children: [
+            // Background Trend Sparkline
+            if (trendData != null)
+              Positioned(
+                bottom: 0,
+                left: 0,
+                right: 0,
+                height: 45,
+                child: CustomPaint(
+                  painter: SparklinePainter(
+                    data: trendData,
+                    color: color.withOpacity(0.15),
                   ),
                 ),
               ),
-            ],
-          ),
-          SizedBox(height: 12),
-          Text(
-            title,
-            style: TextStyle(
-              color: Theme.of(context).textTheme.bodySmall?.color,
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
+            
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: color.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Icon(icon, color: color, size: 24),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: status == 'Live' ? Colors.green.withOpacity(0.1) : Colors.blue.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (status == 'Live')
+                              Container(
+                                width: 6,
+                                height: 6,
+                                margin: const EdgeInsets.only(right: 6),
+                                decoration: const BoxDecoration(
+                                  color: Colors.green,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                            Text(
+                              status,
+                              style: TextStyle(
+                                color: status == 'Live' ? Colors.green : Colors.blue,
+                                fontSize: 10,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 1,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const Spacer(),
+                  Text(
+                    title,
+                    style: TextStyle(
+                      color: theme.disabledColor,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      value,
+                      style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.w900,
+                        color: theme.textTheme.bodyLarge?.color,
+                        letterSpacing: -1,
+                      ),
+                    ),
+                  ),
+                  if (subValue != null) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      subValue,
+                      style: TextStyle(
+                        color: theme.disabledColor.withOpacity(0.6),
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
             ),
-          ),
-          SizedBox(height: 2),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: Alignment.centerLeft,
-            child: Text(
-              value,
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
+
 
   Widget _buildRecentSales(
     BuildContext context,
@@ -744,4 +792,57 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ],
     );
   }
+}
+
+class SparklinePainter extends CustomPainter {
+  final List<double> data;
+  final Color color;
+
+  SparklinePainter({required this.data, required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (data.length < 2) return;
+
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = 3
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+
+    final path = Path();
+    final double stepX = size.width / (data.length - 1);
+    
+    for (int i = 0; i < data.length; i++) {
+      final double x = i * stepX;
+      final double y = size.height - (data[i] * size.height * 0.8);
+      
+      if (i == 0) {
+        path.moveTo(x, y);
+      } else {
+        path.lineTo(x, y);
+      }
+    }
+
+    canvas.drawPath(path, paint);
+
+    // Fill area below
+    final fillPath = Path.from(path);
+    fillPath.lineTo(size.width, size.height);
+    fillPath.lineTo(0, size.height);
+    fillPath.close();
+
+    final fillPaint = Paint()
+      ..shader = LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [color.withOpacity(0.3), color.withOpacity(0.0)],
+      ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
+
+    canvas.drawPath(fillPath, fillPaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }

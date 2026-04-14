@@ -14,8 +14,8 @@ class SystemTrayService with TrayListener, WindowListener {
       await windowManager.ensureInitialized();
 
       WindowOptions windowOptions = const WindowOptions(
-        size: Size(1280, 800),
-        minimumSize: Size(1024, 768),
+        size: Size(1024, 640),
+        minimumSize: Size(800, 600),
         center: true,
         backgroundColor: Colors.transparent,
         skipTaskbar: false,

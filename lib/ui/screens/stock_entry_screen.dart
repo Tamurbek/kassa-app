@@ -87,205 +87,273 @@ class _StockEntryScreenState extends State<StockEntryScreen> {
     final auth = context.watch<AuthProvider>();
     final settingsProv = context.watch<SettingsProvider>();
 
+    final double totalPrice = items.fold(0.0, (sum, item) => sum + ((item['price'] as num).toDouble() * (item['quantity'] as num).toDouble()));
+    final double totalCost = items.fold(0.0, (sum, item) => sum + ((item['costPrice'] as num).toDouble() * (item['quantity'] as num).toDouble()));
+
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: CustomAppBar(
         title: widget.entry == null ? 'Yangi Kirim' : 'Kirimni Tahrirlash',
         actions: [
-          _buildAppBarAction(
-            Icons.upload_file_rounded,
-            'Excel',
-            () {
-              if (entryWarehouseId != null) {
-                _importExcel();
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Avval omborni tanlang')));
-              }
-            },
-            Colors.green.shade800,
-          ),
+          _buildAppBarAction(Icons.upload_file_rounded, 'Excel', () {
+            if (entryWarehouseId != null) _importExcel();
+            else ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Avval omborni tanlang')));
+          }, Colors.green.shade800),
           const SizedBox(width: 8),
-          _buildAppBarAction(
-            Icons.file_download_outlined,
-            'Shablon',
-            () => ExcelImportService.downloadStockEntryTemplate(context, inventory.activeProducts),
-            Colors.amber.shade800,
-          ),
+          _buildAppBarAction(Icons.file_download_outlined, 'Shablon', () => ExcelImportService.downloadStockEntryTemplate(context, inventory.activeProducts), Colors.amber.shade800),
           const SizedBox(width: 8),
-          _buildAppBarAction(
-            Icons.save_rounded,
-            'Saqlash',
-            _save,
-            Theme.of(context).colorScheme.primary,
-          ),
+          _buildAppBarAction(Icons.save_rounded, 'Saqlash', _save, Theme.of(context).colorScheme.primary),
         ],
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 1000),
-                child: ListView(
-                  padding: const EdgeInsets.all(16),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final isWide = constraints.maxWidth > 950;
+          return Padding(
+            padding: const EdgeInsets.all(16),
+            child: isWide 
+              ? Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.all(24),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).cardColor,
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: Theme.of(context).dividerColor),
-                      ),
-                      child: Column(
-                        children: [
-                          Row(
-                            children: [
-                              Expanded(child: _buildInputCard(title: 'Ombor', child: DropdownButtonHideUnderline(child: DropdownButton<String>(
-                                value: entryWarehouseId,
-                                isExpanded: true,
-                                items: inventory.warehouses.map((w) => DropdownMenuItem(value: w.id, child: Text(w.name))).toList(),
-                                onChanged: (val) => setState(() => entryWarehouseId = val),
-                              )))),
-                              const SizedBox(width: 16),
-                              Expanded(child: _buildInputCard(title: 'Sana', child: InkWell(onTap: _pickDate, child: Padding(padding: const EdgeInsets.symmetric(vertical: 12), child: Text(DateFormat('dd.MM.yyyy HH:mm').format(selectedDate), style: const TextStyle(fontWeight: FontWeight.bold)))))),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
-                          _buildInputCard(title: 'Izoh', child: TextField(controller: descriptionCtrl, decoration: const InputDecoration(border: InputBorder.none, hintText: 'Qo\'shimcha ma\'lumotlar...'))),
-                        ],
+                    // LEFT PANEL: Controls & Info
+                    Expanded(
+                      flex: 4,
+                      child: SingleChildScrollView(
+                        child: Column(
+                          children: [
+                            _buildInfoCard(inventory),
+                            const SizedBox(height: 16),
+                            _buildSearchSection(inventory),
+                            const SizedBox(height: 24),
+                            _buildSummaryCard(totalCost, totalPrice),
+                          ],
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 24),
-                    Row(
-                      children: [
-                        Expanded(
-                          flex: 3,
-                          child: TextField(
-                            controller: barcodeCtrl,
-                            focusNode: barcodeFocusNode,
-                            decoration: InputDecoration(
-                              labelText: 'Shtrix kod orqali qo\'shish',
-                              prefixIcon: const Icon(Icons.qr_code_scanner),
-                              suffixIcon: IconButton(icon: const Icon(Icons.add), onPressed: () => _handleBarcode(barcodeCtrl.text, inventory)),
-                              border: const OutlineInputBorder(),
-                            ),
-                            onSubmitted: (val) => _handleBarcode(val, inventory),
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          flex: 4,
-                          child: Autocomplete<Product>(
-                            displayStringForOption: (Product option) => option.name,
-                            optionsBuilder: (TextEditingValue textEditingValue) {
-                              if (textEditingValue.text == '') {
-                                return const Iterable<Product>.empty();
-                              }
-                              return inventory.activeProducts.where((Product option) {
-                                return option.name.toLowerCase().contains(textEditingValue.text.toLowerCase());
-                              });
-                            },
-                            onSelected: (Product selection) {
-                              _addProductToItems(selection);
-                              _nameSearchCtrl?.clear();
-                            },
-                            fieldViewBuilder: (context, textController, focusNode, onFieldSubmitted) {
-                              _nameSearchCtrl = textController;
-                              return TextField(
-                                controller: textController,
-                                focusNode: focusNode,
-                                decoration: const InputDecoration(
-                                  labelText: 'Nomi bo\'yicha izlash',
-                                  prefixIcon: Icon(Icons.search),
-                                  border: OutlineInputBorder(),
-                                ),
-                                onSubmitted: (val) {
-                                  onFieldSubmitted();
-                                },
-                              );
-                            },
-                          ),
-                        ),
-                      ],
+                    const SizedBox(width: 20),
+                    // RIGHT PANEL: Product List
+                    Expanded(
+                      flex: 6,
+                      child: _buildItemsList(inventory),
                     ),
+                  ],
+                )
+              : ListView(
+                  children: [
+                    _buildInfoCard(inventory),
+                    const SizedBox(height: 16),
+                    _buildSearchSection(inventory),
                     const SizedBox(height: 24),
                     const Text('Mahsulotlar', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
                     const SizedBox(height: 16),
-                    ...items.asMap().entries.map((entry) {
-                      final idx = entry.key;
-                      final item = entry.value;
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 16),
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).cardColor,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Theme.of(context).dividerColor.withOpacity(0.5)),
-                        ),
-                        child: LayoutBuilder(
-                          builder: (context, constraints) {
-                            final bool isSmall = constraints.maxWidth < 650;
-                            
-                            if (isSmall) {
-                              return Column(
-                                children: [
-                                  Row(
-                                    children: [
-                                      Expanded(child: _buildProductDropdown(idx, item, inventory)),
-                                      IconButton(
-                                        icon: const Icon(Icons.delete_outline, color: Colors.red),
-                                        onPressed: () => setState(() => items.removeAt(idx)),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 12),
-                                  Row(
-                                    children: [
-                                      Expanded(child: _buildCompactInput(item['costPrice'], 'Tan narxi', (val) => items[idx]['costPrice'] = double.tryParse(val) ?? 0)),
-                                      const SizedBox(width: 8),
-                                      Expanded(child: _buildCompactInput(item['price'], 'Sotuv narxi', (val) => items[idx]['price'] = double.tryParse(val) ?? 0)),
-                                      const SizedBox(width: 8),
-                                      Expanded(child: _buildCompactInput(item['quantity'], 'Soni', (val) => items[idx]['quantity'] = double.tryParse(val) ?? 0)),
-                                    ],
-                                  ),
-                                ],
-                              );
-                            }
-          
-                            return Row(
-                              children: [
-                                Expanded(flex: 4, child: _buildProductDropdown(idx, item, inventory)),
-                                const SizedBox(width: 8),
-                                Expanded(flex: 2, child: _buildCompactInput(item['costPrice'], 'Tan narxi', (val) => items[idx]['costPrice'] = double.tryParse(val) ?? 0)),
-                                const SizedBox(width: 8),
-                                Expanded(flex: 2, child: _buildCompactInput(item['price'], 'Sotuv narxi', (val) => items[idx]['price'] = double.tryParse(val) ?? 0)),
-                                const SizedBox(width: 8),
-                                Expanded(flex: 2, child: _buildCompactInput(item['quantity'], 'Soni', (val) => items[idx]['quantity'] = double.tryParse(val) ?? 0)),
-                                IconButton(
-                                  icon: const Icon(Icons.remove_circle_outline, color: Colors.red),
-                                  onPressed: () => setState(() => items.removeAt(idx)),
-                                ),
-                              ],
-                            );
-                          },
-                        ),
-                      );
-                    }),
+                    ...items.asMap().entries.map((e) => _buildItemRow(e.key, e.value, inventory)),
                     const SizedBox(height: 16),
-                    OutlinedButton.icon(onPressed: () => setState(() => items.add({'productId': null, 'productName': '', 'quantity': 0.0, 'costPrice': 0.0, 'price': 0.0})), icon: const Icon(Icons.add), label: const Text('Qator qo\'shish')),
-                    const SizedBox(height: 32),
-                    ElevatedButton(
-                      onPressed: _save,
-                      style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.primary, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 16)),
-                      child: const Text('TASDIQLASH VA SAQLASH', style: TextStyle(fontWeight: FontWeight.bold)),
-                    ),
+                    _buildAddRowButton(),
+                    const SizedBox(height: 24),
+                    _buildSummaryCard(totalCost, totalPrice),
+                    const SizedBox(height: 16),
+                    _buildSaveButton(),
                   ],
                 ),
-              ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildInfoCard(InventoryProvider inventory) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Theme.of(context).dividerColor),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(child: _buildInputCard(title: 'Ombor', child: DropdownButtonHideUnderline(child: DropdownButton<String>(
+                value: entryWarehouseId,
+                isExpanded: true,
+                items: inventory.warehouses.map((w) => DropdownMenuItem(value: w.id, child: Text(w.name))).toList(),
+                onChanged: (val) => setState(() => entryWarehouseId = val),
+              )))),
+              const SizedBox(width: 12),
+              Expanded(child: _buildInputCard(title: 'Sana', child: InkWell(onTap: _pickDate, child: Padding(padding: const EdgeInsets.symmetric(vertical: 12), child: Text(DateFormat('dd.MM.yyyy HH:mm').format(selectedDate), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)))))),
+            ],
+          ),
+          const SizedBox(height: 16),
+          _buildInputCard(title: 'Izoh', child: TextField(controller: descriptionCtrl, decoration: const InputDecoration(border: InputBorder.none, hintText: 'Qo\'shimcha ma\'lumotlar...', isDense: true))),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSearchSection(InventoryProvider inventory) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Theme.of(context).dividerColor),
+      ),
+      child: Column(
+        children: [
+          TextField(
+            controller: barcodeCtrl,
+            focusNode: barcodeFocusNode,
+            decoration: InputDecoration(
+              labelText: 'Shtrix kod',
+              hintText: 'Skanerlang...',
+              prefixIcon: const Icon(Icons.qr_code_scanner),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              filled: true,
+              fillColor: Theme.of(context).scaffoldBackgroundColor.withOpacity(0.5),
             ),
+            onSubmitted: (val) => _handleBarcode(val, inventory),
+          ),
+          const SizedBox(height: 12),
+          Autocomplete<Product>(
+            displayStringForOption: (Product option) => option.name,
+            optionsBuilder: (TextEditingValue textEditingValue) {
+              if (textEditingValue.text == '') return const Iterable<Product>.empty();
+              return inventory.activeProducts.where((Product option) => option.name.toLowerCase().contains(textEditingValue.text.toLowerCase()));
+            },
+            onSelected: (Product selection) {
+              _addProductToItems(selection);
+              _nameSearchCtrl?.clear();
+            },
+            fieldViewBuilder: (context, textController, focusNode, onFieldSubmitted) {
+              _nameSearchCtrl = textController;
+              return TextField(
+                controller: textController,
+                focusNode: focusNode,
+                decoration: InputDecoration(
+                  labelText: 'Nomi bo\'yicha izlash',
+                  prefixIcon: const Icon(Icons.search),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  filled: true,
+                  fillColor: Theme.of(context).scaffoldBackgroundColor.withOpacity(0.5),
+                ),
+              );
+            },
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildItemsList(InventoryProvider inventory) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Padding(
+          padding: EdgeInsets.only(left: 8.0, bottom: 12),
+          child: Text('Mahsulotlar Ro\'yxati', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+        ),
+        Expanded(
+          child: items.isEmpty 
+            ? Center(child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.inventory_2_outlined, size: 64, color: Colors.grey.withOpacity(0.3)),
+                  const SizedBox(height: 16),
+                  Text('Mahsulotlar hali qo\'shilmadi', style: TextStyle(color: Colors.grey.shade500)),
+                ],
+              ))
+            : ListView.builder(
+                itemCount: items.length,
+                itemBuilder: (context, idx) => _buildItemRow(idx, items[idx], inventory),
+              ),
+        ),
+        const SizedBox(height: 12),
+        _buildAddRowButton(),
+      ],
+    );
+  }
+
+  Widget _buildItemRow(int idx, Map<String, dynamic> item, InventoryProvider inventory) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Theme.of(context).dividerColor.withOpacity(0.5)),
+      ),
+      child: Row(
+        children: [
+          Expanded(flex: 4, child: _buildProductDropdown(idx, item, inventory)),
+          const SizedBox(width: 8),
+          Expanded(flex: 2, child: _buildCompactInput(item['costPrice'], 'Tan narxi', (val) => items[idx]['costPrice'] = double.tryParse(val) ?? 0)),
+          const SizedBox(width: 8),
+          Expanded(flex: 2, child: _buildCompactInput(item['price'], 'Sotuv narxi', (val) => items[idx]['price'] = double.tryParse(val) ?? 0)),
+          const SizedBox(width: 8),
+          Expanded(flex: 2, child: _buildCompactInput(item['quantity'], 'Soni', (val) => items[idx]['quantity'] = double.tryParse(val) ?? 0)),
+          IconButton(
+            icon: const Icon(Icons.remove_circle_outline, color: Colors.red, size: 20),
+            onPressed: () => setState(() => items.removeAt(idx)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSummaryCard(double totalCost, double totalPrice) {
+    final fmt = NumberFormat.currency(locale: 'uz_UZ', symbol: '', decimalDigits: 0);
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(colors: [Theme.of(context).colorScheme.primary, Theme.of(context).colorScheme.secondary]),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [BoxShadow(color: Theme.of(context).colorScheme.primary.withOpacity(0.3), blurRadius: 10, offset: const Offset(0, 4))],
+      ),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text('Umumiy Tan Narxi:', style: TextStyle(color: Colors.white70, fontSize: 13)),
+              Text('${fmt.format(totalCost)} so\'m', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+            ],
+          ),
+          const Divider(color: Colors.white24, height: 20),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text('Umumiy Sotuv Narxi:', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
+              Text('${fmt.format(totalPrice)} so\'m', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 20)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAddRowButton() {
+    return OutlinedButton.icon(
+      onPressed: () => setState(() => items.add({'productId': null, 'productName': '', 'quantity': 1.0, 'costPrice': 0.0, 'price': 0.0})),
+      icon: const Icon(Icons.add_circle_outline),
+      label: const Text('Yangi qator qo\'shish'),
+      style: OutlinedButton.styleFrom(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
+  }
+
+  Widget _buildSaveButton() {
+    return ElevatedButton(
+      onPressed: _save,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        foregroundColor: Colors.white,
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        elevation: 4,
+      ),
+      child: const Text('TASDIQLASH VA SAQLASH', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, letterSpacing: 1)),
     );
   }
 

@@ -5,6 +5,7 @@ import '../../providers/features/settings_provider.dart';
 import '../../providers/features/auth_provider.dart';
 import '../../providers/features/sync_provider.dart';
 import '../../models/models.dart';
+import 'package:simple_sale/core/utils/responsive.dart';
 
 class AppStatusBar extends StatelessWidget {
   final SettingsProvider settings;
@@ -22,9 +23,10 @@ class AppStatusBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool isShort = Responsive.isShort(context);
     return Container(
-      height: 48,
-      padding: const EdgeInsets.symmetric(horizontal: 20),
+      height: isShort ? 32.h : 44.h,
+      padding: EdgeInsets.symmetric(horizontal: 12.sp),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
         border: Border(
@@ -56,12 +58,12 @@ class AppStatusBar extends StatelessWidget {
             textColor: auth.cloudStatus.contains('Bulut') ? const Color(0xFF075985) : Colors.orange.shade900,
           ),
           const SizedBox(width: 16),
-          Icon(Icons.person_rounded, size: 18, color: Colors.grey.shade600),
-          const SizedBox(width: 6),
+          Icon(Icons.person_rounded, size: 16.sp, color: Colors.grey.shade600),
+          SizedBox(width: 6.w),
           Text(
             auth.currentUser?.name ?? 'Admin',
             style: TextStyle(
-              fontSize: 13,
+              fontSize: 12.sp,
               fontWeight: FontWeight.w700,
               color: Colors.grey.shade800,
             ),
@@ -77,7 +79,7 @@ class AppStatusBar extends StatelessWidget {
             child: Text(
               auth.currentUser?.role.toString().split('.').last.toUpperCase() ?? 'ADMIN',
               style: TextStyle(
-                fontSize: 10,
+                fontSize: 9.sp,
                 fontWeight: FontWeight.w800,
                 color: Colors.grey.shade500,
                 letterSpacing: 0.5,
@@ -125,15 +127,15 @@ class AppStatusBar extends StatelessWidget {
               onTap: onExit,
               borderRadius: BorderRadius.circular(8),
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
                 child: Row(
                   children: [
-                    const Icon(Icons.logout_rounded, size: 18, color: Color(0xFFEF4444)), // Red 500
-                    const SizedBox(width: 6),
+                    Icon(Icons.logout_rounded, size: 16.sp, color: const Color(0xFFEF4444)), // Red 500
+                    SizedBox(width: 6.w),
                     Text(
                       'Chiqish',
                       style: TextStyle(
-                        fontSize: 13,
+                        fontSize: 12.sp,
                         fontWeight: FontWeight.w800,
                         color: const Color(0xFFEF4444),
                       ),
@@ -156,22 +158,23 @@ class AppStatusBar extends StatelessWidget {
     required Color bgColor,
     required Color textColor,
   }) {
+    final bool isShort = Responsive.isShort(context);
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+      padding: EdgeInsets.symmetric(horizontal: 10.sp, vertical: isShort ? 2.h : 6.h),
       decoration: BoxDecoration(
         color: bgColor,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(20.sp),
         border: Border.all(color: iconColor.withOpacity(0.15)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: iconSize ?? 15, color: iconColor),
-          const SizedBox(width: 8),
+          Icon(icon, size: iconSize != null ? iconSize.sp : 14.sp, color: iconColor),
+          SizedBox(width: 8.w),
           Text(
             label,
             style: TextStyle(
-              fontSize: 12,
+              fontSize: 11.sp,
               fontWeight: FontWeight.w800,
               color: textColor,
             ),

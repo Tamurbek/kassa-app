@@ -11,6 +11,7 @@ import 'write_off_screen.dart';
 import 'inventory_screen.dart';
 import 'barcode_print_screen.dart';
 import 'stock_transfer_screen.dart';
+import '../../core/utils/responsive.dart';
 
 class WarehouseScreen extends StatefulWidget {
   final VoidCallback? onMenuPressed;
@@ -59,10 +60,11 @@ class _WarehouseScreenState extends State<WarehouseScreen> {
 
 
     return DefaultTabController(
-      length: 6,
+      length: 7,
       child: LayoutBuilder(
         builder: (context, constraints) {
           final isNarrow = constraints.maxWidth < 800;
+          final bool isShort = constraints.maxHeight < 700;
           return Scaffold(
             backgroundColor: Theme.of(context).scaffoldBackgroundColor,
             body: Column(
@@ -73,13 +75,16 @@ class _WarehouseScreenState extends State<WarehouseScreen> {
                       constraints: const BoxConstraints(maxWidth: 1400),
                       child: Column(
                         children: [
-                          _buildHeader(inventory, constraints.maxWidth),
+                          _buildHeader(inventory, constraints.maxWidth, constraints.maxHeight),
                           TabBar(
                             isScrollable: true,
                             labelColor: Theme.of(context).colorScheme.primary,
                             unselectedLabelColor: Colors.grey.shade400,
                             indicatorColor: Theme.of(context).colorScheme.primary,
+                            indicatorWeight: 3.h,
+                            labelStyle: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.sp),
                             tabs: const [
+                              Tab(text: 'Statistika'),
                               Tab(text: 'Qoldiqlar'),
                               Tab(text: 'Kirimlar'),
                               Tab(text: 'O\'tkazmalar'),
@@ -91,13 +96,21 @@ class _WarehouseScreenState extends State<WarehouseScreen> {
                           Expanded(
                             child: TabBarView(
                               children: [
-                                // TAB 1: Current Stock
+                                // TAB 0: Statistics Dashboard
                                 Padding(
-                                  padding: const EdgeInsets.all(24.0),
+                                  padding: EdgeInsets.all(Responsive.isShort(context) ? 12.sp : 24.sp),
+                                  child: SingleChildScrollView(
+                                    child: _buildStatsRow(inventory, constraints.maxWidth),
+                                  ),
+                                ),
+                                
+                                // TAB 1: Detailed Product Balances
+                                Padding(
+                                  padding: EdgeInsets.all(Responsive.isShort(context) ? 12.sp : 24.sp),
                                   child: Column(
                                     children: [
-                                      _buildStatsRow(inventory, constraints.maxWidth),
-                                      const SizedBox(height: 24),
+                                      _buildBalancesControlRow(inventory),
+                                      const SizedBox(height: 16),
                                       Expanded(
                                         child: Container(
                                           decoration: BoxDecoration(
@@ -110,23 +123,6 @@ class _WarehouseScreenState extends State<WarehouseScreen> {
                                           child: Column(
                                             crossAxisAlignment: CrossAxisAlignment.start,
                                             children: [
-                                              Padding(
-                                                padding: const EdgeInsets.all(24),
-                                                child: Row(
-                                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                  children: [
-                                                    const Text(
-                                                      'Mahsulotlar Qoldig\'i',
-                                                      style: TextStyle(
-                                                        fontSize: 18,
-                                                        fontWeight: FontWeight.bold,
-                                                      ),
-                                                    ),
-                                                    _buildWarehouseSelector(inventory),
-                                                  ],
-                                                ),
-                                              ),
-                                              const Divider(height: 1),
                                               Expanded(
                                                 child: filteredProducts.isEmpty
                                                     ? _buildEmptySearch()
@@ -164,6 +160,37 @@ class _WarehouseScreenState extends State<WarehouseScreen> {
     );
   }
 
+  Widget _buildBalancesControlRow(InventoryProvider inventory) {
+    return Row(
+      children: [
+        Expanded(
+          flex: 2,
+          child: TextField(
+            controller: _searchController,
+            onChanged: (v) => setState(() {}),
+            decoration: InputDecoration(
+              hintText: 'Mahsulot qidirish...',
+              prefixIcon: const Icon(Icons.search_rounded),
+              filled: true,
+              fillColor: Theme.of(context).cardColor,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide(color: Theme.of(context).dividerColor),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide(color: Theme.of(context).dividerColor.withOpacity(0.5)),
+              ),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            ),
+          ),
+        ),
+        const SizedBox(width: 16),
+        _buildWarehouseSelector(inventory),
+      ],
+    );
+  }
+
   Widget _buildWarehouseSelector(InventoryProvider inventory) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -183,12 +210,13 @@ class _WarehouseScreenState extends State<WarehouseScreen> {
     );
   }
 
-  Widget _buildHeader(InventoryProvider inventory, double width) {
-    final bool showLabels = width > 1200;
+  Widget _buildHeader(InventoryProvider inventory, double width, double height) {
+    final bool isShort = height < 700;
+    final bool showLabels = width > 900;
     final bool isNarrow = width < 850;
 
     return Container(
-      padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
+      padding: EdgeInsets.symmetric(horizontal: 24.sp, vertical: isShort ? 12.h : 20.h),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
         border: Border(
@@ -208,7 +236,7 @@ class _WarehouseScreenState extends State<WarehouseScreen> {
               ),
               borderRadius: BorderRadius.circular(16),
             ),
-            child: const Icon(Icons.inventory_2_rounded, color: Colors.white, size: 28),
+            child: Icon(Icons.inventory_2_rounded, color: Colors.white, size: isShort ? 22.sp : 28.sp),
           ),
           const SizedBox(width: 20),
           Expanded(
@@ -218,7 +246,7 @@ class _WarehouseScreenState extends State<WarehouseScreen> {
                 Text(
                   'Ombor Boshqaruvi',
                   style: TextStyle(
-                    fontSize: 28,
+                    fontSize: isShort ? 20.sp : 28.sp,
                     fontWeight: FontWeight.w900,
                     letterSpacing: -0.5,
                     color: Theme.of(context).colorScheme.onSurface,
@@ -226,7 +254,7 @@ class _WarehouseScreenState extends State<WarehouseScreen> {
                 ),
                 Text(
                    'Tizim faol: ${DateFormat('HH:mm').format(DateTime.now())}',
-                   style: TextStyle(fontSize: 13, color: Colors.grey.shade500),
+                   style: TextStyle(fontSize: 12.sp, color: Colors.grey.shade500),
                 ),
               ],
             ),
@@ -295,11 +323,12 @@ class _WarehouseScreenState extends State<WarehouseScreen> {
     required VoidCallback onTap,
     required Color color,
   }) {
+    final bool isShort = Responsive.isShort(context);
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        padding: EdgeInsets.symmetric(horizontal: 16.sp, vertical: isShort ? 6.h : 10.h),
         decoration: BoxDecoration(
           color: color.withOpacity(0.1),
           borderRadius: BorderRadius.circular(12),
@@ -308,12 +337,12 @@ class _WarehouseScreenState extends State<WarehouseScreen> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, color: color, size: 20),
+            Icon(icon, color: color, size: isShort ? 16.sp : 20.sp),
             if (label != null) ...[
-              const SizedBox(width: 8),
+              SizedBox(width: 8.w),
               Text(
                 label,
-                style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 13),
+                style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 13.sp),
               ),
             ],
           ],
@@ -323,6 +352,7 @@ class _WarehouseScreenState extends State<WarehouseScreen> {
   }
 
   Widget _buildStatsRow(InventoryProvider inventory, double width) {
+    final bool isShort = Responsive.isShort(context);
     final totalProducts = inventory.activeProducts.length;
     final lowStockCount = inventory.activeProducts.where((p) {
       final stock = p.stocks[selectedWarehouseId] ?? 0;
@@ -342,9 +372,9 @@ class _WarehouseScreenState extends State<WarehouseScreen> {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       crossAxisCount: crossAxisCount,
-      crossAxisSpacing: 16,
-      mainAxisSpacing: 16,
-      childAspectRatio: 2.2,
+      crossAxisSpacing: 16.sp,
+      mainAxisSpacing: 16.h,
+      childAspectRatio: width < 600 ? 3.5 : (isShort ? 3.0 : 2.2),
       children: [
         _buildStatCard('Jami Mahsulotlar', totalProducts.toString(), Icons.inventory_2_rounded, Colors.indigo),
         _buildStatCard('Kam qolganlar', lowStockCount.toString(), Icons.warning_amber_rounded, Colors.orange),
@@ -356,8 +386,9 @@ class _WarehouseScreenState extends State<WarehouseScreen> {
   }
 
   Widget _buildStatCard(String title, String value, IconData icon, Color color) {
+    final bool isShort = Responsive.isShort(context);
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(isShort ? 12.sp : 24.sp),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(20),
@@ -388,7 +419,7 @@ class _WarehouseScreenState extends State<WarehouseScreen> {
 
   Widget _buildProductsList(InventoryProvider inventory, List<Product> products, bool isNarrow) {
      return ListView.separated(
-      padding: const EdgeInsets.all(24),
+      padding: EdgeInsets.all(Responsive.isShort(context) ? 12.sp : 24.sp),
       itemCount: products.length,
       separatorBuilder: (c, i) => const Divider(),
       itemBuilder: (c, i) {

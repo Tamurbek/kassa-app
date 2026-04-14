@@ -10,6 +10,7 @@ import '../../providers/features/settings_provider.dart';
 import '../widgets/app_status_bar.dart';
 import '../widgets/custom_app_bar.dart';
 import '../../providers/app_state.dart';
+import '../../core/utils/responsive.dart';
 
 class ReturnScreen extends StatefulWidget {
   final SaleReturn? saleReturn;
@@ -78,6 +79,7 @@ class _ReturnScreenState extends State<ReturnScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final bool isShort = Responsive.isShort(context);
     final inventory = context.watch<InventoryProvider>();
     final sales = context.watch<SalesProvider>();
 
@@ -99,10 +101,10 @@ class _ReturnScreenState extends State<ReturnScreen> {
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 800),
                 child: ListView(
-                  padding: const EdgeInsets.all(24),
+                  padding: EdgeInsets.all(isShort ? 12.sp : 24.sp),
                   children: [
                     Container(
-                      padding: const EdgeInsets.all(24),
+                      padding: EdgeInsets.all(isShort ? 16.sp : 24.sp),
                       decoration: BoxDecoration(
                         color: Theme.of(context).cardColor,
                         borderRadius: BorderRadius.circular(20),
@@ -132,9 +134,9 @@ class _ReturnScreenState extends State<ReturnScreen> {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 32),
-                    const Text('Mahsulotlar', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-                    const SizedBox(height: 16),
+                    SizedBox(height: isShort ? 16.h : 32.h),
+                    Text('Mahsulotlar', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18.sp)),
+                    SizedBox(height: isShort ? 8.h : 16.h),
                     ...items.asMap().entries.map((entry) {
                       final idx = entry.key;
                       final item = entry.value;
@@ -175,21 +177,30 @@ class _ReturnScreenState extends State<ReturnScreen> {
                         ),
                       );
                     }),
-                    const SizedBox(height: 16),
+                    SizedBox(height: isShort ? 8.h : 16.h),
                     OutlinedButton.icon(
                       onPressed: () => setState(() => items.add({'productId': null, 'productName': '', 'quantity': 0.0, 'price': 0.0})),
                       icon: const Icon(Icons.add_rounded),
                       label: const Text('Mahsulot qo\'shish'),
-                      style: OutlinedButton.styleFrom(foregroundColor: Colors.orange, side: const BorderSide(color: Colors.orange)),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.orange, 
+                        side: const BorderSide(color: Colors.orange),
+                        padding: EdgeInsets.symmetric(vertical: isShort ? 10.h : 16.h),
+                      ),
                     ),
-                    const SizedBox(height: 32),
+                    SizedBox(height: isShort ? 16.h : 32.h),
                     SizedBox(
                       width: double.infinity,
-                      height: 54,
+                      height: isShort ? 44.h : 54.h,
                       child: ElevatedButton(
                         onPressed: _save,
-                        style: ElevatedButton.styleFrom(backgroundColor: Colors.orange, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-                        child: const Text('VAZVRATNI SAQLASH', style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1)),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.orange, 
+                          foregroundColor: Colors.white, 
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          elevation: 0,
+                        ),
+                        child: Text('VAZVRATNI SAQLASH', style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1, fontSize: 14.sp)),
                       ),
                     ),
                   ],

@@ -19,6 +19,7 @@ import 'checkout_screen.dart';
 import '../../services/scale_service.dart';
 import '../widgets/app_end_drawer.dart';
 import '../../providers/features/navigation_provider.dart';
+import '../../core/utils/responsive.dart';
 
 class POSScreen extends StatefulWidget {
   final VoidCallback? onMenuPressed;
@@ -391,10 +392,12 @@ class _POSScreenState extends State<POSScreen> {
       onKeyEvent: _handleKeyEvent,
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final isMobile = constraints.maxWidth < 800;
-          final categoryWidth = 200.0;
-          final cartWidth = 450.0;
-          final actionWidth = 140.0; // Slightly wider for premium buttons
+          final isMobile = constraints.maxWidth < 600;
+          final isTablet = constraints.maxWidth >= 600 && constraints.maxWidth < 1100;
+          
+          final actionWidth = isMobile ? 0.0 : (isTablet ? 120.w : 140.w);
+          final cartFlex = isTablet ? 5 : 4;
+          final productsFlex = isTablet ? 5 : 6;
 
           return Scaffold(
             key: _scaffoldKey,
@@ -430,6 +433,9 @@ class _POSScreenState extends State<POSScreen> {
                                 inventory,
                                 sales,
                                 settings,
+                                isTablet,
+                                Responsive.isShort(context),
+                                constraints,
                               ),
                             ),
                             if (filteredProducts.length > _pageSize)
@@ -461,7 +467,7 @@ class _POSScreenState extends State<POSScreen> {
                       const VerticalDivider(width: 1, thickness: 1),
 
                       // Right: Action Sidebar (Now includes Payment and Save)
-                      _buildActionSidebar(sales, inventory, settings, auth, actionWidth),
+                      _buildActionSidebar(sales, inventory, settings, auth, actionWidth, isTablet),
                     ],
                   ),
                 ),
@@ -486,8 +492,9 @@ class _POSScreenState extends State<POSScreen> {
   }
 
   Widget _buildTopBar(SettingsProvider settings, InventoryProvider inventory, SalesProvider sales, bool isMobile) {
+    final bool isShort = Responsive.isShort(context);
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: EdgeInsets.symmetric(horizontal: 12.sp, vertical: isShort ? 2.h : 6.h),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
         border: Border(bottom: BorderSide(color: Theme.of(context).dividerColor.withOpacity(0.3))),
@@ -518,8 +525,9 @@ class _POSScreenState extends State<POSScreen> {
   }
 
   Widget _buildProductSearchSection(SettingsProvider settings) {
+    final bool isShort = Responsive.isShort(context);
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: EdgeInsets.all(isShort ? 6.sp : 12.sp),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
         border: Border(bottom: BorderSide(color: Theme.of(context).dividerColor.withOpacity(0.1))),
@@ -528,23 +536,23 @@ class _POSScreenState extends State<POSScreen> {
         children: [
           Expanded(
             child: Container(
-              height: 48,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              height: isShort ? 38.h : 48.h,
+              padding: EdgeInsets.symmetric(horizontal: 16.sp),
               decoration: BoxDecoration(
                 color: Theme.of(context).dividerColor.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(Responsive.borderRadius),
               ),
               child: TextField(
                 controller: _searchController,
                 focusNode: _searchFocusNode,
-                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.w600),
                 decoration: InputDecoration(
                   hintText: 'Qidirish...',
-                  hintStyle: TextStyle(fontSize: 14, color: Colors.grey.withOpacity(0.7)),
+                  hintStyle: TextStyle(fontSize: 14.sp, color: Colors.grey.withOpacity(0.7)),
                   border: InputBorder.none,
-                  icon: const Icon(Icons.search, size: 20, color: Colors.grey),
+                  icon: Icon(Icons.search, size: 20.sp, color: Colors.grey),
                   isDense: true,
-                  contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                  contentPadding: EdgeInsets.symmetric(vertical: 14.h),
                 ),
                 onChanged: (v) => setState(() => _currentPage = 1),
                 onSubmitted: (v) {
@@ -608,20 +616,23 @@ class _POSScreenState extends State<POSScreen> {
     );
   }
 
-  Widget _buildProductGrid(List<Product> products, InventoryProvider inventory, SalesProvider sales, SettingsProvider settings) {
+  Widget _buildProductGrid(List<Product> products, InventoryProvider inventory, SalesProvider sales, SettingsProvider settings, bool isTablet, bool isShort, BoxConstraints constraints) {
     if (products.isEmpty) {
       return Center(
-        child: Text('Mahsulot yo\'q', style: TextStyle(color: Colors.grey.withOpacity(0.5))),
+        child: Text('Mahsulot yo\'q', style: TextStyle(color: Colors.grey.withOpacity(0.5), fontSize: 16.sp)),
       );
     }
+    
+    int crossAxisCount = isTablet ? 4 : (constraints.maxWidth < 600 ? 2 : 5);
+    double mainAxisExtent = isShort ? 100.h : (isTablet ? 110.h : 120.h);
 
     return GridView.builder(
-      padding: const EdgeInsets.all(10),
-      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-        maxCrossAxisExtent: 220,
-        mainAxisExtent: 120,
-        crossAxisSpacing: 10,
-        mainAxisSpacing: 10,
+      padding: EdgeInsets.all(isShort ? 6.sp : 10.sp),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: crossAxisCount,
+        mainAxisExtent: mainAxisExtent,
+        crossAxisSpacing: isShort ? 6.sp : 10.sp,
+        mainAxisSpacing: isShort ? 6.sp : 10.sp,
       ),
       itemCount: products.length,
       itemBuilder: (context, index) => POSProductCard(
@@ -636,14 +647,14 @@ class _POSScreenState extends State<POSScreen> {
     if (totalPages <= 1) return const SizedBox.shrink();
 
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 6),
+      padding: EdgeInsets.symmetric(vertical: 6.h),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           _buildPageBtn(Icons.chevron_left_rounded, _currentPage > 1 ? () => setState(() => _currentPage--) : null),
-          const SizedBox(width: 16),
-          Text('$_currentPage / $totalPages', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-          const SizedBox(width: 16),
+          SizedBox(width: 16.w),
+          Text('$_currentPage / $totalPages', style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold)),
+          SizedBox(width: 16.w),
           _buildPageBtn(Icons.chevron_right_rounded, _currentPage < totalPages ? () => setState(() => _currentPage++) : null),
         ],
       ),
@@ -664,31 +675,32 @@ class _POSScreenState extends State<POSScreen> {
   }
 
   Widget _buildVerticalCartView(SalesProvider sales, InventoryProvider inventory) {
+    final bool isShort = Responsive.isShort(context);
     return Container(
       color: Theme.of(context).cardColor,
       child: Column(
         children: [
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            padding: EdgeInsets.symmetric(horizontal: 16.sp, vertical: isShort ? 10.h : 16.h),
             decoration: BoxDecoration(
               color: Theme.of(context).colorScheme.primary.withOpacity(0.05),
               border: Border(bottom: BorderSide(color: Theme.of(context).dividerColor.withOpacity(0.2))),
             ),
             child: Row(
               children: [
-                Icon(Icons.shopping_basket_rounded, size: 20, color: Theme.of(context).colorScheme.primary),
-                const SizedBox(width: 10),
-                const Text('SAVATDAGI MAHSULOTLAR', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: 0.5)),
+                Icon(Icons.shopping_basket_rounded, size: isShort ? 18.sp : 20.sp, color: Theme.of(context).colorScheme.primary),
+                SizedBox(width: 10.w),
+                Text('SAVATDAGI MAHSULOTLAR', style: TextStyle(fontWeight: FontWeight.w900, fontSize: isShort ? 12.sp : 13.sp, letterSpacing: 0.5)),
                 const Spacer(),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: EdgeInsets.symmetric(horizontal: 10.sp, vertical: 4.h),
                   decoration: BoxDecoration(
                     color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(20.sp),
                   ),
                   child: Text(
                     '${sales.cart.length} turlar',
-                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: Theme.of(context).colorScheme.primary),
+                    style: TextStyle(fontSize: 11.sp, fontWeight: FontWeight.w900, color: Theme.of(context).colorScheme.primary),
                   ),
                 ),
               ],
@@ -700,14 +712,16 @@ class _POSScreenState extends State<POSScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.add_shopping_cart_rounded, size: 64, color: Colors.grey.withOpacity(0.15)),
-                        const SizedBox(height: 16),
-                        const Text('Savat bo\'sh', style: TextStyle(color: Colors.grey, fontSize: 15, fontWeight: FontWeight.bold)),
+                        Icon(Icons.shopping_bag_outlined, size: 80.sp, color: Theme.of(context).dividerColor.withOpacity(0.2)),
+                        SizedBox(height: 24.h),
+                        Text('Savat bo\'sh', style: TextStyle(color: Colors.grey, fontSize: 16.sp, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
+                        SizedBox(height: 8.h),
+                        Text('Mahsulot tanlang', style: TextStyle(color: Colors.grey.withOpacity(0.5), fontSize: 13.sp)),
                       ],
                     ),
                   )
                 : ListView.builder(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    padding: EdgeInsets.symmetric(vertical: 8.h),
                     itemCount: sales.cart.length,
                     itemBuilder: (context, index) => POSCartItem(
                       item: sales.cart[index],
@@ -724,47 +738,51 @@ class _POSScreenState extends State<POSScreen> {
 
   Widget _buildCartInlineSummary(SalesProvider sales) {
     final total = sales.cartTotal;
+    final bool isShort = Responsive.isShort(context);
+    
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(isShort ? 12.sp : 20.sp),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.primary.withOpacity(0.02),
         border: Border(top: BorderSide(color: Theme.of(context).dividerColor.withOpacity(0.3))),
       ),
       child: Column(
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text('Mahsulotlar soni:', style: TextStyle(color: Colors.grey, fontSize: 13, fontWeight: FontWeight.bold)),
-              Text('${sales.cart.fold(0, (sum, i) => sum + i.quantity.toInt())} ta', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14)),
-            ],
-          ),
-          const SizedBox(height: 4),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text('Foyda (taxm.):', style: TextStyle(color: Colors.grey, fontSize: 13, fontWeight: FontWeight.bold)),
-              Text('${NumberFormat.currency(locale: 'uz_UZ', symbol: '', decimalDigits: 0).format(sales.cartProfit)} UZS', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14, color: Colors.green)),
-            ],
-          ),
-          if (sales.cartDiscount > 0) ...[
-            const SizedBox(height: 4),
+          if (!isShort) ...[
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('Chegirma:', style: TextStyle(color: Colors.red, fontSize: 13, fontWeight: FontWeight.bold)),
-                Text('-${NumberFormat.currency(locale: 'uz_UZ', symbol: '', decimalDigits: 0).format(sales.cartDiscount)} UZS', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14, color: Colors.red)),
+                Text('Mahsulotlar soni:', style: TextStyle(color: Colors.grey, fontSize: 12.sp, fontWeight: FontWeight.bold)),
+                Text('${sales.cart.fold(0, (sum, i) => sum + i.quantity.toInt())} ta', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13.sp)),
+              ],
+            ),
+            SizedBox(height: 4.h),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Foyda (taxm.):', style: TextStyle(color: Colors.grey, fontSize: 12.sp, fontWeight: FontWeight.bold)),
+                Text('${NumberFormat.currency(locale: 'uz_UZ', symbol: '', decimalDigits: 0).format(sales.cartProfit)} UZS', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13.sp, color: Colors.green)),
               ],
             ),
           ],
-          const Divider(height: 24),
+          if (sales.cartDiscount > 0) ...[
+            SizedBox(height: 4.h),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Chegirma:', style: TextStyle(color: Colors.red, fontSize: 12.sp, fontWeight: FontWeight.bold)),
+                Text('-${NumberFormat.currency(locale: 'uz_UZ', symbol: '', decimalDigits: 0).format(sales.cartDiscount)} UZS', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13.sp, color: Colors.red)),
+              ],
+            ),
+          ],
+          if (!isShort) Divider(height: 24.h),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('JAMI TO\'LOV:', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w900, letterSpacing: 0.5)),
+              Text(isShort ? 'SUMMA:' : 'JAMI TO\'LOV:', style: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.w900, letterSpacing: 0.5)),
               Text(
                 '${NumberFormat.currency(locale: 'uz_UZ', symbol: '', decimalDigits: 0).format(total)} UZS',
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Theme.of(context).colorScheme.primary),
+                style: TextStyle(fontSize: isShort ? 18.sp : 20.sp, fontWeight: FontWeight.w900, color: Theme.of(context).colorScheme.primary),
               ),
             ],
           ),
@@ -1018,7 +1036,7 @@ class _POSScreenState extends State<POSScreen> {
     );
   }
 
-  Widget _buildActionSidebar(SalesProvider sales, InventoryProvider inventory, SettingsProvider settings, AuthProvider auth, double width) {
+  Widget _buildActionSidebar(SalesProvider sales, InventoryProvider inventory, SettingsProvider settings, AuthProvider auth, double width, bool isTablet) {
     return Container(
       width: width,
       color: Theme.of(context).cardColor,
@@ -1084,33 +1102,34 @@ class _POSScreenState extends State<POSScreen> {
     required Color color,
     bool isBig = false,
   }) {
+    final bool isShort = Responsive.isShort(context);
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+      padding: EdgeInsets.symmetric(vertical: isShort ? 2.h : 4.h, horizontal: 8.sp),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(Responsive.borderRadius),
         child: Container(
           width: double.infinity,
-          padding: EdgeInsets.symmetric(vertical: isBig ? 16 : 8),
+          padding: EdgeInsets.symmetric(vertical: isShort ? (isBig ? 10.h : 4.h) : (isBig ? 16.h : 8.h)),
           decoration: BoxDecoration(
             color: isBig ? color : color.withOpacity(0.08),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(Responsive.borderRadius),
             border: isBig ? null : Border.all(color: color.withOpacity(0.2), width: 1.5),
-            boxShadow: isBig ? [BoxShadow(color: color.withOpacity(0.3), blurRadius: 8, offset: const Offset(0, 4))] : [],
+            boxShadow: isBig ? [BoxShadow(color: color.withOpacity(0.3), blurRadius: 8.sp, offset: Offset(0, 4.h))] : [],
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, color: isBig ? Colors.white : color, size: isBig ? 32 : 24),
-              const SizedBox(height: 4),
+              Icon(icon, color: isBig ? Colors.white : color, size: isBig ? 24.sp : 20.sp),
+              SizedBox(height: isBig ? 8.h : 4.h),
               Text(
-                label.toUpperCase(),
+                label,
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: isBig ? Colors.white : color,
-                  fontSize: isBig ? 12 : 10,
                   fontWeight: FontWeight.w900,
-                  letterSpacing: 0.5,
+                  fontSize: isBig ? 12.sp : 10.sp,
+                  letterSpacing: isBig ? 0.5 : 0,
                 ),
               ),
             ],
@@ -1120,22 +1139,23 @@ class _POSScreenState extends State<POSScreen> {
     );
   }
 
-   Widget _buildHorizontalCategoryBar(List<String> categories) {
+  Widget _buildHorizontalCategoryBar(List<String> categories) {
+    final bool isShort = Responsive.isShort(context);
     return Container(
-      height: 70,
+      height: isShort ? 50.h : 60.h,
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
         border: Border(bottom: BorderSide(color: Theme.of(context).dividerColor.withOpacity(0.2))),
       ),
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        padding: EdgeInsets.symmetric(horizontal: 12.sp, vertical: 8.h),
         itemCount: categories.length,
         itemBuilder: (context, index) {
           final cat = categories[index];
           final isSelected = selectedCategory == cat;
           return Padding(
-            padding: const EdgeInsets.only(right: 12),
+            padding: EdgeInsets.only(right: 12.sp),
             child: InkWell(
               onTap: () {
                 setState(() {
@@ -1143,20 +1163,20 @@ class _POSScreenState extends State<POSScreen> {
                   _currentPage = 1;
                 });
               },
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(Responsive.borderRadius),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(horizontal: 24),
+                padding: EdgeInsets.symmetric(horizontal: 20.sp),
                 decoration: BoxDecoration(
                   color: isSelected ? Theme.of(context).colorScheme.primary : Theme.of(context).dividerColor.withOpacity(0.05),
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: isSelected ? [BoxShadow(color: Theme.of(context).colorScheme.primary.withOpacity(0.3), blurRadius: 8, offset: const Offset(0, 4))] : [],
+                  borderRadius: BorderRadius.circular(Responsive.borderRadius),
+                  boxShadow: isSelected ? [BoxShadow(color: Theme.of(context).colorScheme.primary.withOpacity(0.3), blurRadius: 8.sp, offset: Offset(0, 4.h))] : [],
                 ),
                 alignment: Alignment.center,
                 child: Text(
                   cat,
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: 12.sp,
                     fontWeight: FontWeight.w900,
                     color: isSelected ? Colors.white : Theme.of(context).textTheme.bodyLarge?.color?.withOpacity(0.8),
                   ),

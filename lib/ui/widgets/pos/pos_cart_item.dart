@@ -4,6 +4,7 @@ import '../../../models/models.dart';
 import '../../../providers/features/inventory_provider.dart';
 import '../../../providers/features/sales_provider.dart';
 import '../../../providers/features/settings_provider.dart';
+import 'package:simple_sale/core/utils/responsive.dart';
 
 class POSCartItem extends StatelessWidget {
   final SaleItem item;
@@ -25,13 +26,15 @@ class POSCartItem extends StatelessWidget {
         .where((p) => p.id == item.productId)
         .firstOrNull;
 
+    final bool isShort = Responsive.isShort(context);
+    
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      margin: EdgeInsets.only(bottom: isShort ? 4.h : 8.h),
+      padding: EdgeInsets.symmetric(horizontal: isShort ? 10.sp : 14.sp, vertical: isShort ? 8.h : 12.h),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.015), blurRadius: 10, offset: const Offset(0, 4))],
+        borderRadius: BorderRadius.circular(Responsive.borderRadius),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.015), blurRadius: 10.sp, offset: Offset(0, 4.h))],
         border: Border.all(color: Theme.of(context).dividerColor.withOpacity(0.4)),
       ),
       child: Row(
@@ -43,15 +46,15 @@ class POSCartItem extends StatelessWidget {
               children: [
                 Text(
                   item.productName,
-                  style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14, letterSpacing: -0.3),
+                  style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13.sp, letterSpacing: -0.3),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 4),
+                SizedBox(height: 2.h),
                 Text(
                   '${item.price.toStringAsFixed(0)} s',
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: 11.sp,
                     fontWeight: FontWeight.bold,
                     color: Theme.of(context).textTheme.bodySmall?.color?.withOpacity(0.5),
                   ),
@@ -65,9 +68,9 @@ class POSCartItem extends StatelessWidget {
             children: [
               Text(
                 (item.price * item.quantity).toStringAsFixed(0),
-                style: TextStyle(fontWeight: FontWeight.w900, fontSize: 15, color: Theme.of(context).colorScheme.primary),
+                style: TextStyle(fontWeight: FontWeight.w900, fontSize: 14.sp, color: Theme.of(context).colorScheme.primary),
               ),
-              const SizedBox(height: 8),
+              SizedBox(height: 6.h),
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -80,13 +83,13 @@ class POSCartItem extends StatelessWidget {
                   InkWell(
                     onTap: () => onShowQuantityDialog(item),
                     child: Container(
-                      width: 48,
+                      width: 40.w,
                       alignment: Alignment.center,
                       child: Text(
                         item.quantity % 1 == 0
                             ? item.quantity.toInt().toString()
                             : item.quantity.toStringAsFixed(1),
-                        style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
+                        style: TextStyle(fontWeight: FontWeight.w900, fontSize: 14.sp),
                       ),
                     ),
                   ),
@@ -130,14 +133,14 @@ class _QtyButton extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(Responsive.borderRadius),
         child: Container(
-          padding: const EdgeInsets.all(10),
+          padding: EdgeInsets.all(Responsive.isShort(context) ? 6.sp : 8.sp),
           decoration: BoxDecoration(
             color: color ?? Theme.of(context).dividerColor.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular( Responsive.borderRadius),
           ),
-          child: Icon(icon, size: 24, color: iconColor ?? Theme.of(context).colorScheme.onSurface),
+          child: Icon(icon, size: 20.sp, color: iconColor ?? Theme.of(context).colorScheme.onSurface),
         ),
       ),
     );

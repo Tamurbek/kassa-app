@@ -215,22 +215,96 @@ class _StockTransferScreenState extends State<StockTransferScreen> {
   }
 
   Widget _buildBarcodeSection(InventoryProvider inventory) {
-    return TextField(
-      controller: barcodeCtrl,
-      focusNode: barcodeFocusNode,
-      decoration: InputDecoration(
-        labelText: 'Shtrix kod orqali qo\'shish',
-        hintText: 'Shtrix kodni skanerlang...',
-        border: const OutlineInputBorder(),
-        prefixIcon: const Icon(Icons.qr_code_scanner_rounded),
-        filled: true,
-        fillColor: Theme.of(context).colorScheme.primary.withOpacity(0.05),
-        suffixIcon: IconButton(
-          icon: const Icon(Icons.add), 
-          onPressed: () => _handleBarcode(barcodeCtrl.text, inventory)
-        ),
-      ),
-      onSubmitted: (val) => _handleBarcode(val, inventory),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return RawAutocomplete<Product>(
+          textEditingController: barcodeCtrl,
+          focusNode: barcodeFocusNode,
+          optionsBuilder: (TextEditingValue textEditingValue) {
+            if (textEditingValue.text.isEmpty) {
+              return const Iterable<Product>.empty();
+            }
+            final query = textEditingValue.text.toLowerCase();
+            return inventory.activeProducts.where((p) {
+              final matchesBarcode = (p.barcode?.toLowerCase() ?? '').contains(query) || 
+                                   p.additionalBarcodes.any((b) => b.toLowerCase().contains(query));
+              final matchesName = p.name.toLowerCase().contains(query);
+              return matchesBarcode || matchesName;
+            }).take(10); // Limit results for performance
+          },
+          displayStringForOption: (Product option) => option.name,
+          onSelected: (Product selection) {
+            _addProduct(selection);
+          },
+          fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
+            return TextField(
+              controller: controller,
+              focusNode: focusNode,
+              decoration: InputDecoration(
+                labelText: 'Mahsulot qidirish (Nomi yoki Shtrix-kodi)',
+                hintText: 'Nomi yoki shtrix kodini kiriting...',
+                border: const OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.search_rounded),
+                filled: true,
+                fillColor: Theme.of(context).colorScheme.primary.withOpacity(0.05),
+                suffixIcon: IconButton(
+                  icon: const Icon(Icons.add), 
+                  onPressed: () => _handleBarcode(controller.text, inventory)
+                ),
+              ),
+              onSubmitted: (val) => _handleBarcode(val, inventory),
+            );
+          },
+          optionsViewBuilder: (context, onSelected, options) {
+            return Align(
+              alignment: Alignment.topLeft,
+              child: Material(
+                elevation: 8,
+                borderRadius: BorderRadius.circular(12),
+                shadowColor: Colors.black26,
+                child: Container(
+                  width: constraints.maxWidth,
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).cardColor,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Theme.of(context).dividerColor.withOpacity(0.2)),
+                  ),
+                  constraints: const BoxConstraints(maxHeight: 300),
+                  child: ListView.builder(
+                    padding: EdgeInsets.zero,
+                    shrinkWrap: true,
+                    itemCount: options.length,
+                    itemBuilder: (BuildContext context, int index) {
+                      final Product option = options.elementAt(index);
+                      return ListTile(
+                        leading: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Icon(Icons.inventory_2_outlined, 
+                              size: 18, color: Theme.of(context).colorScheme.primary),
+                        ),
+                        title: Text(option.name, 
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                        subtitle: Text(option.barcode ?? 'Shtrix kodsiz', 
+                            style: TextStyle(fontSize: 11, color: Theme.of(context).disabledColor)),
+                        onTap: () => onSelected(option),
+                        trailing: Text(
+                          '${option.price.toStringAsFixed(0)} sum',
+                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 
@@ -349,22 +423,46 @@ class _StockTransferScreenState extends State<StockTransferScreen> {
     );
   }
 
-  void _handleBarcode(String barcode, InventoryProvider inventory) {
-    if (barcode.isEmpty) return;
+  void _addProduct(Product product) {
+    setState(() {
+      final existingIdx = items.indexWhere((i) => i['productId'] == product.id);
+      if (existingIdx >= 0) {
+        items[existingIdx]['quantity'] = (items[existingIdx]['quantity'] ?? 0) + 1;
+      } else {
+        items.add({'productId': product.id, 'productName': product.name, 'quantity': 1.0});
+      }
+      barcodeCtrl.clear();
+      barcodeFocusNode.requestFocus();
+    });
+  }
+
+  void _handleBarcode(String search, InventoryProvider inventory) {
+    if (search.isEmpty) return;
+    
+    // Try exact barcode first
     try {
-      final product = inventory.activeProducts.firstWhere((p) => p.barcode == barcode || p.additionalBarcodes.contains(barcode));
-      setState(() {
-        final existingIdx = items.indexWhere((i) => i['productId'] == product.id);
-        if (existingIdx >= 0) {
-          items[existingIdx]['quantity'] = (items[existingIdx]['quantity'] ?? 0) + 1;
-        } else {
-          items.add({'productId': product.id, 'productName': product.name, 'quantity': 1.0});
-        }
-        barcodeCtrl.clear();
-        barcodeFocusNode.requestFocus();
-      });
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Mahsulot topilmadi!')));
+      final product = inventory.activeProducts.firstWhere(
+        (p) => p.barcode == search || p.additionalBarcodes.contains(search)
+      );
+      _addProduct(product);
+      return;
+    } catch (_) {}
+
+    // Try name match (if only 1 match found, add it)
+    final matches = inventory.activeProducts.where(
+      (p) => p.name.toLowerCase().contains(search.toLowerCase())
+    ).toList();
+
+    if (matches.length == 1) {
+      _addProduct(matches.first);
+    } else if (matches.isNotEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Mosliklar topildi. Ro\'yxatdan tanlang...'))
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Mahsulot topilmadi!'))
+      );
     }
   }
 

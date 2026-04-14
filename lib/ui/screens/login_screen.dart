@@ -12,6 +12,7 @@ import '../../models/models.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/constants/app_constants.dart';
 import '../widgets/app_button.dart';
+import '../../core/utils/responsive.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -270,11 +271,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final bool isShort = Responsive.isShort(context);
     final theme = Theme.of(context);
     final sync = context.watch<SyncProvider>();
-
-    final size = MediaQuery.of(context).size;
-    final isSmallHeight = size.height < 800;
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -314,15 +313,15 @@ class _LoginScreenState extends State<LoginScreen> {
             Center(
               child: SingleChildScrollView(
                 child: Container(
-                  constraints: const BoxConstraints(maxWidth: 450),
-                  margin: EdgeInsets.all(isSmallHeight ? 12 : 24),
+                  constraints: BoxConstraints(maxWidth: isShort ? 400.sp : 450.sp),
+                  margin: EdgeInsets.all(isShort ? 12.sp : 24.sp),
                   padding: EdgeInsets.symmetric(
-                    horizontal: 40, 
-                    vertical: isSmallHeight ? 24 : 48
+                    horizontal: isShort ? 32.sp : 40.sp, 
+                    vertical: isShort ? 24.sp : 48.sp
                   ),
                   decoration: BoxDecoration(
                     color: theme.cardColor,
-                    borderRadius: BorderRadius.circular(AppConstants.borderRadius * 2),
+                    borderRadius: BorderRadius.circular(AppConstants.borderRadius.sp * 2),
                     border: Border.all(color: theme.dividerColor.withOpacity(0.1)),
                     boxShadow: [
                       BoxShadow(
@@ -338,23 +337,23 @@ class _LoginScreenState extends State<LoginScreen> {
                       Hero(
                         tag: 'app_logo',
                         child: Container(
-                          padding: EdgeInsets.all(isSmallHeight ? 12 : 20),
+                          padding: EdgeInsets.all(isShort ? 12.sp : 20.sp),
                           decoration: BoxDecoration(
-                            color: AppTheme.primaryColor.withOpacity(0.08),
-                            borderRadius: BorderRadius.circular(AppConstants.borderRadius * 1.5),
+                            color: theme.colorScheme.primary.withOpacity(0.08),
+                            borderRadius: BorderRadius.circular(AppConstants.borderRadius.sp * 1.5),
                           ),
                           child: Icon(
                             Icons.shopping_bag_rounded,
-                            size: isSmallHeight ? 48 : 64,
-                            color: AppTheme.primaryColor,
+                            size: isShort ? 40.sp : 64.sp,
+                            color: theme.colorScheme.primary,
                           ),
                         ),
                       ),
-                      SizedBox(height: isSmallHeight ? 16 : 32),
+                      SizedBox(height: isShort ? 16.sp : 32.sp),
                       Text(
                         'Xush Kelibsiz',
                         style: GoogleFonts.outfit(
-                          fontSize: isSmallHeight ? 24 : 32,
+                          fontSize: isShort ? 22.sp : 32.sp,
                           fontWeight: FontWeight.bold,
                           color: theme.colorScheme.onSurface,
                           letterSpacing: -1,
@@ -371,20 +370,20 @@ class _LoginScreenState extends State<LoginScreen> {
                           sync.isMaster == true ? 'MASTER TERMINAL' : 'KLIENT TERMINAL',
                           style: GoogleFonts.outfit(
                             color: AppTheme.primaryColor,
-                            fontSize: 12,
+                            fontSize: 10.sp,
                             fontWeight: FontWeight.w900,
                             letterSpacing: 1.5,
                           ),
                         ),
                       ),
-                      SizedBox(height: isSmallHeight ? 24 : 56),
+                      SizedBox(height: isShort ? 24.sp : 56.sp),
                       _buildPinDisplay(),
-                      SizedBox(height: isSmallHeight ? 24 : 56),
+                      SizedBox(height: isShort ? 24.sp : 56.sp),
                       ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 320),
-                        child: _buildNumpad(isSmallHeight),
+                        constraints: BoxConstraints(maxWidth: 320.sp),
+                        child: _buildNumpad(isShort),
                       ),
-                      SizedBox(height: isSmallHeight ? 16 : 32),
+                      SizedBox(height: isShort ? 16.sp : 32.sp),
                       AppButton(
                         label: 'PINni unutdingizmi?',
                         style: AppButtonStyle.ghost,
@@ -548,10 +547,10 @@ class _LoginScreenState extends State<LoginScreen> {
           onTap: () => _onNumberPressed(n),
           borderRadius: BorderRadius.circular(16),
           child: Container(
-            height: isSmallHeight ? 56 : 70,
+            height: isSmallHeight ? 50.sp : 70.sp,
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(Responsive.borderRadius),
               border: Border.all(
                 color: Theme.of(context).dividerColor.withOpacity(0.5),
               ),
@@ -559,7 +558,7 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Text(
               n,
               style: TextStyle(
-                fontSize: isSmallHeight ? 22 : 26,
+                fontSize: isSmallHeight ? 22.sp : 26.sp,
                 fontWeight: FontWeight.bold,
                 color: Theme.of(context).colorScheme.onSurface,
               ),
@@ -579,17 +578,17 @@ class _LoginScreenState extends State<LoginScreen> {
           onTap: onTap,
           borderRadius: BorderRadius.circular(16),
           child: Container(
-            height: isSmallHeight ? 56 : 70,
+            height: isSmallHeight ? 50.sp : 70.sp,
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(Responsive.borderRadius),
               border: Border.all(
                 color: Theme.of(context).dividerColor.withOpacity(0.5),
               ),
             ),
             child: Icon(
               icon,
-              size: isSmallHeight ? 22 : 26,
+              size: isSmallHeight ? 22.sp : 26.sp,
               color: Theme.of(context).colorScheme.onSurface,
             ),
           ),

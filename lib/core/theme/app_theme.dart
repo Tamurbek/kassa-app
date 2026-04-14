@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../constants/app_constants.dart';
+import '../utils/responsive.dart';
 
 class AppColors {
   static const Color primary = Color(0xFF6366F1);
@@ -55,18 +56,19 @@ class AppShadows {
 }
 
 class AppTheme {
-  static ThemeData lightTheme = _buildTheme(Brightness.light);
-  static ThemeData darkTheme = _buildTheme(Brightness.dark);
-
-  // Aliases for legacy code
+  // Backward compatibility static constants
   static const Color primaryColor = AppColors.primary;
   static const Color secondaryColor = AppColors.secondary;
-  static const Color darkBg = AppColors.darkBg;
+  static const Color accentColor = AppColors.accent;
+  static const Color errorColor = AppColors.error;
   static const Color lightBg = AppColors.lightBg;
+  static const Color darkBg = AppColors.darkBg;
   static const Color darkSurface = AppColors.darkSurface;
-  static const Color slateGrey = AppColors.slateGrey;
+  static const Color lightBorder = AppColors.lightBorder;
+  static const Color darkBorder = AppColors.darkBorder;
 
-  static ThemeData _buildTheme(Brightness brightness) {
+  static ThemeData getTheme(BuildContext context, Brightness brightness) {
+    Responsive.init(context);
     final isDark = brightness == Brightness.dark;
     final base = isDark ? ThemeData.dark() : ThemeData.light();
     
@@ -92,21 +94,26 @@ class AppTheme {
         surfaceContainerHighest: isDark ? const Color(0xFF404040) : const Color(0xFFF1F5F9),
       ),
       textTheme: GoogleFonts.outfitTextTheme(base.textTheme).copyWith(
-        displayLarge: GoogleFonts.outfit(fontWeight: FontWeight.w900, color: textPrimary),
-        headlineLarge: GoogleFonts.outfit(fontWeight: FontWeight.w800, color: textPrimary),
-        headlineMedium: GoogleFonts.outfit(fontWeight: FontWeight.w700, color: textPrimary),
-        titleLarge: GoogleFonts.outfit(fontWeight: FontWeight.w700, fontSize: 18, color: textPrimary),
-        titleMedium: GoogleFonts.outfit(fontWeight: FontWeight.w600, fontSize: 16, color: textPrimary),
-        bodyLarge: GoogleFonts.outfit(color: textPrimary),
+        displayLarge: GoogleFonts.outfit(fontWeight: FontWeight.w900, color: textPrimary, fontSize: 32.sp),
+        headlineLarge: GoogleFonts.outfit(fontWeight: FontWeight.w800, color: textPrimary, fontSize: 28.sp),
+        headlineMedium: GoogleFonts.outfit(fontWeight: FontWeight.w700, color: textPrimary, fontSize: 24.sp),
+        titleLarge: GoogleFonts.outfit(fontWeight: FontWeight.w700, fontSize: 20.sp, color: textPrimary),
+        titleMedium: GoogleFonts.outfit(fontWeight: FontWeight.w600, fontSize: 18.sp, color: textPrimary),
+        titleSmall: GoogleFonts.outfit(fontWeight: FontWeight.w600, fontSize: 16.sp, color: textPrimary),
+        bodyLarge: GoogleFonts.outfit(color: textPrimary, fontSize: 16.sp),
+        bodyMedium: GoogleFonts.outfit(color: textPrimary, fontSize: 14.sp),
+        bodySmall: GoogleFonts.outfit(color: textPrimary, fontSize: 12.sp),
+        labelLarge: GoogleFonts.outfit(fontWeight: FontWeight.w700, fontSize: 14.sp),
       ),
       appBarTheme: AppBarTheme(
         backgroundColor: bg,
         foregroundColor: textPrimary,
         elevation: 0,
+        toolbarHeight: 64.h,
         centerTitle: false,
         titleTextStyle: GoogleFonts.outfit(
           color: textPrimary,
-          fontSize: 20,
+          fontSize: 20.sp,
           fontWeight: FontWeight.w800,
           letterSpacing: -0.5,
         ),
@@ -115,50 +122,60 @@ class AppTheme {
         elevation: 0,
         color: surface,
         surfaceTintColor: Colors.transparent,
+        margin: EdgeInsets.all(8.sp),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppConstants.borderRadius),
+          borderRadius: BorderRadius.circular(AppConstants.borderRadius.sp),
           side: BorderSide(color: border, width: 1),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: isDark ? AppColors.darkSurface.withOpacity(0.5) : Colors.white,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        contentPadding: EdgeInsets.symmetric(horizontal: 20.sp, vertical: 16.sp),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppConstants.borderRadius),
+          borderRadius: BorderRadius.circular(AppConstants.borderRadius.sp),
           borderSide: BorderSide(color: border),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppConstants.borderRadius),
+          borderRadius: BorderRadius.circular(AppConstants.borderRadius.sp),
           borderSide: BorderSide(color: border),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppConstants.borderRadius),
+          borderRadius: BorderRadius.circular(AppConstants.borderRadius.sp),
           borderSide: const BorderSide(color: AppColors.primary, width: 2),
         ),
-        labelStyle: GoogleFonts.outfit(color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary),
-        floatingLabelStyle: GoogleFonts.outfit(color: AppColors.primary, fontWeight: FontWeight.bold),
+        labelStyle: GoogleFonts.outfit(
+          color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+          fontSize: 14.sp,
+        ),
+        floatingLabelStyle: GoogleFonts.outfit(
+          color: AppColors.primary, 
+          fontWeight: FontWeight.bold,
+          fontSize: 14.sp,
+        ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           elevation: 0,
           backgroundColor: AppColors.primary,
           foregroundColor: Colors.white,
-          minimumSize: const Size(0, 52),
+          minimumSize: Size(0, 52.h),
+          padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 12.h),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppConstants.borderRadius),
+            borderRadius: BorderRadius.circular(AppConstants.borderRadius.sp),
           ),
-          textStyle: GoogleFonts.outfit(fontWeight: FontWeight.w700, fontSize: 16),
+          textStyle: GoogleFonts.outfit(fontWeight: FontWeight.w700, fontSize: 16.sp),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           side: BorderSide(color: border),
-          minimumSize: const Size(0, 52),
+          minimumSize: Size(0, 52.h),
+          padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 12.h),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppConstants.borderRadius),
+            borderRadius: BorderRadius.circular(AppConstants.borderRadius.sp),
           ),
-          textStyle: GoogleFonts.outfit(fontWeight: FontWeight.w600, fontSize: 16),
+          textStyle: GoogleFonts.outfit(fontWeight: FontWeight.w600, fontSize: 16.sp),
         ),
       ),
     );

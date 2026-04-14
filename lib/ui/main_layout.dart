@@ -28,6 +28,7 @@ import 'screens/sales_sessions_screen.dart';
 import 'widgets/app_end_drawer.dart';
 import 'widgets/app_status_bar.dart';
 import '../providers/features/navigation_provider.dart';
+import '../core/utils/responsive.dart';
 
 class MainLayout extends StatefulWidget {
   const MainLayout({super.key});
@@ -76,6 +77,7 @@ class _MainLayoutState extends State<MainLayout> {
 
   @override
   Widget build(BuildContext context) {
+    Responsive.init(context);
     final auth = context.watch<AuthProvider>();
     final settings = context.watch<SettingsProvider>();
     final sync = context.watch<SyncProvider>();
