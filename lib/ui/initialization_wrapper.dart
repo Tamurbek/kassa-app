@@ -62,18 +62,9 @@ class _InitializationWrapperState extends State<InitializationWrapper> {
     final state = context.watch<AppState>();
     final authProvider = context.watch<AuthProvider>();
 
-    // If user was logged in and now is not, clear any open dialogs/screens and session data
-    if (_lastUser != null && authProvider.currentUser == null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          // Clear session data centrally
-          context.read<SalesProvider>().clearCart();
-          context.read<NavigationProvider>().setIndex(0, clearHistory: true);
-          
-          Navigator.of(context).popUntil((route) => route.isFirst);
-        }
-      });
-    }
+    // State preservation across logins is now enabled by default. 
+    // The previous user's cart and screen index are maintained in memory 
+    // to allow seamless resumption after a timeout or manual lock.
     _lastUser = authProvider.currentUser;
 
     if (!state.isInitialized || !authProvider.isInitialized) {
