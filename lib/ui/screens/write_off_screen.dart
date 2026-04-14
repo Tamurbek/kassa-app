@@ -90,7 +90,10 @@ class _WriteOffScreenState extends State<WriteOffScreen> {
           color: Theme.of(context).colorScheme.primary,
         ),
         actions: [
-          IconButton(icon: const Icon(Icons.save_rounded, color: Colors.red), onPressed: _save),
+          IconButton(
+            icon: Icon(_isSaving ? Icons.sync_rounded : Icons.save_rounded, color: Colors.red), 
+            onPressed: _isSaving ? null : _save
+          ),
         ],
       ),
       body: Column(
@@ -187,9 +190,11 @@ class _WriteOffScreenState extends State<WriteOffScreen> {
                       width: double.infinity,
                       height: 54,
                       child: ElevatedButton(
-                        onPressed: _save,
+                        onPressed: _isSaving ? null : _save,
                         style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-                        child: const Text('SAQLASH', style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1)),
+                        child: _isSaving 
+                          ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                          : const Text('SAQLASH', style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1)),
                       ),
                     ),
                   ],
@@ -202,13 +207,16 @@ class _WriteOffScreenState extends State<WriteOffScreen> {
     );
   }
 
+  bool _isSaving = false;
   Future<void> _save() async {
+    if (_isSaving) return;
     final sales = context.read<SalesProvider>();
     if (woWarehouseId == null) return;
 
     final finalItems = items.where((i) => i['productId'] != null && (i['quantity'] as num) > 0).map((i) => WriteOffItem(productId: i['productId'], productName: i['productName'], quantity: (i['quantity'] as num).toDouble())).toList();
     if (finalItems.isEmpty) return;
 
+    setState(() => _isSaving = true);
     final entry = WriteOff(
       id: widget.writeOff?.id ?? const Uuid().v4(),
       warehouseId: woWarehouseId!,
@@ -218,17 +226,13 @@ class _WriteOffScreenState extends State<WriteOffScreen> {
     );
 
     try {
-      final inventory = context.read<InventoryProvider>();
-      final appState = context.read<AppState>();
-      
       await sales.addWriteOff(entry);
-      
-      await inventory.reloadData();
-      await appState.reloadData();
-      
       if (mounted) Navigator.pop(context);
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Xatolik: $e')));
+      if (mounted) {
+        setState(() => _isSaving = false);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Xatolik: $e')));
+      }
     }
   }
 }

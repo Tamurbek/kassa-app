@@ -96,7 +96,10 @@ class _ReturnScreenState extends State<ReturnScreen> {
           color: Theme.of(context).colorScheme.primary,
         ),
         actions: [
-          IconButton(icon: const Icon(Icons.save_rounded, color: Colors.orange), onPressed: _save),
+          IconButton(
+            icon: Icon(_isSaving ? Icons.sync_rounded : Icons.save_rounded, color: Colors.orange), 
+            onPressed: _isSaving ? null : _save
+          ),
         ],
       ),
       body: Column(
@@ -205,7 +208,9 @@ class _ReturnScreenState extends State<ReturnScreen> {
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                           elevation: 0,
                         ),
-                        child: Text('VAZVRATNI SAQLASH', style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1, fontSize: 14.sp)),
+                        child: _isSaving 
+                          ? const SizedBox(height: 18, width: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                          : Text('VAZVRATNI SAQLASH', style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1, fontSize: 14.sp)),
                       ),
                     ),
                   ],
@@ -218,13 +223,16 @@ class _ReturnScreenState extends State<ReturnScreen> {
     );
   }
 
+  bool _isSaving = false;
   Future<void> _save() async {
+    if (_isSaving) return;
     final sales = context.read<SalesProvider>();
     if (returnWarehouseId == null) return;
 
     final finalItems = items.where((i) => i['productId'] != null && (i['quantity'] as num) > 0).map((i) => SaleReturnItem(productId: i['productId'], productName: i['productName'], quantity: (i['quantity'] as num).toDouble(), price: (i['price'] as num).toDouble())).toList();
     if (finalItems.isEmpty) return;
 
+    setState(() => _isSaving = true);
     double total = finalItems.fold(0, (sum, i) => sum + (i.price * i.quantity));
 
     final entry = SaleReturn(
@@ -237,18 +245,13 @@ class _ReturnScreenState extends State<ReturnScreen> {
     );
 
     try {
-      final inventory = context.read<InventoryProvider>();
-      final appState = context.read<AppState>();
-      
       await sales.saveReturn(entry);
-      
-      // Force UI update for stock levels
-      await inventory.reloadData();
-      await appState.reloadData();
-      
       if (mounted) Navigator.pop(context);
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Xatolik: $e')));
+      if (mounted) {
+        setState(() => _isSaving = false);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Xatolik: $e')));
+      }
     }
   }
 }

@@ -104,7 +104,10 @@ class _InventoryScreenState extends State<InventoryScreen> {
           color: Theme.of(context).colorScheme.primary,
         ),
         actions: [
-          IconButton(icon: const Icon(Icons.save, color: Colors.teal), onPressed: _save),
+          IconButton(
+            icon: Icon(_isSaving ? Icons.sync_rounded : Icons.save, color: Colors.teal), 
+            onPressed: _isSaving ? null : _save
+          ),
         ],
       ),
       body: Column(
@@ -257,13 +260,15 @@ class _InventoryScreenState extends State<InventoryScreen> {
                               backgroundColor: Colors.teal,
                               foregroundColor: Colors.white,
                             ),
-                            child: const Text(
-                              'Inventarizatsiyani Saqlash',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 1,
+                            child: _isSaving 
+                              ? const SizedBox(height: 18, width: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                              : const Text(
+                                'Inventarizatsiyani Saqlash',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 1,
+                                ),
                               ),
-                            ),
                           ),
                         ),
                       ],
@@ -314,7 +319,9 @@ class _InventoryScreenState extends State<InventoryScreen> {
     }
   }
 
+  bool _isSaving = false;
   Future<void> _save() async {
+    if (_isSaving) return;
     final inventoryProv = context.read<InventoryProvider>();
     if (invWarehouseId == null) return;
 
@@ -337,6 +344,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
       return;
     }
 
+    setState(() => _isSaving = true);
     final entry = InventoryEntry(
       id: widget.inventory?.id ?? const Uuid().v4(),
       date: selectedDate,
@@ -345,15 +353,20 @@ class _InventoryScreenState extends State<InventoryScreen> {
       items: finalItems,
     );
 
-    if (widget.inventory == null) {
-      await inventoryProv.addInventory(entry);
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Inventarizatsiya saqlandi')));
-    } else {
-      await inventoryProv.updateInventory(entry);
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Inventarizatsiya tahrirlandi')));
+    try {
+      if (widget.inventory == null) {
+        await inventoryProv.addInventory(entry);
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Inventarizatsiya saqlandi')));
+      } else {
+        await inventoryProv.updateInventory(entry);
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Inventarizatsiya tahrirlandi')));
+      }
+      if (mounted) Navigator.pop(context);
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isSaving = false);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Xatolik: $e')));
+      }
     }
-    
-    
-    if (mounted) Navigator.pop(context);
   }
 }

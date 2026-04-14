@@ -107,7 +107,12 @@ class _StockEntryScreenState extends State<StockEntryScreen> {
           const SizedBox(width: 8),
           _buildAppBarAction(Icons.file_download_outlined, 'Shablon', () => ExcelImportService.downloadStockEntryTemplate(context, inventory.activeProducts), Colors.amber.shade800),
           const SizedBox(width: 8),
-          _buildAppBarAction(Icons.save_rounded, 'Saqlash', _save, Theme.of(context).colorScheme.primary),
+          _buildAppBarAction(
+            _isSaving ? Icons.sync_rounded : Icons.save_rounded, 
+            _isSaving ? 'Saqlash...' : 'Saqlash', 
+            _isSaving ? () {} : _save, 
+            _isSaving ? Colors.grey : Theme.of(context).colorScheme.primary
+          ),
         ],
       ),
       body: LayoutBuilder(
@@ -358,7 +363,9 @@ class _StockEntryScreenState extends State<StockEntryScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         elevation: 4,
       ),
-      child: const Text('TASDIQLASH VA SAQLASH', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, letterSpacing: 1)),
+      child: _isSaving 
+        ? const SizedBox(height: 18, width: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+        : const Text('TASDIQLASH VA SAQLASH', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, letterSpacing: 1)),
     );
   }
 
@@ -407,7 +414,9 @@ class _StockEntryScreenState extends State<StockEntryScreen> {
     }
   }
 
+  bool _isSaving = false;
   Future<void> _save() async {
+    if (_isSaving) return;
     final inventory = context.read<InventoryProvider>();
     if (entryWarehouseId == null) return;
     final finalItems = items.where((i) => i['productId'] != null && i['quantity'] > 0).map((i) => StockEntryItem(
@@ -419,14 +428,16 @@ class _StockEntryScreenState extends State<StockEntryScreen> {
     )).toList();
     if (finalItems.isEmpty) return;
 
+    setState(() => _isSaving = true);
     final entry = StockEntry(id: widget.entry?.id ?? const Uuid().v4(), warehouseId: entryWarehouseId!, date: selectedDate, description: descriptionCtrl.text, items: finalItems);
     try {
-      final appState = context.read<AppState>();
       await inventory.addStockEntry(entry);
-      await appState.reloadData();
       if (mounted) Navigator.pop(context);
     } catch (e) {
-       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Xatolik: $e')));
+      if (mounted) {
+        setState(() => _isSaving = false);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Xatolik: $e')));
+      }
     }
   }
 
