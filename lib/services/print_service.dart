@@ -36,7 +36,7 @@ class PrintService {
     const labelFormat = PdfPageFormat(
       40 * PdfPageFormat.mm,
       30 * PdfPageFormat.mm,
-      marginAll: 2 * PdfPageFormat.mm,
+      marginAll: 0,
     );
 
     for (var item in items) {
@@ -48,47 +48,50 @@ class PrintService {
           pw.Page(
             pageFormat: labelFormat,
             build: (pw.Context context) {
-              return pw.Column(
-                mainAxisAlignment: pw.MainAxisAlignment.center,
-                crossAxisAlignment: pw.CrossAxisAlignment.center,
-                children: [
-                  pw.Text(
-                    product.name.toUpperCase(),
-                    style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold),
-                    maxLines: 2,
-                    textAlign: pw.TextAlign.center,
-                  ),
-                  pw.SizedBox(height: isPriceLabel ? 5 : 2),
-                  if (isPriceLabel) ...[
+              return pw.Container(
+                alignment: pw.Alignment.center,
+                child: pw.Column(
+                  mainAxisAlignment: pw.MainAxisAlignment.center,
+                  crossAxisAlignment: pw.CrossAxisAlignment.center,
+                  children: [
                     pw.Text(
-                      'NARXI:',
-                      style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.normal),
+                      product.name.toUpperCase(),
+                      style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold),
+                      maxLines: 2,
+                      textAlign: pw.TextAlign.center,
                     ),
-                    pw.SizedBox(height: 2),
-                    pw.Text(
-                      NumberFormat.currency(locale: 'uz_UZ', symbol: '', decimalDigits: 0).format(product.price),
-                      style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold),
-                    ),
-                    pw.Text(
-                      'so\'m',
-                      style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold),
-                    ),
-                  ] else ...[
-                    pw.BarcodeWidget(
-                      barcode: pw.Barcode.code128(),
-                      data: product.barcode,
-                      width: 32 * PdfPageFormat.mm,
-                      height: 15 * PdfPageFormat.mm,
-                      drawText: true,
-                      textStyle: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold),
-                    ),
-                    pw.SizedBox(height: 2),
-                    pw.Text(
-                      'Narxi: ${NumberFormat.currency(locale: 'uz_UZ', symbol: '', decimalDigits: 0).format(product.price)} so\'m',
-                      style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold),
-                    ),
+                    pw.SizedBox(height: isPriceLabel ? 4 : 2),
+                    if (isPriceLabel) ...[
+                      pw.Text(
+                        'NARXI:',
+                        style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.normal),
+                      ),
+                      pw.SizedBox(height: 2),
+                      pw.Text(
+                        NumberFormat.currency(locale: 'uz_UZ', symbol: '', decimalDigits: 0).format(product.price),
+                        style: pw.TextStyle(fontSize: 22, fontWeight: pw.FontWeight.bold),
+                      ),
+                      pw.Text(
+                        'so\'m',
+                        style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold),
+                      ),
+                    ] else ...[
+                      pw.BarcodeWidget(
+                        barcode: pw.Barcode.code128(),
+                        data: product.barcode,
+                        width: 34 * PdfPageFormat.mm,
+                        height: 12 * PdfPageFormat.mm,
+                        drawText: true,
+                        textStyle: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold),
+                      ),
+                      pw.SizedBox(height: 2),
+                      pw.Text(
+                        'Narxi: ${NumberFormat.currency(locale: 'uz_UZ', symbol: '', decimalDigits: 0).format(product.price)} so\'m',
+                        style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold),
+                      ),
+                    ],
                   ],
-                ],
+                ),
               );
             },
           ),
@@ -128,6 +131,9 @@ class PrintService {
             // center
             bytes.addAll([0x1B, 0x61, 0x01]);
             
+            // Vertical offset for 30mm labels
+            bytes.addAll([0x0A]); // 1 line feed before
+            
             // Name
             bytes.addAll(utf8.encode(_clean('${product.name.toUpperCase()}\n')));
             
@@ -139,7 +145,7 @@ class PrintService {
             } else {
               // Barcode
               // ESC/POS Barcode (Code128)
-              bytes.addAll([0x1D, 0x68, 0x60]); 
+              bytes.addAll([0x1D, 0x68, 0x50]); // height 80 (approx 10mm)
               bytes.addAll([0x1D, 0x77, 0x02]); 
               bytes.addAll([0x1D, 0x48, 0x02]); 
               bytes.addAll([0x1D, 0x6B, 0x49, product.barcode.length + 2, 0x7B, 0x42]); 
@@ -147,7 +153,7 @@ class PrintService {
               bytes.addAll(utf8.encode(_clean('\nNarxi: ${NumberFormat.currency(locale: 'uz_UZ', symbol: '', decimalDigits: 0).format(product.price)} so\'m\n')));
             }
             
-            bytes.addAll([0x0A, 0x0A, 0x0A]); // feed 3
+            bytes.addAll([0x0A, 0x0A]); // feed 2 more after to clear the label
           }
         }
         
