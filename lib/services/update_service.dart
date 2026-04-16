@@ -43,10 +43,10 @@ class UpdateService {
       // 1. Separate version from build number
       // latest: 1.22.73+73
       // current: 1.22.71+71
-      final latestPart = latest.split('+')[0];
+      final latestPart = latest.toLowerCase().replaceFirst('v', '').split('+')[0];
       final latestBuild = latest.contains('+') ? int.tryParse(latest.split('+')[1]) ?? 0 : 0;
       
-      final currentPart = current.split('+')[0];
+      final currentPart = current.toLowerCase().replaceFirst('v', '').split('+')[0];
       final currentBuild = current.contains('+') ? int.tryParse(current.split('+')[1]) ?? 0 : 0;
 
       // 2. Compare main version parts (1.22.73)
