@@ -128,7 +128,7 @@ class _StockEntryScreenState extends State<StockEntryScreen> {
                   children: [
                     // LEFT PANEL: Controls & Info
                     Expanded(
-                      flex: 4,
+                      flex: 3,
                       child: SingleChildScrollView(
                         child: Column(
                           children: [
@@ -144,7 +144,7 @@ class _StockEntryScreenState extends State<StockEntryScreen> {
                     const SizedBox(width: 20),
                     // RIGHT PANEL: Product List
                     Expanded(
-                      flex: 6,
+                      flex: 7,
                       child: _buildItemsList(inventory),
                     ),
                   ],
@@ -313,39 +313,78 @@ class _StockEntryScreenState extends State<StockEntryScreen> {
 
   Widget _buildItemRow(int idx, Map<String, dynamic> item, InventoryProvider inventory) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(12),
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Theme.of(context).dividerColor.withOpacity(0.5)),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Theme.of(context).dividerColor.withOpacity(0.08)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Expanded(flex: 10, child: _buildProductDropdown(idx, item, inventory)),
-          const SizedBox(width: 8),
+          // Index Number
+          Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Center(
+              child: Text(
+                '${idx + 1}',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.primary,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 16),
+          // Product Selection
+          Expanded(flex: 12, child: _buildProductDisplay(idx, item, inventory)),
+          const SizedBox(width: 12),
+          // Unit Selection
           Expanded(
-            flex: 3,
+            flex: 2,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text('Birlik', style: TextStyle(fontSize: 10, color: Colors.grey)),
-                const SizedBox(height: 4),
+                Text(
+                  'Birlik',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: Theme.of(context).colorScheme.primary.withOpacity(0.7),
+                  ),
+                ),
+                const SizedBox(height: 6),
                 Container(
-                  height: 38,
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  height: 42,
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Theme.of(context).dividerColor),
+                    borderRadius: BorderRadius.circular(12),
+                    color: Theme.of(context).scaffoldBackgroundColor.withOpacity(0.5),
+                    border: Border.all(color: Theme.of(context).dividerColor.withOpacity(0.1)),
                   ),
                   child: DropdownButtonHideUnderline(
                     child: DropdownButton<bool>(
                       value: item['isBox'] ?? false,
                       isExpanded: true,
+                      icon: Icon(Icons.keyboard_arrow_down_rounded, size: 18, color: Theme.of(context).colorScheme.primary),
                       items: const [
-                        DropdownMenuItem(value: false, child: Text('Dona', style: TextStyle(fontSize: 12))),
-                        DropdownMenuItem(value: true, child: Text('Blok', style: TextStyle(fontSize: 12))),
+                        DropdownMenuItem(value: false, child: Text('Dona', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500))),
+                        DropdownMenuItem(value: true, child: Text('Blok', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500))),
                       ],
                       onChanged: (val) => setState(() => items[idx]['isBox'] = val),
                     ),
@@ -354,15 +393,31 @@ class _StockEntryScreenState extends State<StockEntryScreen> {
               ],
             ),
           ),
+          const SizedBox(width: 12),
+          // cost price
+          Expanded(flex: 4, child: _buildCompactInput(item['costPrice'], 'Tan narxi', (val) => items[idx]['costPrice'] = double.tryParse(val) ?? 0)),
           const SizedBox(width: 8),
-          Expanded(flex: 2, child: _buildCompactInput(item['costPrice'], 'Tan narxi', (val) => items[idx]['costPrice'] = double.tryParse(val) ?? 0)),
+          // selling price
+          Expanded(flex: 4, child: _buildCompactInput(item['price'], 'Sotuv narxi', (val) => items[idx]['price'] = double.tryParse(val) ?? 0)),
           const SizedBox(width: 8),
-          Expanded(flex: 2, child: _buildCompactInput(item['price'], 'Sotuv narxi', (val) => items[idx]['price'] = double.tryParse(val) ?? 0)),
-          const SizedBox(width: 8),
-          Expanded(flex: 2, child: _buildCompactInput(item['quantity'], 'Soni', (val) => items[idx]['quantity'] = double.tryParse(val) ?? 0)),
-          IconButton(
-            icon: const Icon(Icons.remove_circle_outline, color: Colors.red, size: 20),
-            onPressed: () => setState(() => items.removeAt(idx)),
+          // quantity
+          Expanded(flex: 3, child: _buildCompactInput(item['quantity'], 'Soni', (val) => items[idx]['quantity'] = double.tryParse(val) ?? 0)),
+          const SizedBox(width: 12),
+          // delete button
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () => setState(() => items.removeAt(idx)),
+              borderRadius: BorderRadius.circular(12),
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.red.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(Icons.delete_outline_rounded, color: Colors.red, size: 22),
+              ),
+            ),
           ),
         ],
       ),
@@ -530,50 +585,78 @@ class _StockEntryScreenState extends State<StockEntryScreen> {
     }
   }
 
-  Widget _buildProductDropdown(int idx, Map<String, dynamic> item, InventoryProvider inventory) {
-    return DropdownButtonFormField<String>(
-      value: item['productId'],
-      isExpanded: true,
-      decoration: const InputDecoration(
-        border: OutlineInputBorder(), 
-        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-        hintText: 'Mahsulotni tanlang',
-      ),
-      itemHeight: 60,
-      items: inventory.activeProducts.map((p) => DropdownMenuItem(
-        value: p.id, 
-        child: Text(
-          p.name, 
-          style: const TextStyle(fontSize: 12),
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-        )
-      )).toList(),
-      onChanged: (val) {
-        if (val == null) return;
-        final p = inventory.activeProducts.firstWhere((p) => p.id == val);
-        setState(() {
-          items[idx]['productId'] = val;
-          items[idx]['productName'] = p.name;
-          items[idx]['costPrice'] = p.costPrice;
-          items[idx]['price'] = p.price;
-        });
-      },
+  Widget _buildProductDisplay(int idx, Map<String, dynamic> item, InventoryProvider inventory) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          'Mahsulot',
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w600,
+            color: Theme.of(context).colorScheme.primary.withOpacity(0.7),
+          ),
+        ),
+        const SizedBox(height: 6),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+          decoration: BoxDecoration(
+            color: Theme.of(context).scaffoldBackgroundColor.withOpacity(0.5),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Theme.of(context).dividerColor.withOpacity(0.1)),
+          ),
+          child: Text(
+            item['productName'] ?? 'Nomsiz mahsulot',
+            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
     );
   }
 
   Widget _buildCompactInput(dynamic initialValue, String label, Function(String) onChanged) {
-    return TextFormField(
-      initialValue: initialValue is double ? AppFormatter.formatDouble(initialValue) : initialValue.toString(),
-      decoration: InputDecoration(
-        border: const OutlineInputBorder(), 
-        labelText: label,
-        isDense: true,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
-      ),
-      style: const TextStyle(fontSize: 13),
-      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-      onChanged: onChanged,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w600,
+            color: Theme.of(context).colorScheme.primary.withOpacity(0.7),
+          ),
+        ),
+        const SizedBox(height: 6),
+        TextFormField(
+          initialValue: initialValue is double ? AppFormatter.formatDouble(initialValue) : initialValue.toString(),
+          decoration: InputDecoration(
+            isDense: true,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+            filled: true,
+            fillColor: Theme.of(context).scaffoldBackgroundColor.withOpacity(0.5),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: Theme.of(context).dividerColor.withOpacity(0.1)),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: Theme.of(context).dividerColor.withOpacity(0.1)),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: Theme.of(context).colorScheme.primary.withOpacity(0.5), width: 1.5),
+            ),
+          ),
+          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          onChanged: onChanged,
+        ),
+      ],
     );
   }
 
