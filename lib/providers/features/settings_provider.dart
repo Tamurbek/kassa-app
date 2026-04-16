@@ -133,7 +133,7 @@ class SettingsProvider extends ChangeNotifier {
       // 5. Load App Version from platform
       try {
         final packageInfo = await PackageInfo.fromPlatform();
-        appVersion = '${packageInfo.version}+${packageInfo.buildNumber}';
+        appVersion = packageInfo.version;
       } catch (e) {
         debugPrint('Error loading package info: $e');
       }
