@@ -38,6 +38,8 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.product?.name ?? '');
+    _priceController = TextEditingController(text: widget.product?.price == 0 ? '' : widget.product?.price.toString());
+    _costPriceController = TextEditingController(text: widget.product?.costPrice == 0 ? '' : widget.product?.costPrice.toString());
     _barcodeController = TextEditingController(
       text: widget.product?.barcode ?? '',
     );
@@ -63,6 +65,8 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
   @override
   void dispose() {
     _nameController.dispose();
+    _priceController.dispose();
+    _costPriceController.dispose();
     _barcodeController.dispose();
     for (var c in _additionalBarcodeControllers) {
       c.dispose();
@@ -90,8 +94,8 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
       }
 
       final name = _nameController.text;
-      final price = widget.product?.price ?? 0.0;
-      final costPrice = widget.product?.costPrice ?? 0.0;
+      final price = double.tryParse(_priceController.text) ?? 0.0;
+      final costPrice = double.tryParse(_costPriceController.text) ?? 0.0;
       final barcode = _barcodeController.text.trim();
       final quantityInBox = double.tryParse(_quantityInBoxController.text) ?? 1.0;
       final boxPrice = double.tryParse(_boxPriceController.text);
@@ -157,7 +161,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
       }
 
       await inventory.saveProduct(product);
-      if (mounted) Navigator.pop(context);
+      if (mounted) Navigator.pop(context, product);
     }
   }
 
@@ -257,6 +261,28 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                   ),
                   SizedBox(height: 20),
                   _buildCategoryDropdown(inventory),
+                  const SizedBox(height: 20),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildTextField(
+                          'Tan narxi',
+                          _costPriceController,
+                          Icons.shopping_cart_outlined,
+                          isNumber: true,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: _buildTextField(
+                          'Sotish narxi',
+                          _priceController,
+                          Icons.sell_outlined,
+                          isNumber: true,
+                        ),
+                      ),
+                    ],
+                  ),
                   const SizedBox(height: 20),
                   Row(
                     children: [

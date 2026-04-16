@@ -33,20 +33,23 @@ class ProductSelectionRow extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Expanded(
-            flex: 4,
+            flex: 6,
             child: DropdownButtonFormField<String>(
               isExpanded: true,
               value: selectedProduct?.id,
               decoration: const InputDecoration(
                 border: OutlineInputBorder(),
-                contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 14),
               ),
+              itemHeight: 60,
               items: availableProducts
                   .map(
                     (p) => DropdownMenuItem(
                       value: p.id,
                       child: Text(
                         p.name,
+                        style: const TextStyle(fontSize: 12),
+                        maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),

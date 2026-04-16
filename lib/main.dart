@@ -15,6 +15,7 @@ import 'services/system_tray_service.dart';
 import 'services/single_instance_service.dart';
 import 'providers/features/navigation_provider.dart';
 import 'core/utils/responsive.dart';
+import 'ui/widgets/global_inactivity_wrapper.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -77,7 +78,7 @@ class SimpleSaleApp extends StatelessWidget {
           color: Theme.of(context).brightness == Brightness.dark 
               ? const Color(0xFF262626) // Corrected to match darkBg
               : const Color(0xFFF1F5F9), // Slate 100 background for gutters
-          child: child!,
+          child: GlobalInactivityWrapper(child: child!),
         );
       },
     );

@@ -288,7 +288,10 @@ class _InventoryScreenState extends State<InventoryScreen> {
 
     try {
       final product = inventoryProv.products.firstWhere(
-        (p) => p.barcode == barcode || p.additionalBarcodes.contains(barcode),
+        (p) => p.barcode == barcode || 
+               p.additionalBarcodes.contains(barcode) ||
+               p.boxBarcode == barcode ||
+               p.additionalBoxBarcodes.contains(barcode),
       );
 
       setState(() {

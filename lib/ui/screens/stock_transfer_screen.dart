@@ -232,7 +232,9 @@ class _StockTransferScreenState extends State<StockTransferScreen> {
             final query = textEditingValue.text.toLowerCase();
             return inventory.activeProducts.where((p) {
               final matchesBarcode = (p.barcode?.toLowerCase() ?? '').contains(query) || 
-                                   p.additionalBarcodes.any((b) => b.toLowerCase().contains(query));
+                                   p.additionalBarcodes.any((b) => b.toLowerCase().contains(query)) ||
+                                   (p.boxBarcode?.toLowerCase() ?? '').contains(query) ||
+                                   p.additionalBoxBarcodes.any((b) => b.toLowerCase().contains(query));
               final matchesName = p.name.toLowerCase().contains(query);
               return matchesBarcode || matchesName;
             }).take(10); // Limit results for performance
@@ -347,7 +349,7 @@ class _StockTransferScreenState extends State<StockTransferScreen> {
           child: Row(
             children: [
               Expanded(
-                flex: 4,
+                flex: 6,
                 child: DropdownButtonFormField<String>(
                   value: item['productId'],
                   isExpanded: true,
@@ -356,7 +358,15 @@ class _StockTransferScreenState extends State<StockTransferScreen> {
                     contentPadding: EdgeInsets.symmetric(horizontal: 12),
                     hintText: 'Mahsulotni tanlang'
                   ),
-                  items: inventory.activeProducts.map((p) => DropdownMenuItem(value: p.id, child: Text(p.name))).toList(),
+                  items: inventory.activeProducts.map((p) => DropdownMenuItem(
+                    value: p.id, 
+                    child: Text(
+                      p.name,
+                      style: const TextStyle(fontSize: 12),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    )
+                  )).toList(),
                   onChanged: (val) {
                     if (val == null) return;
                     final p = inventory.activeProducts.firstWhere((p) => p.id == val);
@@ -447,7 +457,10 @@ class _StockTransferScreenState extends State<StockTransferScreen> {
     // Try exact barcode first
     try {
       final product = inventory.activeProducts.firstWhere(
-        (p) => p.barcode == search || p.additionalBarcodes.contains(search)
+        (p) => p.barcode == search || 
+               p.additionalBarcodes.contains(search) ||
+               p.boxBarcode == search ||
+               p.additionalBoxBarcodes.contains(search)
       );
       _addProduct(product);
       return;

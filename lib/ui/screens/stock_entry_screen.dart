@@ -11,6 +11,7 @@ import '../../providers/features/settings_provider.dart';
 import '../widgets/app_status_bar.dart';
 import '../widgets/custom_app_bar.dart';
 import '../../core/utils/formatter.dart';
+import 'product_form_screen.dart';
 
 class StockEntryScreen extends StatefulWidget {
   final StockEntry? entry;
@@ -250,9 +251,35 @@ class _StockEntryScreenState extends State<StockEntryScreen> {
               );
             },
           ),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            child: TextButton.icon(
+              onPressed: _addNewProduct,
+              icon: const Icon(Icons.add_business_rounded, size: 20),
+              label: const Text('Yangi mahsulot qo\'shish', style: TextStyle(fontWeight: FontWeight.bold)),
+              style: TextButton.styleFrom(
+                foregroundColor: Theme.of(context).colorScheme.primary,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+          ),
         ],
       ),
     );
+  }
+
+  void _addNewProduct() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const ProductFormScreen()),
+    );
+    
+    if (result != null && result is Product) {
+      _addProductToItems(result);
+    }
   }
 
   Widget _buildItemsList(InventoryProvider inventory) {
@@ -295,7 +322,7 @@ class _StockEntryScreenState extends State<StockEntryScreen> {
       ),
       child: Row(
         children: [
-          Expanded(flex: 4, child: _buildProductDropdown(idx, item, inventory)),
+          Expanded(flex: 10, child: _buildProductDropdown(idx, item, inventory)),
           const SizedBox(width: 8),
           Expanded(
             flex: 3,
@@ -404,8 +431,14 @@ class _StockEntryScreenState extends State<StockEntryScreen> {
   void _handleBarcode(String barcode, InventoryProvider inventory) {
     if (barcode.isEmpty) return;
     try {
-      final p = inventory.activeProducts.firstWhere((p) => p.barcode == barcode || p.additionalBarcodes.contains(barcode));
-      _addProductToItems(p);
+      final p = inventory.activeProducts.firstWhere((p) => 
+        p.barcode == barcode || 
+        p.additionalBarcodes.contains(barcode) ||
+        p.boxBarcode == barcode ||
+        p.additionalBoxBarcodes.contains(barcode)
+      );
+      final bool isBox = (p.boxBarcode == barcode || p.additionalBoxBarcodes.contains(barcode));
+      _addProductToItems(p, isBox: isBox);
       barcodeCtrl.clear();
       barcodeFocusNode.requestFocus();
     } catch (e) {
@@ -413,7 +446,7 @@ class _StockEntryScreenState extends State<StockEntryScreen> {
     }
   }
 
-  void _addProductToItems(Product p) {
+  void _addProductToItems(Product p, {bool isBox = false}) {
     setState(() {
       final existingIdx = items.indexWhere((i) => i['productId'] == p.id);
       if (existingIdx >= 0) {
@@ -423,8 +456,9 @@ class _StockEntryScreenState extends State<StockEntryScreen> {
           'productId': p.id,
           'productName': p.name,
           'quantity': 1.0,
-          'costPrice': p.costPrice,
-          'price': p.price
+          'costPrice': isBox ? (p.boxPrice ?? (p.costPrice * p.quantityInBox)) : p.costPrice,
+          'price': isBox ? (p.boxPrice ?? (p.price * p.quantityInBox)) : p.price,
+          'isBox': isBox,
         });
       }
     });
@@ -467,8 +501,8 @@ class _StockEntryScreenState extends State<StockEntryScreen> {
         // Usually in kirim entries, users enter price per unit they are buying.
         // If they chose "Blok" and entered price, it's likely price per block.
         if (product.quantityInBox > 1) {
-          cost = cost / product.quantityInBox;
-          price = price / product.quantityInBox;
+          cost = double.parse((cost / product.quantityInBox).toStringAsFixed(2));
+          price = double.parse((price / product.quantityInBox).toStringAsFixed(2));
         }
       }
       
@@ -502,11 +536,19 @@ class _StockEntryScreenState extends State<StockEntryScreen> {
       isExpanded: true,
       decoration: const InputDecoration(
         border: OutlineInputBorder(), 
-        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 14),
         hintText: 'Mahsulotni tanlang',
-        isDense: true,
       ),
-      items: inventory.activeProducts.map((p) => DropdownMenuItem(value: p.id, child: Text(p.name, overflow: TextOverflow.ellipsis))).toList(),
+      itemHeight: 60,
+      items: inventory.activeProducts.map((p) => DropdownMenuItem(
+        value: p.id, 
+        child: Text(
+          p.name, 
+          style: const TextStyle(fontSize: 12),
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+        )
+      )).toList(),
       onChanged: (val) {
         if (val == null) return;
         final p = inventory.activeProducts.firstWhere((p) => p.id == val);

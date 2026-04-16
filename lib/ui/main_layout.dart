@@ -43,30 +43,15 @@ class _MainLayoutState extends State<MainLayout> {
   ThemeData get theme => Theme.of(context);
   bool get isDark => theme.brightness == Brightness.dark;
 
-  Timer? _inactivityTimer;
-  static const inactivityTimeout = Duration(minutes: 5);
 
-  void _resetInactivityTimer() {
-    _inactivityTimer?.cancel();
-    _inactivityTimer = Timer(inactivityTimeout, () {
-      if (mounted) {
-        context.read<AuthProvider>().logout();
-      }
-    });
-  }
 
   @override
   void initState() {
     super.initState();
-    _resetInactivityTimer();
   }
 
 
-  @override
-  void dispose() {
-    _inactivityTimer?.cancel();
-    super.dispose();
-  }
+
 
 
 
@@ -83,16 +68,7 @@ class _MainLayoutState extends State<MainLayout> {
     final sync = context.watch<SyncProvider>();
     final nav = context.watch<NavigationProvider>();
     
-    return Listener(
-      onPointerDown: (_) => _resetInactivityTimer(),
-      onPointerMove: (_) => _resetInactivityTimer(),
-      behavior: HitTestBehavior.translucent,
-      child: Focus(
-        onKeyEvent: (node, event) {
-          _resetInactivityTimer();
-          return KeyEventResult.ignored;
-        },
-        child: Scaffold(
+    return Scaffold(
           key: _scaffoldKey,
           endDrawer: Drawer(
             width: 280,
@@ -169,8 +145,6 @@ class _MainLayoutState extends State<MainLayout> {
               );
             },
           ),
-        ),
-      ),
     );
   }
 
