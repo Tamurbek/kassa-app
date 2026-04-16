@@ -1,6 +1,6 @@
 class AppConstants {
   static const String appName = 'SimpleSale';
-  static const String appVersion = "1.23.5+102";
+  static const String appVersion = "1.23.5+103";
   
   // Storage Keys
   static const String keyIsMaster = 'isMaster';
