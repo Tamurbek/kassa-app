@@ -119,7 +119,7 @@ class _StockEntryScreenState extends State<StockEntryScreen> {
             else ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Avval omborni tanlang')));
           }, Colors.green.shade800),
           const SizedBox(width: 8),
-          _buildAppBarAction(Icons.file_download_outlined, 'Shablon', () => ExcelImportService.downloadStockEntryTemplate(context, inventory.activeProducts), Colors.amber.shade800),
+          _buildAppBarAction(Icons.file_download_outlined, 'Shablon', () => _showTemplateSelectionDialog(context, inventory), Colors.amber.shade800),
           const SizedBox(width: 8),
           _buildAppBarAction(
             _isSaving ? Icons.sync_rounded : Icons.save_rounded, 
@@ -595,6 +595,105 @@ class _StockEntryScreenState extends State<StockEntryScreen> {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Xatolik: $e')));
       }
     }
+  }
+
+  void _showTemplateSelectionDialog(BuildContext context, InventoryProvider inventory) {
+    List<Product> selectedProducts = [];
+    String searchQuery = '';
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          final filteredProducts = inventory.activeProducts.where((p) {
+            final query = searchQuery.toLowerCase();
+            return p.name.toLowerCase().contains(query) || p.barcode.contains(query);
+          }).toList();
+
+          return AlertDialog(
+            title: const Text('Shablon uchun mahsulotlarni tanlang'),
+            content: SizedBox(
+              width: 500,
+              height: 600,
+              child: Column(
+                children: [
+                  TextField(
+                    decoration: const InputDecoration(
+                      hintText: 'Nomi yoki shtrix kodi bilan izlash...',
+                      prefixIcon: Icon(Icons.search),
+                      border: OutlineInputBorder(),
+                    ),
+                    onChanged: (val) {
+                      setDialogState(() => searchQuery = val);
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      TextButton(
+                        onPressed: () {
+                          setDialogState(() {
+                            selectedProducts = List.from(inventory.activeProducts);
+                          });
+                        },
+                        child: const Text('Hammasini tanlash'),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          setDialogState(() {
+                            selectedProducts.clear();
+                          });
+                        },
+                        child: const Text('Hammasini bekor qilish'),
+                      ),
+                    ],
+                  ),
+                  const Divider(),
+                  Expanded(
+                    child: ListView.builder(
+                      itemCount: filteredProducts.length,
+                      itemBuilder: (context, index) {
+                        final p = filteredProducts[index];
+                        final isSelected = selectedProducts.any((sp) => sp.id == p.id);
+                        return CheckboxListTile(
+                          title: Text(p.name),
+                          subtitle: Text(p.barcode),
+                          value: isSelected,
+                          onChanged: (val) {
+                            setDialogState(() {
+                              if (val == true) {
+                                selectedProducts.add(p);
+                              } else {
+                                selectedProducts.removeWhere((sp) => sp.id == p.id);
+                              }
+                            });
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Bekor qilish'),
+              ),
+              ElevatedButton(
+                onPressed: selectedProducts.isEmpty 
+                  ? null 
+                  : () {
+                      Navigator.pop(context);
+                      ExcelImportService.downloadStockEntryTemplate(context, selectedProducts);
+                    },
+                child: Text('${selectedProducts.length} ta mahsulotni yuklash'),
+              ),
+            ],
+          );
+        },
+      ),
+    );
   }
 
   Widget _buildProductDisplay(int idx, Map<String, dynamic> item, InventoryProvider inventory) {

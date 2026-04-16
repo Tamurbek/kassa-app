@@ -27,6 +27,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
   final TextEditingController barcodeCtrl = TextEditingController();
   final FocusNode barcodeFocusNode = FocusNode();
   DateTime selectedDate = DateTime.now();
+  TextEditingController? _nameSearchCtrl;
 
   @override
   void initState() {
@@ -57,6 +58,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
     descCtrl.dispose();
     barcodeCtrl.dispose();
     barcodeFocusNode.dispose();
+    _nameSearchCtrl = null; // Just clear the reference, don't dispose as it's owned by Autocomplete
     super.dispose();
   }
 
@@ -184,6 +186,35 @@ class _InventoryScreenState extends State<InventoryScreen> {
                           hint: 'Shtrix kodni o\'qing yoki yozing...',
                           onBarcodeSubmitted: (val) => _handleBarcode(val, inventoryProv),
                         ),
+                        const SizedBox(height: 12),
+                        Autocomplete<Product>(
+                          displayStringForOption: (Product option) => option.name,
+                          optionsBuilder: (TextEditingValue textEditingValue) {
+                            if (textEditingValue.text == '') return const Iterable<Product>.empty();
+                            return inventoryProv.activeProducts.where((Product option) => 
+                              option.name.toLowerCase().contains(textEditingValue.text.toLowerCase())
+                            );
+                          },
+                          onSelected: (Product selection) {
+                            _addProductToItems(selection, inventoryProv);
+                            try { _nameSearchCtrl?.clear(); } catch (_) {}
+                          },
+                          fieldViewBuilder: (context, textController, focusNode, onFieldSubmitted) {
+                            _nameSearchCtrl = textController;
+                            return TextField(
+                              controller: textController,
+                              focusNode: focusNode,
+                              onSubmitted: (val) => onFieldSubmitted(),
+                              decoration: InputDecoration(
+                                labelText: 'Nomi bo\'yicha izlash',
+                                prefixIcon: const Icon(Icons.search),
+                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                                filled: true,
+                                fillColor: Theme.of(context).dividerColor.withOpacity(0.05),
+                              ),
+                            );
+                          },
+                        ),
                         const Divider(height: 48),
                         const SizedBox(height: 16),
                         const Text(
@@ -294,32 +325,35 @@ class _InventoryScreenState extends State<InventoryScreen> {
                p.additionalBoxBarcodes.contains(barcode),
       );
 
-      setState(() {
-        final existingIdx =
-            items.indexWhere((i) => i['productId'] == product.id);
-        if (existingIdx >= 0) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('${product.name} allaqachon ro\'yxatda bor'),
-              duration: const Duration(seconds: 1),
-            ),
-          );
-        } else {
-          items.add({
-            'productId': product.id,
-            'productName': product.name,
-            'expected': product.stocks[invWarehouseId] ?? 0.0,
-            'actual': 0.0,
-          });
-        }
-        barcodeCtrl.clear();
-        barcodeFocusNode.requestFocus();
-      });
+      _addProductToItems(product, inventoryProv);
+      barcodeCtrl.clear();
+      barcodeFocusNode.requestFocus();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Mahsulot topilmadi!')),
       );
     }
+  }
+
+  void _addProductToItems(Product product, InventoryProvider inventoryProv) {
+    setState(() {
+      final existingIdx = items.indexWhere((i) => i['productId'] == product.id);
+      if (existingIdx >= 0) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${product.name} allaqachon ro\'yxatda bor'),
+            duration: const Duration(seconds: 1),
+          ),
+        );
+      } else {
+        items.add({
+          'productId': product.id,
+          'productName': product.name,
+          'expected': product.stocks[invWarehouseId] ?? 0.0,
+          'actual': 0.0,
+        });
+      }
+    });
   }
 
   bool _isSaving = false;
