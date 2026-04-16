@@ -10,19 +10,43 @@ import 'package:simple_sale/core/utils/formatter.dart';
 
 class PrintService {
   static String _clean(String text) {
-    return text
+    if (text == null) return '';
+    
+    // Transliteration map for Cyrillic (Russian + Uzbek)
+    const cyrillicToLatin = {
+      'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd', 'е': 'e', 'ё': 'yo', 'ж': 'zh',
+      'з': 'z', 'и': 'i', 'й': 'y', 'к': 'k', 'л': 'l', 'м': 'm', 'н': 'n', 'о': 'o',
+      'п': 'p', 'р': 'r', 'с': 's', 'т': 't', 'у': 'u', 'ф': 'f', 'х': 'kh', 'ц': 'ts',
+      'ч': 'ch', 'ш': 'sh', 'щ': 'shch', 'ъ': '', 'ы': 'y', 'ь': "'", 'э': 'e', 'ю': 'yu', 'я': 'ya',
+      'А': 'A', 'Б': 'B', 'В': 'V', 'Г': 'G', 'Д': 'D', 'Е': 'E', 'Ё': 'Yo', 'Ж': 'Zh',
+      'З': 'Z', 'И': 'I', 'Й': 'Y', 'К': 'K', 'Л': 'L', 'М': 'M', 'Н': 'N', 'О': 'O',
+      'П': 'P', 'Р': 'R', 'С': 'S', 'Т': 'T', 'У': 'U', 'Ф': 'F', 'Х': 'Kh', 'Ц': 'Ts',
+      'Ч': 'Ch', 'Ш': 'Sh', 'Щ': 'Shch', 'Ъ': '', 'Ы': 'Y', 'Ь': "'", 'Э': 'E', 'Ю': 'Yu', 'Я': 'Ya',
+      'ў': "o'", 'қ': 'q', 'ғ': "g'", 'ҳ': 'h',
+      'Ў': "O'", 'Қ': 'Q', 'Ғ': "G'", 'Ҳ': 'H',
+    };
+
+    String result = text;
+    
+    // Apply transliteration
+    cyrillicToLatin.forEach((cyr, lat) {
+      result = result.replaceAll(cyr, lat);
+    });
+
+    return result
         .replaceAll('\u00A0', ' ') // Non-breaking space
         .replaceAll('\u202F', ' ') // Narrow non-breaking space
         .replaceAll('ʻ', "'")      // Uzbek modifier
         .replaceAll('ʼ', "'")      // Uzbek modifier
         .replaceAll('‘', "'")      // Left single quote
         .replaceAll('’', "'")      // Right single quote
-        .replaceAll('ʻ', "'")
-        .replaceAll('ʼ', "'")
         .replaceAll('`', "'")
         .replaceAll('´', "'")
-        .replaceAll('‘', "'")
-        .replaceAll('’', "'");
+        .replaceAll('«', '"')
+        .replaceAll('»', '"')
+        .split('')
+        .where((char) => char.codeUnitAt(0) < 128) // Only ASCII remains after transliteration
+        .join('');
   }
 
   static Future<void> printBarcodeLabels({
@@ -30,14 +54,20 @@ class PrintService {
     String? printerName,
     String? ipAddress,
     bool isPriceLabel = false,
+    int width = 0, // 0 means default 40x30
   }) async {
     final doc = pw.Document();
 
-    const labelFormat = PdfPageFormat(
-      40 * PdfPageFormat.mm,
-      30 * PdfPageFormat.mm,
+    final double labelWidth = width > 0 ? width.toDouble() : 40.0;
+    final double labelHeight = width > 58 ? 45.0 : 30.0;
+    
+    final labelFormat = PdfPageFormat(
+      labelWidth * PdfPageFormat.mm,
+      labelHeight * PdfPageFormat.mm,
       marginAll: 0,
     );
+
+    final double scale = labelWidth / 40.0;
 
     for (var item in items) {
       final Product product = item['product'];
@@ -56,38 +86,38 @@ class PrintService {
                   children: [
                     pw.Text(
                       product.name.toUpperCase(),
-                      style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold),
+                      style: pw.TextStyle(fontSize: 8 * scale, fontWeight: pw.FontWeight.bold),
                       maxLines: 2,
                       textAlign: pw.TextAlign.center,
                     ),
-                    pw.SizedBox(height: isPriceLabel ? 4 : 2),
+                    pw.SizedBox(height: (isPriceLabel ? 4 : 2) * scale),
                     if (isPriceLabel) ...[
                       pw.Text(
                         'NARXI:',
-                        style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.normal),
+                        style: pw.TextStyle(fontSize: 8 * scale, fontWeight: pw.FontWeight.normal),
                       ),
-                      pw.SizedBox(height: 2),
+                      pw.SizedBox(height: 2 * scale),
                       pw.Text(
                         NumberFormat.currency(locale: 'uz_UZ', symbol: '', decimalDigits: 0).format(product.price),
-                        style: pw.TextStyle(fontSize: 22, fontWeight: pw.FontWeight.bold),
+                        style: pw.TextStyle(fontSize: 22 * scale, fontWeight: pw.FontWeight.bold),
                       ),
                       pw.Text(
                         'so\'m',
-                        style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold),
+                        style: pw.TextStyle(fontSize: 10 * scale, fontWeight: pw.FontWeight.bold),
                       ),
                     ] else ...[
                       pw.BarcodeWidget(
                         barcode: pw.Barcode.code128(),
                         data: product.barcode,
-                        width: 34 * PdfPageFormat.mm,
-                        height: 12 * PdfPageFormat.mm,
+                        width: (labelWidth - 6) * PdfPageFormat.mm,
+                        height: (12 * scale) * PdfPageFormat.mm,
                         drawText: true,
-                        textStyle: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold),
+                        textStyle: pw.TextStyle(fontSize: 8 * scale, fontWeight: pw.FontWeight.bold),
                       ),
-                      pw.SizedBox(height: 2),
+                      pw.SizedBox(height: 2 * scale),
                       pw.Text(
                         'Narxi: ${NumberFormat.currency(locale: 'uz_UZ', symbol: '', decimalDigits: 0).format(product.price)} so\'m',
-                        style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold),
+                        style: pw.TextStyle(fontSize: 9 * scale, fontWeight: pw.FontWeight.bold),
                       ),
                     ],
                   ],
@@ -131,29 +161,28 @@ class PrintService {
             // center
             bytes.addAll([0x1B, 0x61, 0x01]);
             
-            // Vertical offset for 30mm labels
-            bytes.addAll([0x0A]); // 1 line feed before
+            // Vertical offset
+            bytes.addAll([0x0A]); 
             
             // Name
             bytes.addAll(utf8.encode(_clean('${product.name.toUpperCase()}\n')));
             
             if (isPriceLabel) {
                // Large Price
-               bytes.addAll([0x1D, 0x21, 0x11]); // double size
+               bytes.addAll([0x1D, 0x21, width > 58 ? 0x22 : 0x11]); // triple or double size
                bytes.addAll(utf8.encode(_clean('\n${NumberFormat.currency(locale: 'uz_UZ', symbol: '', decimalDigits: 0).format(product.price)} so\'m\n')));
                bytes.addAll([0x1D, 0x21, 0x00]); // normal size
             } else {
               // Barcode
-              // ESC/POS Barcode (Code128)
-              bytes.addAll([0x1D, 0x68, 0x50]); // height 80 (approx 10mm)
-              bytes.addAll([0x1D, 0x77, 0x02]); 
+              bytes.addAll([0x1D, 0x68, width > 58 ? 0x80 : 0x50]); 
+              bytes.addAll([0x1D, 0x77, width > 58 ? 0x03 : 0x02]); 
               bytes.addAll([0x1D, 0x48, 0x02]); 
               bytes.addAll([0x1D, 0x6B, 0x49, product.barcode.length + 2, 0x7B, 0x42]); 
               bytes.addAll(utf8.encode(product.barcode));
               bytes.addAll(utf8.encode(_clean('\nNarxi: ${NumberFormat.currency(locale: 'uz_UZ', symbol: '', decimalDigits: 0).format(product.price)} so\'m\n')));
             }
             
-            bytes.addAll([0x0A, 0x0A]); // feed 2 more after to clear the label
+            bytes.addAll([0x0A, 0x0A]);
           }
         }
         
@@ -167,6 +196,7 @@ class PrintService {
       }
     }
   }
+
 
   static Future<void> printBarcodeLabel({
     required Product product,
@@ -400,8 +430,9 @@ class PrintService {
     bool showInstagram = true,
   }) {
     List<int> bytes = [];
-    int maxChars = width == 58 ? 32 : 48;
-    String divider = '-' * maxChars;
+    int maxChars = width == 58 ? 32 : 42; // Safer 42 for 80mm to avoid cutoff
+    String divider = (width == 58 ? '-' : '=') * maxChars;
+    String thinDivider = '-' * maxChars;
 
     // init printer
     bytes.addAll([0x1B, 0x40]);
@@ -426,36 +457,25 @@ class PrintService {
 
     bytes.addAll(utf8.encode(_clean('$divider\n')));
     bytes.addAll(utf8.encode(_clean('Kassa: $registerName\n')));
-    bytes.addAll(
-      utf8.encode(
-        _clean('Sana: ${DateFormat('dd.MM.yyyy HH:mm').format(DateTime.now())}\n'),
-      ),
-    );
-    bytes.addAll(utf8.encode('$divider\n'));
+    bytes.addAll(utf8.encode(_clean('Sana: ${DateFormat('dd.MM.yyyy HH:mm').format(DateTime.now())}\n')));
+    bytes.addAll(utf8.encode('$divider\n\n'));
 
     for (var item in items) {
       // Product Name (Upper Case for clarity)
+      bytes.addAll([0x1B, 0x45, 0x01]); // bold on for name
       bytes.addAll(utf8.encode(_clean('${item.productName.toUpperCase()}\n')));
+      bytes.addAll([0x1B, 0x45, 0x00]); // bold off
       
       // Quantity x Price
-      String qtyPrice = '${AppFormatter.formatDouble(item.quantity)} x ${NumberFormat.currency(locale: 'uz_UZ', symbol: '', decimalDigits: 0).format(item.price)}';
+      String qtyPrice = ' ${AppFormatter.formatDouble(item.quantity)} x ${NumberFormat.currency(locale: 'uz_UZ', symbol: '', decimalDigits: 0).format(item.price)}';
       // Item total (right side)
       String totalItem = NumberFormat.currency(locale: 'uz_UZ', symbol: '', decimalDigits: 0).format(item.quantity * item.price);
       
-      // Calculate padding — ensure at least 1 space between qty/price and total
-      int combinedLength = qtyPrice.length + totalItem.length;
-      
-      if (combinedLength + 1 > maxChars) { // If qtyPrice + space + totalItem is too long
-        bytes.addAll(utf8.encode(_clean(qtyPrice + '\n'))); // Print qtyPrice on its own line
-        int spacesForTotal = maxChars - totalItem.length;
-        bytes.addAll(utf8.encode(_clean((' ' * spacesForTotal) + totalItem + '\n'))); // Print totalItem right-aligned on the next line
-      } else {
-        int spaces = maxChars - combinedLength;
-        bytes.addAll(utf8.encode(_clean(qtyPrice + (' ' * spaces) + totalItem + '\n'))); // Print on one line
-      }
+      int spaces = maxChars - qtyPrice.length - totalItem.length;
+      bytes.addAll(utf8.encode(_clean(qtyPrice + (' ' * (spaces > 0 ? spaces : 1)) + totalItem + '\n')));
     }
 
-    bytes.addAll(utf8.encode('$divider\n'));
+    bytes.addAll(utf8.encode('\n' + thinDivider + '\n'));
     
     if (discount > 0) {
       // Subtotal
@@ -473,35 +493,33 @@ class PrintService {
       bytes.addAll(utf8.encode('$divider\n'));
     }
 
+    // Grand Total
     bytes.addAll([0x1B, 0x61, 0x01]); // Align center
     bytes.addAll([0x1B, 0x45, 0x01]); // bold on
     bytes.addAll([0x1D, 0x21, 0x01]); // double height
-    bytes.addAll(utf8.encode(_clean('TO\'LANADIGAN: ${NumberFormat.currency(locale: 'uz_UZ', symbol: '', decimalDigits: 0).format(total)} so\'m\n')));
+    bytes.addAll(utf8.encode(_clean('\nTO\'LANADIGAN: ${NumberFormat.currency(locale: 'uz_UZ', symbol: '', decimalDigits: 0).format(total)} so\'m\n')));
     bytes.addAll([0x1D, 0x21, 0x00]); // normal size
     bytes.addAll([0x1B, 0x45, 0x00]); // bold off
     
-    bytes.addAll(utf8.encode(_clean('\n${footerText ?? "Xaridingiz uchun rahmat!"}\n')));
+    bytes.addAll(utf8.encode(_clean('\n' + divider + '\n')));
+
+    bytes.addAll(utf8.encode(_clean('${footerText ?? "Xaridingiz uchun rahmat!"}\n')));
 
     if (showInstagram && instagram != null && instagram.isNotEmpty) {
-      bytes.addAll(utf8.encode(_clean('$divider\n')));
-      bytes.addAll(utf8.encode(_clean('INSTAGRAM: ${instagram.toUpperCase()}\n\n')));
+      bytes.addAll([0x1B, 0x61, 0x01]); // Align center
+      bytes.addAll(utf8.encode(_clean('\nInstagram: ${instagram.toUpperCase()}\n\n')));
       
-      // ESC/POS QR Code generation
+      // QR Code
       String qrData = 'https://instagram.com/${instagram.replaceAll('@', '')}';
       List<int> qrBytes = utf8.encode(qrData);
       int pL = (qrBytes.length + 3) % 256;
       int pH = (qrBytes.length + 3) ~/ 256;
 
-      // Select model
       bytes.addAll([0x1D, 0x28, 0x6B, 0x04, 0x00, 0x31, 0x41, 0x32, 0x00]);
-      // Set size
       bytes.addAll([0x1D, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x43, 0x06]);
-      // Error correction level L
       bytes.addAll([0x1D, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x45, 0x30]);
-      // Store data
       bytes.addAll([0x1D, 0x28, 0x6B, pL, pH, 0x31, 0x50, 0x30]);
       bytes.addAll(qrBytes);
-      // Print QR code
       bytes.addAll([0x1D, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x51, 0x30]);
       bytes.addAll(utf8.encode('\n'));
     }

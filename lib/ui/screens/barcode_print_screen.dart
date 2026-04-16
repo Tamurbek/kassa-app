@@ -21,6 +21,7 @@ class _BarcodePrintScreenState extends State<BarcodePrintScreen> {
   final List<Map<String, dynamic>> selectedItems = [];
   final TextEditingController _searchController = TextEditingController();
   bool isPriceMode = false;
+  int paperWidth = 40;
 
   @override
   void initState() {
@@ -191,6 +192,41 @@ class _BarcodePrintScreenState extends State<BarcodePrintScreen> {
                                ),
                              ),
                              Padding(
+                               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 0),
+                               child: Container(
+                                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                 decoration: BoxDecoration(
+                                   color: Theme.of(context).colorScheme.primary.withOpacity(0.05),
+                                   borderRadius: BorderRadius.circular(16),
+                                   border: Border.all(color: Theme.of(context).colorScheme.primary.withOpacity(0.1)),
+                                 ),
+                                 child: Row(
+                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                   children: [
+                                     const Row(
+                                       children: [
+                                         Icon(Icons.straighten_rounded, color: Colors.blue),
+                                         SizedBox(width: 12),
+                                         Text(
+                                           'Qog\'oz kengligi',
+                                           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                                         ),
+                                       ],
+                                     ),
+                                     DropdownButton<int>(
+                                       value: paperWidth,
+                                       underline: const SizedBox(),
+                                       items: const [
+                                         DropdownMenuItem(value: 40, child: Text('40 mm (Etiketka)')),
+                                         DropdownMenuItem(value: 80, child: Text('80 mm (Chek)')),
+                                       ],
+                                       onChanged: (val) => setState(() => paperWidth = val ?? 40),
+                                     ),
+                                   ],
+                                 ),
+                               ),
+                             ),
+                             Padding(
                                padding: const EdgeInsets.all(24),
                                child: ElevatedButton.icon(
                                  onPressed: selectedItems.isEmpty
@@ -200,6 +236,7 @@ class _BarcodePrintScreenState extends State<BarcodePrintScreen> {
                                            printerName: settings.barcodePrinterName,
                                            ipAddress: settings.networkBarcodePrinterIp,
                                            isPriceLabel: isPriceMode,
+                                           width: paperWidth,
                                          ),
                                 icon: const Icon(Icons.print_rounded),
                                 label: const Text('CHOP ETISH', style: TextStyle(fontWeight: FontWeight.bold)),
