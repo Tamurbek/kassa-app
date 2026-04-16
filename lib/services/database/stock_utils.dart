@@ -7,11 +7,7 @@ class StockUtils {
     try {
       final db = await DatabaseHelper.database;
       
-      if (!force) {
-        final existing = await db.query('stocks', limit: 1);
-        if (existing.isNotEmpty) return;
-      }
-      
+      // Always recalculate if called, to ensure consistency after edits/deletes
       await db.transaction((txn) async {
         await txn.delete('stocks');
 

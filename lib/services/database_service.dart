@@ -273,14 +273,32 @@ class DatabaseService {
       for (var p in products) {
         await txn.insert(
           'products',
-          {...p.toJson(), 'isDeleted': p.isDeleted ? 1 : 0, 'trackStock': p.trackStock ? 1 : 0, 'updatedAt': DateTime.now().toIso8601String(), 'isSynced': 0}..remove('stocks')..remove('additionalBarcodes'),
+          {...p.toJson(), 'isDeleted': p.isDeleted ? 1 : 0, 'trackStock': p.trackStock ? 1 : 0, 'updatedAt': DateTime.now().toIso8601String(), 'isSynced': 0}
+              ..remove('stocks')
+              ..remove('additionalBarcodes')
+              ..remove('additionalBoxBarcodes'),
           conflictAlgorithm: ConflictAlgorithm.replace,
         );
-        for (var b in p.additionalBarcodes) {
-          await txn.insert('product_additional_barcodes', {'productId': p.id, 'barcode': b});
+        for (var b in p.additionalBarcodes.toSet()) {
+          await txn.insert(
+            'product_additional_barcodes', 
+            {'productId': p.id, 'barcode': b},
+            conflictAlgorithm: ConflictAlgorithm.replace,
+          );
+        }
+        for (var b in p.additionalBoxBarcodes.toSet()) {
+          await txn.insert(
+            'product_additional_box_barcodes', 
+            {'productId': p.id, 'barcode': b},
+            conflictAlgorithm: ConflictAlgorithm.replace,
+          );
         }
         for (var s in p.stocks.entries) {
-          await txn.insert('stocks', {'productId': p.id, 'warehouseId': s.key, 'quantity': s.value}, conflictAlgorithm: ConflictAlgorithm.replace);
+          await txn.insert(
+            'stocks', 
+            {'productId': p.id, 'warehouseId': s.key, 'quantity': s.value}, 
+            conflictAlgorithm: ConflictAlgorithm.replace
+          );
         }
       }
     });
@@ -321,13 +339,25 @@ class DatabaseService {
             'trackStock': p.trackStock ? 1 : 0,
             'updatedAt': now,
             'isSynced': 0,
-          }..remove('stocks')..remove('additionalBarcodes'),
+          }..remove('stocks')..remove('additionalBarcodes')..remove('additionalBoxBarcodes'),
           conflictAlgorithm: ConflictAlgorithm.replace,
         );
         
         batch.delete('product_additional_barcodes', where: 'productId = ?', whereArgs: [p.id]);
-        for (var b in p.additionalBarcodes) {
-          batch.insert('product_additional_barcodes', {'productId': p.id, 'barcode': b});
+        for (var b in p.additionalBarcodes.toSet()) {
+          batch.insert(
+            'product_additional_barcodes', 
+            {'productId': p.id, 'barcode': b},
+            conflictAlgorithm: ConflictAlgorithm.replace,
+          );
+        }
+        batch.delete('product_additional_box_barcodes', where: 'productId = ?', whereArgs: [p.id]);
+        for (var b in p.additionalBoxBarcodes.toSet()) {
+          batch.insert(
+            'product_additional_box_barcodes', 
+            {'productId': p.id, 'barcode': b},
+            conflictAlgorithm: ConflictAlgorithm.replace,
+          );
         }
         for (var s in p.stocks.entries) {
           batch.insert(
@@ -392,14 +422,22 @@ class DatabaseService {
         if (tableName == 'products') {
           if (barcodes != null) {
             await txn.delete('product_additional_barcodes', where: 'productId = ?', whereArgs: [id]);
-            for (var b in barcodes) {
-              await txn.insert('product_additional_barcodes', {'productId': id, 'barcode': b.toString()});
+            for (var b in barcodes.toSet()) {
+              await txn.insert(
+                'product_additional_barcodes', 
+                {'productId': id, 'barcode': b.toString()},
+                conflictAlgorithm: ConflictAlgorithm.replace,
+              );
             }
           }
           if (boxBarcodes != null) {
             await txn.delete('product_additional_box_barcodes', where: 'productId = ?', whereArgs: [id]);
-            for (var b in boxBarcodes) {
-              await txn.insert('product_additional_box_barcodes', {'productId': id, 'barcode': b.toString()});
+            for (var b in boxBarcodes.toSet()) {
+              await txn.insert(
+                'product_additional_box_barcodes', 
+                {'productId': id, 'barcode': b.toString()},
+                conflictAlgorithm: ConflictAlgorithm.replace,
+              );
             }
           }
           if (stocks != null) {

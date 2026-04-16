@@ -20,22 +20,23 @@ class StockRepository {
   static Future<void> saveStockEntry(StockEntry entry) async {
     final db = await DatabaseHelper.database;
     await db.transaction((txn) async {
+      // Check if this is an edit or a new entry
+      final existing = await txn.query('stock_entries', where: 'id = ?', whereArgs: [entry.id]);
+      final bool isNew = existing.isEmpty;
+
       await txn.insert(
         'stock_entries',
         {...entry.toJson(), 'isDeleted': 0, 'updatedAt': DateTime.now().toIso8601String(), 'isSynced': 0}..remove('items'),
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
       await txn.delete('stock_entry_items', where: 'entryId = ?', whereArgs: [entry.id]);
+      
       for (var item in entry.items) {
         await txn.insert('stock_entry_items', {...item.toJson(), 'entryId': entry.id});
-        await txn.execute('''
-          INSERT INTO stocks (productId, warehouseId, quantity)
-          VALUES (?, ?, ?)
-          ON CONFLICT(productId, warehouseId) DO UPDATE SET quantity = quantity + ?
-        ''', [item.productId, entry.warehouseId, item.quantity, item.quantity]);
         
-        // Update product price & costPrice if they are non-zero
-        if (item.costPrice > 0 || item.price > 0) {
+        // ONLY update the current product price/cost if this is a NEW entry.
+        // This prevents old, historical entries from "overwriting" current product prices during edits.
+        if (isNew && (item.costPrice > 0 || item.price > 0)) {
           final Map<String, dynamic> updates = {};
           if (item.costPrice > 0) updates['costPrice'] = item.costPrice;
           if (item.price > 0) updates['price'] = item.price;
@@ -44,6 +45,8 @@ class StockRepository {
           await txn.update('products', updates, where: 'id = ?', whereArgs: [item.productId]);
         }
       }
+      // Note: we removed manual 'stocks' table updates here because recalculateStocks 
+      // is always called after this and it is the reliable source of truth.
     });
   }
 
@@ -77,19 +80,6 @@ class StockRepository {
       await txn.delete('stock_transfer_items', where: 'transferId = ?', whereArgs: [transfer.id]);
       for (var item in transfer.items) {
         await txn.insert('stock_transfer_items', {...item.toJson(), 'transferId': transfer.id});
-        // Decrement from source
-        await txn.execute('''
-          INSERT INTO stocks (productId, warehouseId, quantity) VALUES (?, ?, 0)
-          ON CONFLICT(productId, warehouseId) DO NOTHING
-        ''', [item.productId, transfer.fromWarehouseId]);
-        await txn.execute('''
-          UPDATE stocks SET quantity = quantity - ? WHERE productId = ? AND warehouseId = ?
-        ''', [item.quantity, item.productId, transfer.fromWarehouseId]);
-        // Increment at destination
-        await txn.execute('''
-          INSERT INTO stocks (productId, warehouseId, quantity) VALUES (?, ?, ?)
-          ON CONFLICT(productId, warehouseId) DO UPDATE SET quantity = quantity + ?
-        ''', [item.productId, transfer.toWarehouseId, item.quantity, item.quantity]);
       }
     });
   }
@@ -150,10 +140,6 @@ class StockRepository {
       await txn.delete('return_items', where: 'returnId = ?', whereArgs: [saleReturn.id]);
       for (var item in saleReturn.items) {
         await txn.insert('return_items', {...item.toJson(), 'returnId': saleReturn.id});
-        await txn.execute('''
-          INSERT INTO stocks (productId, warehouseId, quantity) VALUES (?, ?, ?)
-          ON CONFLICT(productId, warehouseId) DO UPDATE SET quantity = quantity + ?
-        ''', [item.productId, saleReturn.warehouseId, item.quantity, item.quantity]);
       }
     });
   }
@@ -183,9 +169,6 @@ class StockRepository {
       await txn.delete('write_off_items', where: 'writeOffId = ?', whereArgs: [writeOff.id]);
       for (var item in writeOff.items) {
         await txn.insert('write_off_items', {...item.toJson(), 'writeOffId': writeOff.id});
-        await txn.execute('''
-          UPDATE stocks SET quantity = quantity - ? WHERE productId = ? AND warehouseId = ?
-        ''', [item.quantity, item.productId, writeOff.warehouseId]);
       }
     });
   }
@@ -215,10 +198,6 @@ class StockRepository {
       await txn.delete('inventory_items', where: 'inventoryId = ?', whereArgs: [inventory.id]);
       for (var item in inventory.items) {
         await txn.insert('inventory_items', {...item.toJson(), 'inventoryId': inventory.id});
-        await txn.execute('''
-          INSERT INTO stocks (productId, warehouseId, quantity) VALUES (?, ?, ?)
-          ON CONFLICT(productId, warehouseId) DO UPDATE SET quantity = ?
-        ''', [item.productId, inventory.warehouseId, item.actualQuantity, item.actualQuantity]);
       }
     });
   }

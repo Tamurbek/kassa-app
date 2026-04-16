@@ -104,11 +104,13 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
       final additionalBarcodes = _additionalBarcodeControllers
           .map((c) => c.text.trim())
           .where((t) => t.isNotEmpty)
+          .toSet()
           .toList();
 
       final additionalBoxBarcodes = _additionalBoxBarcodeControllers
           .map((c) => c.text.trim())
           .where((t) => t.isNotEmpty)
+          .toSet()
           .toList();
 
       // Check all barcodes uniqueness (primary, additional unit, primary box, additional box)

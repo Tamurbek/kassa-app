@@ -89,13 +89,21 @@ class ProductRepository {
       );
       
       await txn.delete('product_additional_barcodes', where: 'productId = ?', whereArgs: [product.id]);
-      for (var barcode in product.additionalBarcodes) {
-        await txn.insert('product_additional_barcodes', {'productId': product.id, 'barcode': barcode});
+      for (var barcode in product.additionalBarcodes.toSet()) {
+        await txn.insert(
+          'product_additional_barcodes', 
+          {'productId': product.id, 'barcode': barcode},
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
       }
 
       await txn.delete('product_additional_box_barcodes', where: 'productId = ?', whereArgs: [product.id]);
-      for (var barcode in product.additionalBoxBarcodes) {
-        await txn.insert('product_additional_box_barcodes', {'productId': product.id, 'barcode': barcode});
+      for (var barcode in product.additionalBoxBarcodes.toSet()) {
+        await txn.insert(
+          'product_additional_box_barcodes', 
+          {'productId': product.id, 'barcode': barcode},
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
       }
       
       for (var entry in product.stocks.entries) {

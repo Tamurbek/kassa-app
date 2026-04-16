@@ -41,12 +41,24 @@ class _StockEntryScreenState extends State<StockEntryScreen> {
       descriptionCtrl.text = widget.entry!.description;
       selectedDate = widget.entry!.date;
       for (var item in widget.entry!.items) {
+        final product = inventory.activeProducts.where((p) => p.id == item.productId).firstOrNull;
+        double displayQty = item.quantity;
+        double displayCost = item.costPrice;
+        double displayPrice = item.price;
+        
+        if (item.isBox && product != null && product.quantityInBox > 1) {
+          displayQty = item.quantity / product.quantityInBox;
+          displayCost = item.costPrice * product.quantityInBox;
+          displayPrice = item.price * product.quantityInBox;
+        }
+
         items.add({
           'productId': item.productId,
           'productName': item.productName,
-          'quantity': item.quantity,
-          'costPrice': item.costPrice,
-          'price': item.price,
+          'quantity': displayQty,
+          'costPrice': displayCost,
+          'price': displayPrice,
+          'isBox': item.isBox,
         });
       }
     } else {
