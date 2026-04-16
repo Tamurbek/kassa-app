@@ -7,6 +7,7 @@ import '../../models/models.dart';
 import '../../services/print_service.dart';
 import '../widgets/app_status_bar.dart';
 import '../widgets/custom_app_bar.dart';
+import '../../core/utils/formatter.dart';
 
 class BarcodePrintScreen extends StatefulWidget {
   final List<Map<String, dynamic>>? initialItems;
@@ -19,6 +20,7 @@ class BarcodePrintScreen extends StatefulWidget {
 class _BarcodePrintScreenState extends State<BarcodePrintScreen> {
   final List<Map<String, dynamic>> selectedItems = [];
   final TextEditingController _searchController = TextEditingController();
+  bool isPriceMode = false;
 
   @override
   void initState() {
@@ -103,7 +105,7 @@ class _BarcodePrintScreenState extends State<BarcodePrintScreen> {
                                     margin: const EdgeInsets.only(bottom: 8),
                                     child: ListTile(
                                       title: Text(p.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-                                      subtitle: Text(p.barcode),
+                                      subtitle: Text('${p.barcode} - ${AppFormatter.formatDouble(p.price)} so\'m'),
                                       trailing: IconButton(
                                         icon: Icon(Icons.add_circle_outline_rounded, color: Theme.of(context).colorScheme.primary),
                                         onPressed: () => _addItem(p),
@@ -145,7 +147,7 @@ class _BarcodePrintScreenState extends State<BarcodePrintScreen> {
                                         final int qty = item['quantity'];
                                         return ListTile(
                                           title: Text(p.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-                                          subtitle: Text(p.barcode),
+                                          subtitle: Text('${p.barcode} - ${AppFormatter.formatDouble(p.price)} so\'m'),
                                           trailing: Row(
                                             mainAxisSize: MainAxisSize.min,
                                             children: [
@@ -158,16 +160,47 @@ class _BarcodePrintScreenState extends State<BarcodePrintScreen> {
                                       },
                                     ),
                             ),
-                            Padding(
-                              padding: const EdgeInsets.all(24),
-                              child: ElevatedButton.icon(
-                                onPressed: selectedItems.isEmpty
-                                    ? null
-                                    : () => PrintService.printBarcodeLabels(
-                                          items: selectedItems,
-                                          printerName: settings.barcodePrinterName,
-                                          ipAddress: settings.networkBarcodePrinterIp,
-                                        ),
+                             Padding(
+                               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                               child: Container(
+                                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                 decoration: BoxDecoration(
+                                   color: Theme.of(context).colorScheme.primary.withOpacity(0.05),
+                                   borderRadius: BorderRadius.circular(16),
+                                   border: Border.all(color: Theme.of(context).colorScheme.primary.withOpacity(0.1)),
+                                 ),
+                                 child: Row(
+                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                   children: [
+                                     Row(
+                                       children: [
+                                         Icon(isPriceMode ? Icons.sell_rounded : Icons.qr_code_2_rounded, color: Theme.of(context).colorScheme.primary),
+                                         const SizedBox(width: 12),
+                                         Text(
+                                           isPriceMode ? 'Nom va Narx rejimi' : 'Nom va Shtrix-kod rejimi',
+                                           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                                         ),
+                                       ],
+                                     ),
+                                     Switch.adaptive(
+                                       value: isPriceMode,
+                                       onChanged: (val) => setState(() => isPriceMode = val),
+                                     ),
+                                   ],
+                                 ),
+                               ),
+                             ),
+                             Padding(
+                               padding: const EdgeInsets.all(24),
+                               child: ElevatedButton.icon(
+                                 onPressed: selectedItems.isEmpty
+                                     ? null
+                                     : () => PrintService.printBarcodeLabels(
+                                           items: selectedItems,
+                                           printerName: settings.barcodePrinterName,
+                                           ipAddress: settings.networkBarcodePrinterIp,
+                                           isPriceLabel: isPriceMode,
+                                         ),
                                 icon: const Icon(Icons.print_rounded),
                                 label: const Text('CHOP ETISH', style: TextStyle(fontWeight: FontWeight.bold)),
                                 style: ElevatedButton.styleFrom(

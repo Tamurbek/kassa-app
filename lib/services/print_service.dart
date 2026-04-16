@@ -29,6 +29,7 @@ class PrintService {
     required List<Map<String, dynamic>> items, // [{'product': Product, 'quantity': int}]
     String? printerName,
     String? ipAddress,
+    bool isPriceLabel = false,
   }) async {
     final doc = pw.Document();
 
@@ -57,20 +58,36 @@ class PrintService {
                     maxLines: 2,
                     textAlign: pw.TextAlign.center,
                   ),
-                  pw.SizedBox(height: 2),
-                  pw.BarcodeWidget(
-                    barcode: pw.Barcode.code128(),
-                    data: product.barcode,
-                    width: 32 * PdfPageFormat.mm,
-                    height: 15 * PdfPageFormat.mm,
-                    drawText: true,
-                    textStyle: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold),
-                  ),
-                  pw.SizedBox(height: 2),
-                  pw.Text(
-                    'Narxi: ${NumberFormat.currency(locale: 'uz_UZ', symbol: '', decimalDigits: 0).format(product.price)} so\'m',
-                    style: pw.TextStyle(fontSize: 7, fontWeight: pw.FontWeight.bold),
-                  ),
+                  pw.SizedBox(height: isPriceLabel ? 5 : 2),
+                  if (isPriceLabel) ...[
+                    pw.Text(
+                      'NARXI:',
+                      style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.normal),
+                    ),
+                    pw.SizedBox(height: 2),
+                    pw.Text(
+                      NumberFormat.currency(locale: 'uz_UZ', symbol: '', decimalDigits: 0).format(product.price),
+                      style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold),
+                    ),
+                    pw.Text(
+                      'so\'m',
+                      style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold),
+                    ),
+                  ] else ...[
+                    pw.BarcodeWidget(
+                      barcode: pw.Barcode.code128(),
+                      data: product.barcode,
+                      width: 32 * PdfPageFormat.mm,
+                      height: 15 * PdfPageFormat.mm,
+                      drawText: true,
+                      textStyle: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold),
+                    ),
+                    pw.SizedBox(height: 2),
+                    pw.Text(
+                      'Narxi: ${NumberFormat.currency(locale: 'uz_UZ', symbol: '', decimalDigits: 0).format(product.price)} so\'m',
+                      style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold),
+                    ),
+                  ],
                 ],
               );
             },
@@ -114,21 +131,23 @@ class PrintService {
             // Name
             bytes.addAll(utf8.encode(_clean('${product.name.toUpperCase()}\n')));
             
-            // Barcode
-            // ESC/POS Barcode (Code128)
-            bytes.addAll([0x1D, 0x68, 0x60]); // height (usually 1-255, 96 is approx 12mm)
-            bytes.addAll([0x1D, 0x77, 0x02]); // width 2
-            bytes.addAll([0x1D, 0x48, 0x02]); // text below
-            bytes.addAll([0x1D, 0x6B, 0x49]); // Code128
-            bytes.addAll([product.barcode.length + 2]); // length + 2 for subset prefix
-            bytes.addAll([0x7B, 0x42]); // Subset B start character {B
-            bytes.addAll(utf8.encode(product.barcode));
+            if (isPriceLabel) {
+               // Large Price
+               bytes.addAll([0x1D, 0x21, 0x11]); // double size
+               bytes.addAll(utf8.encode(_clean('\n${NumberFormat.currency(locale: 'uz_UZ', symbol: '', decimalDigits: 0).format(product.price)} so\'m\n')));
+               bytes.addAll([0x1D, 0x21, 0x00]); // normal size
+            } else {
+              // Barcode
+              // ESC/POS Barcode (Code128)
+              bytes.addAll([0x1D, 0x68, 0x60]); 
+              bytes.addAll([0x1D, 0x77, 0x02]); 
+              bytes.addAll([0x1D, 0x48, 0x02]); 
+              bytes.addAll([0x1D, 0x6B, 0x49, product.barcode.length + 2, 0x7B, 0x42]); 
+              bytes.addAll(utf8.encode(product.barcode));
+              bytes.addAll(utf8.encode(_clean('\nNarxi: ${NumberFormat.currency(locale: 'uz_UZ', symbol: '', decimalDigits: 0).format(product.price)} so\'m\n')));
+            }
             
-            bytes.addAll(utf8.encode(_clean('\nNarxi: ${NumberFormat.currency(locale: 'uz_UZ', symbol: '', decimalDigits: 0).format(product.price)} so\'m\n')));
             bytes.addAll([0x0A, 0x0A, 0x0A]); // feed 3
-            
-            // If it's a label printer, it might need a FF (Form Feed) or similar
-            // But for simple thermal paper, we just feed enough
           }
         }
         
@@ -312,6 +331,7 @@ class PrintService {
                   ),
                 ),
               ],
+              pw.SizedBox(height: 30),
             ],
           ),
         );
@@ -480,7 +500,7 @@ class PrintService {
       bytes.addAll(utf8.encode('\n'));
     }
 
-    bytes.addAll(utf8.encode('\n\n\n\n\n'));
+    bytes.addAll(utf8.encode('\n\n\n\n\n\n\n\n\n\n'));
 
     // Cut paper (partial cut)
     bytes.addAll([0x1D, 0x56, 0x42, 0x00]);
