@@ -10,6 +10,7 @@ import '../../providers/features/auth_provider.dart';
 import '../../providers/features/settings_provider.dart';
 import '../widgets/app_status_bar.dart';
 import '../widgets/custom_app_bar.dart';
+import '../../core/utils/formatter.dart';
 
 class StockEntryScreen extends StatefulWidget {
   final StockEntry? entry;
@@ -296,6 +297,37 @@ class _StockEntryScreenState extends State<StockEntryScreen> {
         children: [
           Expanded(flex: 4, child: _buildProductDropdown(idx, item, inventory)),
           const SizedBox(width: 8),
+          Expanded(
+            flex: 3,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text('Birlik', style: TextStyle(fontSize: 10, color: Colors.grey)),
+                const SizedBox(height: 4),
+                Container(
+                  height: 38,
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Theme.of(context).dividerColor),
+                  ),
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<bool>(
+                      value: item['isBox'] ?? false,
+                      isExpanded: true,
+                      items: const [
+                        DropdownMenuItem(value: false, child: Text('Dona', style: TextStyle(fontSize: 12))),
+                        DropdownMenuItem(value: true, child: Text('Blok', style: TextStyle(fontSize: 12))),
+                      ],
+                      onChanged: (val) => setState(() => items[idx]['isBox'] = val),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
           Expanded(flex: 2, child: _buildCompactInput(item['costPrice'], 'Tan narxi', (val) => items[idx]['costPrice'] = double.tryParse(val) ?? 0)),
           const SizedBox(width: 8),
           Expanded(flex: 2, child: _buildCompactInput(item['price'], 'Sotuv narxi', (val) => items[idx]['price'] = double.tryParse(val) ?? 0)),
@@ -419,13 +451,36 @@ class _StockEntryScreenState extends State<StockEntryScreen> {
     if (_isSaving) return;
     final inventory = context.read<InventoryProvider>();
     if (entryWarehouseId == null) return;
-    final finalItems = items.where((i) => i['productId'] != null && i['quantity'] > 0).map((i) => StockEntryItem(
-      productId: i['productId'], 
-      productName: i['productName'], 
-      quantity: i['quantity'], 
-      costPrice: (i['costPrice'] as num).toDouble(),
-      price: (i['price'] as num).toDouble(),
-    )).toList();
+    final finalItems = <StockEntryItem>[];
+    for (var i in items) {
+      if (i['productId'] == null || i['quantity'] <= 0) continue;
+      
+      final product = inventory.activeProducts.firstWhere((p) => p.id == i['productId']);
+      final bool isBox = i['isBox'] ?? false;
+      double qty = (i['quantity'] as num).toDouble();
+      double cost = (i['costPrice'] as num).toDouble();
+      double price = (i['price'] as num).toDouble();
+      
+      if (isBox) {
+        qty *= product.quantityInBox;
+        // If the price entered was for a BOX, we should convert it to PIECE price
+        // Usually in kirim entries, users enter price per unit they are buying.
+        // If they chose "Blok" and entered price, it's likely price per block.
+        if (product.quantityInBox > 1) {
+          cost = cost / product.quantityInBox;
+          price = price / product.quantityInBox;
+        }
+      }
+      
+      finalItems.add(StockEntryItem(
+        productId: i['productId'], 
+        productName: i['productName'], 
+        quantity: qty, 
+        costPrice: cost,
+        price: price,
+        isBox: isBox,
+      ));
+    }
     if (finalItems.isEmpty) return;
 
     setState(() => _isSaving = true);
@@ -467,7 +522,7 @@ class _StockEntryScreenState extends State<StockEntryScreen> {
 
   Widget _buildCompactInput(dynamic initialValue, String label, Function(String) onChanged) {
     return TextFormField(
-      initialValue: initialValue.toString(),
+      initialValue: initialValue is double ? AppFormatter.formatDouble(initialValue) : initialValue.toString(),
       decoration: InputDecoration(
         border: const OutlineInputBorder(), 
         labelText: label,

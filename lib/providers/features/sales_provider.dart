@@ -127,38 +127,44 @@ class SalesProvider extends ChangeNotifier {
   double get cartProfit => cart.fold(0.0, (sum, item) => sum + item.profit);
   double get cartSubtotal => cart.fold(0.0, (sum, item) => sum + (item.price * item.quantity));
 
-  void addToCart(Product product, {String? warehouseId}) {
+  void addToCart(Product product, {String? warehouseId, bool isBox = false}) {
     // Check if product tracks stock and has 0 quantity for the selected warehouse
     // OR if no warehouse selected and stock is 0
     final stock = product.stocks[warehouseId] ?? 0;
     
-    if (product.trackStock && stock <= 0) {
-      if (warehouseId == null) {
-        throw Exception('Ombor tanlanmagan va mahsulot qoldig\'i 0');
-      } else {
-        throw Exception('Ushbu omborda mahsulot qoldig\'i 0');
-      }
+    // Total pieces to subtract
+    final double qtyToAdd = isBox ? product.quantityInBox : 1.0;
+
+    if (product.trackStock && stock < qtyToAdd) {
+       throw Exception('Omborda yetarli mahsulot yo\'q (Mavjud: $stock ${product.unit})');
     }
 
-    final existingIndex = cart.indexWhere((item) => item.productId == product.id);
+    final existingIndex = cart.indexWhere((item) => item.productId == product.id && item.isBox == isBox);
     
     if (existingIndex != -1) {
       final item = cart[existingIndex];
       // Also check if we have enough stock for the increment
-      if (product.trackStock && (item.quantity + 1) > stock) {
+      if (product.trackStock && (item.quantity + qtyToAdd) > stock) {
         throw Exception('Omborda yetarli mahsulot yo\'q');
       }
 
       cart[existingIndex] = item.copyWith(
-        quantity: item.quantity + 1,
+        quantity: item.quantity + qtyToAdd,
       );
     } else {
+      double price = product.price;
+      if (isBox) {
+        // Use special box price if available, otherwise sum of individual prices
+        price = product.boxPrice ?? (product.price * product.quantityInBox);
+      }
+
       cart.add(SaleItem(
         productId: product.id,
         productName: product.name,
-        quantity: 1,
-        price: product.price,
+        quantity: qtyToAdd,
+        price: isBox ? (price / product.quantityInBox) : product.price, // We store unit price in SaleItem
         costPrice: product.costPrice,
+        isBox: isBox,
       ));
     }
     notifyListeners();
@@ -167,9 +173,15 @@ class SalesProvider extends ChangeNotifier {
   void addToCartByBarcode(String barcode, List<Product> products, {String? warehouseId}) {
     try {
       final product = products.firstWhere(
-        (p) => p.barcode == barcode || p.additionalBarcodes.contains(barcode),
+        (p) => p.barcode == barcode || 
+               p.additionalBarcodes.contains(barcode) || 
+               p.boxBarcode == barcode ||
+               p.additionalBoxBarcodes.contains(barcode),
       );
-      addToCart(product, warehouseId: warehouseId);
+      
+      final bool isBox = product.boxBarcode == barcode || 
+                        product.additionalBoxBarcodes.contains(barcode);
+      addToCart(product, warehouseId: warehouseId, isBox: isBox);
     } catch (e) {
       if (e.toString().contains('Exception:')) {
         rethrow;
@@ -183,29 +195,44 @@ class SalesProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void updateCartQuantity(String productId, double quantity, {Product? product, String? warehouseId}) {
-    final index = cart.indexWhere((item) => item.productId == productId);
+  void updateCartQuantity(String productId, double newQuantity, {Product? product, String? warehouseId, bool isBox = false}) {
+    final index = cart.indexWhere((item) => item.productId == productId && item.isBox == isBox);
     if (index != -1) {
-      if (quantity <= 0) {
+      if (newQuantity <= 0) {
         cart.removeAt(index);
       } else {
         if (product != null && product.trackStock) {
           final stock = product.stocks[warehouseId] ?? 0;
-          if (quantity > stock) {
-            if (warehouseId == null) {
-              throw Exception('Ombor tanlanmagan va mahsulot qoldig\'i 0');
-            }
-            throw Exception('Omborda yetarli mahsulot yo\'q (Mavjud: $stock ${product.unit})');
+          if (newQuantity > stock) {
+             throw Exception('Omborda yetarli mahsulot yo\'q (Mavjud: $stock ${product.unit})');
           }
         }
         
         final item = cart[index];
         cart[index] = item.copyWith(
-          quantity: quantity,
+          quantity: newQuantity,
         );
       }
       notifyListeners();
     }
+  }
+
+  void incrementCartItem(String productId, bool isBox, {Product? product, String? warehouseId}) {
+      final index = cart.indexWhere((item) => item.productId == productId && item.isBox == isBox);
+      if (index == -1) return;
+      
+      final item = cart[index];
+      final double step = (isBox && product != null) ? product.quantityInBox : 1.0;
+      updateCartQuantity(productId, item.quantity + step, product: product, warehouseId: warehouseId, isBox: isBox);
+  }
+
+  void decrementCartItem(String productId, bool isBox, {Product? product, String? warehouseId}) {
+      final index = cart.indexWhere((item) => item.productId == productId && item.isBox == isBox);
+      if (index == -1) return;
+      
+      final item = cart[index];
+      final double step = (isBox && product != null) ? product.quantityInBox : 1.0;
+      updateCartQuantity(productId, item.quantity - step, product: product, warehouseId: warehouseId, isBox: isBox);
   }
 
   void clearCart() {

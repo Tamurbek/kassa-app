@@ -6,6 +6,7 @@ import 'package:path/path.dart' as path;
 import 'package:provider/provider.dart';
 import '../../models/models.dart';
 import '../../providers/features/inventory_provider.dart';
+import '../../core/utils/formatter.dart';
 import '../../providers/features/settings_provider.dart';
 import '../widgets/app_button.dart';
 import '../../services/print_service.dart';
@@ -25,9 +26,13 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
   late TextEditingController _priceController;
   late TextEditingController _costPriceController;
   late TextEditingController _barcodeController;
+  late TextEditingController _quantityInBoxController;
+  late TextEditingController _boxPriceController;
+  late TextEditingController _boxBarcodeController;
   String? _selectedCategoryId;
   bool _trackStock = true;
   List<TextEditingController> _additionalBarcodeControllers = [];
+  List<TextEditingController> _additionalBoxBarcodeControllers = [];
 
   @override
   void initState() {
@@ -36,9 +41,21 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
     _barcodeController = TextEditingController(
       text: widget.product?.barcode ?? '',
     );
+    _quantityInBoxController = TextEditingController(
+      text: AppFormatter.formatDouble(widget.product?.quantityInBox ?? 1.0),
+    );
+    _boxPriceController = TextEditingController(
+      text: widget.product?.boxPrice?.toString() ?? '',
+    );
+    _boxBarcodeController = TextEditingController(
+      text: widget.product?.boxBarcode ?? '',
+    );
     _selectedCategoryId = widget.product?.categoryId;
     _trackStock = widget.product?.trackStock ?? true;
     _additionalBarcodeControllers = (widget.product?.additionalBarcodes ?? [])
+        .map((b) => TextEditingController(text: b))
+        .toList();
+    _additionalBoxBarcodeControllers = (widget.product?.additionalBoxBarcodes ?? [])
         .map((b) => TextEditingController(text: b))
         .toList();
   }
@@ -48,6 +65,9 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
     _nameController.dispose();
     _barcodeController.dispose();
     for (var c in _additionalBarcodeControllers) {
+      c.dispose();
+    }
+    for (var c in _additionalBoxBarcodeControllers) {
       c.dispose();
     }
     super.dispose();
@@ -73,50 +93,70 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
       final price = widget.product?.price ?? 0.0;
       final costPrice = widget.product?.costPrice ?? 0.0;
       final barcode = _barcodeController.text.trim();
+      final quantityInBox = double.tryParse(_quantityInBoxController.text) ?? 1.0;
+      final boxPrice = double.tryParse(_boxPriceController.text);
+      final boxBarcode = _boxBarcodeController.text.trim();
       
-      // Check barcode uniqueness
-      if (barcode.isNotEmpty) {
-        final existingProduct = inventory.activeProducts.where((p) => 
-          (p.barcode == barcode || p.additionalBarcodes.contains(barcode)) && 
-          p.id != widget.product?.id
-        ).firstOrNull;
-        
-        if (existingProduct != null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Ushbu shtrix-kod allaqachon "${existingProduct.name}" mahsulotida ishlatilgan!')),
-          );
-          return;
-        }
-      }
-
       final additionalBarcodes = _additionalBarcodeControllers
           .map((c) => c.text.trim())
           .where((t) => t.isNotEmpty)
           .toList();
 
-      if (widget.product == null) {
-        final product = Product.create(
+      final additionalBoxBarcodes = _additionalBoxBarcodeControllers
+          .map((c) => c.text.trim())
+          .where((t) => t.isNotEmpty)
+          .toList();
+
+      // Check all barcodes uniqueness (primary, additional unit, primary box, additional box)
+      List<String> allToCheck = [barcode, ...additionalBarcodes, boxBarcode, ...additionalBoxBarcodes]
+          .where((b) => b.isNotEmpty).toList();
+
+      for (var b in allToCheck) {
+        final exists = inventory.activeProducts.where((p) => 
+          (p.barcode == b || p.additionalBarcodes.contains(b) || 
+           p.boxBarcode == b || p.additionalBoxBarcodes.contains(b)) && 
+          p.id != widget.product?.id
+        ).isNotEmpty;
+        
+        if (exists) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Shtrix-kod bazada mavjud: $b'), backgroundColor: Colors.red),
+          );
+          return;
+        }
+      }
+
+      final Product product;
+      if (widget.product != null) {
+        product = widget.product!.copyWith(
+          name: name,
+          categoryId: _selectedCategoryId ?? '',
+          barcode: barcode,
+          additionalBarcodes: additionalBarcodes,
+          additionalBoxBarcodes: additionalBoxBarcodes,
+          trackStock: _trackStock,
+          quantityInBox: quantityInBox,
+          boxPrice: boxPrice,
+          boxBarcode: boxBarcode,
+        );
+      } else {
+        product = Product.create(
           name,
           price,
-          _selectedCategoryId!,
+          _selectedCategoryId ?? '',
           barcode.isEmpty ? inventory.generateBarcode() : barcode,
           costPrice: costPrice,
           trackStock: _trackStock,
-        ).copyWith(additionalBarcodes: additionalBarcodes);
-        await inventory.saveProduct(product);
-      } else {
-        final updatedProduct = widget.product!.copyWith(
-          name: name,
-          price: price,
-          costPrice: costPrice,
-          categoryId: _selectedCategoryId,
-          barcode: barcode.isEmpty ? inventory.generateBarcode() : barcode,
+          quantityInBox: quantityInBox,
+          boxPrice: boxPrice,
+          boxBarcode: boxBarcode,
+        ).copyWith(
           additionalBarcodes: additionalBarcodes,
-          trackStock: _trackStock,
+          additionalBoxBarcodes: additionalBoxBarcodes,
         );
-        await inventory.saveProduct(updatedProduct);
       }
 
+      await inventory.saveProduct(product);
       if (mounted) Navigator.pop(context);
     }
   }
@@ -243,6 +283,40 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                   _buildAdditionalBarcodes(),
                   SizedBox(height: 20),
                   _buildTrackStockToggle(),
+                  const SizedBox(height: 32),
+                  const Text('Blok (Upakovka) sozlamalari', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildTextField(
+                          'Blok ichidagi soni',
+                          _quantityInBoxController,
+                          Icons.numbers,
+                          isNumber: true,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: _buildTextField(
+                          'Blok narxi (ixtiyoriy)',
+                          _boxPriceController,
+                          Icons.payments_outlined,
+                          isNumber: true,
+                          isRequired: false,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  _buildTextField(
+                    'Blok shtrix-kodi',
+                    _boxBarcodeController,
+                    Icons.qr_code_2_outlined,
+                    isRequired: false,
+                  ),
+                  const SizedBox(height: 16),
+                  _buildAdditionalBoxBarcodes(),
                   if (widget.product != null) ...[
                     SizedBox(height: 20),
                     SizedBox(
@@ -457,6 +531,73 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                   border: InputBorder.none,
                   contentPadding: const EdgeInsets.all(12),
                   hintText: 'Shtrix-kodni kiriting',
+                  hintStyle: TextStyle(fontSize: 13),
+                ),
+              ),
+            ),
+          );
+        }),
+      ],
+    );
+  }
+
+  Widget _buildAdditionalBoxBarcodes() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Qo\'shimcha Blok Shtrix-kodlari',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 13,
+                color: Theme.of(context).textTheme.bodySmall?.color,
+              ),
+            ),
+            TextButton.icon(
+              onPressed: () => setState(
+                () => _additionalBoxBarcodeControllers.add(TextEditingController()),
+              ),
+              icon: Icon(Icons.add, size: 18),
+              label: Text('Qo\'shish', style: TextStyle(fontSize: 12)),
+            ),
+          ],
+        ),
+        SizedBox(height: 8),
+        ..._additionalBoxBarcodeControllers.asMap().entries.map((entry) {
+          final idx = entry.key;
+          final controller = entry.value;
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Theme.of(context).cardColor,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Theme.of(context).dividerColor),
+              ),
+              child: TextFormField(
+                controller: controller,
+                decoration: InputDecoration(
+                  prefixIcon: Icon(
+                    Icons.qr_code,
+                    color: Theme.of(context).hintColor,
+                    size: 20,
+                  ),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      Icons.remove_circle_outline,
+                      color: Colors.redAccent,
+                      size: 20,
+                    ),
+                    onPressed: () => setState(
+                      () => _additionalBoxBarcodeControllers.removeAt(idx),
+                    ),
+                  ),
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.all(12),
+                  hintText: 'Blok shtrix-kodini kiriting',
                   hintStyle: TextStyle(fontSize: 13),
                 ),
               ),

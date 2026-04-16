@@ -10,8 +10,8 @@ class ProductRepository {
     List<dynamic> whereArgs = [];
 
     if (searchQuery != null && searchQuery.isNotEmpty) {
-      whereClause += ' AND (name LIKE ? OR barcode LIKE ? OR id IN (SELECT productId FROM product_additional_barcodes WHERE barcode LIKE ?))';
-      whereArgs.addAll(['%$searchQuery%', '%$searchQuery%', '%$searchQuery%']);
+      whereClause += ' AND (name LIKE ? OR barcode LIKE ? OR boxBarcode LIKE ? OR id IN (SELECT productId FROM product_additional_barcodes WHERE barcode LIKE ?) OR id IN (SELECT productId FROM product_additional_box_barcodes WHERE barcode LIKE ?))';
+      whereArgs.addAll(['%$searchQuery%', '%$searchQuery%', '%$searchQuery%', '%$searchQuery%', '%$searchQuery%']);
     }
 
     if (categoryId != null && categoryId.isNotEmpty) {
@@ -32,12 +32,15 @@ class ProductRepository {
 
     final productIds = maps.map((m) => "'${m['id']}'").join(',');
 
-    // Fetch all barcodes for these products in ONE query
+    // Fetch all barcodes and stocks for these products in ONE query
     final List<Map<String, dynamic>> allBarcodes = await db.rawQuery(
       'SELECT * FROM product_additional_barcodes WHERE productId IN ($productIds)'
     );
 
-    // Fetch all stocks for these products in ONE query
+    final List<Map<String, dynamic>> allBoxBarcodes = await db.rawQuery(
+      'SELECT * FROM product_additional_box_barcodes WHERE productId IN ($productIds)'
+    );
+
     final List<Map<String, dynamic>> allStocks = await db.rawQuery(
       'SELECT * FROM stocks WHERE productId IN ($productIds)'
     );
@@ -47,6 +50,12 @@ class ProductRepository {
     for (var b in allBarcodes) {
       final pid = b['productId'] as String;
       barcodeMap.putIfAbsent(pid, () => []).add(b['barcode'] as String);
+    }
+
+    Map<String, List<String>> boxBarcodeMap = {};
+    for (var b in allBoxBarcodes) {
+      final pid = b['productId'] as String;
+      boxBarcodeMap.putIfAbsent(pid, () => []).add(b['barcode'] as String);
     }
 
     Map<String, Map<String, double>> stockMap = {};
@@ -59,6 +68,7 @@ class ProductRepository {
       final pid = m['id'] as String;
       final productMap = Map<String, dynamic>.from(m);
       productMap['additionalBarcodes'] = barcodeMap[pid] ?? [];
+      productMap['additionalBoxBarcodes'] = boxBarcodeMap[pid] ?? [];
       productMap['stocks'] = stockMap[pid] ?? {};
       productMap['isDeleted'] = m['isDeleted'] == 1;
       productMap['trackStock'] = m['trackStock'] == 1;
@@ -71,13 +81,21 @@ class ProductRepository {
     await db.transaction((txn) async {
       await txn.insert(
         'products',
-        {...product.toJson(), 'isDeleted': product.isDeleted ? 1 : 0, 'trackStock': product.trackStock ? 1 : 0, 'updatedAt': DateTime.now().toIso8601String(), 'isSynced': 0}..remove('stocks')..remove('additionalBarcodes'),
+        {...product.toJson(), 'isDeleted': product.isDeleted ? 1 : 0, 'trackStock': product.trackStock ? 1 : 0, 'updatedAt': DateTime.now().toIso8601String(), 'isSynced': 0}
+            ..remove('stocks')
+            ..remove('additionalBarcodes')
+            ..remove('additionalBoxBarcodes'),
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
       
       await txn.delete('product_additional_barcodes', where: 'productId = ?', whereArgs: [product.id]);
       for (var barcode in product.additionalBarcodes) {
         await txn.insert('product_additional_barcodes', {'productId': product.id, 'barcode': barcode});
+      }
+
+      await txn.delete('product_additional_box_barcodes', where: 'productId = ?', whereArgs: [product.id]);
+      for (var barcode in product.additionalBoxBarcodes) {
+        await txn.insert('product_additional_box_barcodes', {'productId': product.id, 'barcode': barcode});
       }
       
       for (var entry in product.stocks.entries) {
@@ -97,16 +115,19 @@ class ProductRepository {
 
     final m = maps.first;
     final List<Map<String, dynamic>> barcodes = await db.query('product_additional_barcodes', where: 'productId = ?', whereArgs: [id]);
+    final List<Map<String, dynamic>> boxBarcodes = await db.query('product_additional_box_barcodes', where: 'productId = ?', whereArgs: [id]);
     final List<Map<String, dynamic>> stocks = await db.query('stocks', where: 'productId = ?', whereArgs: [id]);
 
     final productMap = Map<String, dynamic>.from(m);
     productMap['additionalBarcodes'] = barcodes.map((b) => b['barcode'] as String).toList();
+    productMap['additionalBoxBarcodes'] = boxBarcodes.map((b) => b['barcode'] as String).toList();
     productMap['stocks'] = {for (var s in stocks) s['warehouseId'].toString(): (s['quantity'] as num).toDouble()};
     productMap['isDeleted'] = m['isDeleted'] == 1;
     productMap['trackStock'] = m['trackStock'] == 1;
 
     return Product.fromJson(productMap);
   }
+
 
   static Future<void> deleteProduct(String id) async {
     final db = await DatabaseHelper.database;

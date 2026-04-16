@@ -40,6 +40,7 @@ class StockEntryItem {
   final double quantity;
   final double costPrice; // tannarx at entry
   final double price; // NEW: selling price at entry
+  final bool isBox; // NEW: true if added as a full block/box
 
   StockEntryItem({
     required this.productId,
@@ -47,6 +48,7 @@ class StockEntryItem {
     required this.quantity,
     this.costPrice = 0.0,
     this.price = 0.0,
+    this.isBox = false,
   });
 
   Map<String, dynamic> toJson() => {
@@ -55,6 +57,7 @@ class StockEntryItem {
     'quantity': quantity,
     'costPrice': costPrice,
     'price': price,
+    'isBox': isBox ? 1 : 0,
   };
 
   factory StockEntryItem.fromJson(Map<String, dynamic> json) => StockEntryItem(
@@ -63,5 +66,6 @@ class StockEntryItem {
     quantity: double.tryParse(json['quantity']?.toString() ?? '1') ?? 1.0,
     costPrice: double.tryParse(json['costPrice']?.toString() ?? '0') ?? 0.0,
     price: double.tryParse(json['price']?.toString() ?? '0') ?? 0.0,
+    isBox: json['isBox'] == 1 || json['isBox'] == true,
   );
 }

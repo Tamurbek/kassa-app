@@ -10,6 +10,7 @@ import '../../services/print_service.dart';
 import '../dialogs/app_update_dialog.dart';
 import '../../providers/features/navigation_provider.dart';
 import 'stock_transfer_screen.dart';
+import '../../core/utils/formatter.dart';
 
 class DashboardScreen extends StatefulWidget {
   final VoidCallback? onMenuPressed;
@@ -603,7 +604,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           ),
                         ),
                         Text(
-                          '${entry.value.toStringAsFixed(0)} ta',
+                          '${AppFormatter.formatDouble(entry.value)} ta',
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
@@ -753,7 +754,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           'title': 'Kam qolgan mahsulotlar',
           'rows': lowStock.map((p) => {
             'label': p.name,
-            'value': '${(p.stocks[settings.currentRegister?.warehouseId] ?? 0).toStringAsFixed(1)} ${p.unit ?? 'ta'}'
+            'value': '${AppFormatter.formatDouble(p.stocks[settings.currentRegister?.warehouseId] ?? 0)} ${p.unit ?? 'ta'}'
           }).toList(),
         }
       ],
@@ -787,7 +788,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           'title': 'Eng ko\'p sotilganlar',
           'rows': topProducts.map((e) => {
             'label': e.key,
-            'value': '${e.value.toStringAsFixed(1)} ta'
+            'value': '${AppFormatter.formatDouble(e.value)} ta'
           }).toList(),
         }
       ],

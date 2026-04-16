@@ -13,6 +13,7 @@ import 'barcode_print_screen.dart';
 import 'stock_transfer_screen.dart';
 import '../../core/utils/responsive.dart';
 import '../../providers/features/navigation_provider.dart';
+import '../../core/utils/formatter.dart';
 
 class WarehouseScreen extends StatefulWidget {
   final VoidCallback? onMenuPressed;
@@ -447,7 +448,7 @@ class _WarehouseScreenState extends State<WarehouseScreen> {
           title: Text(product.name, style: const TextStyle(fontWeight: FontWeight.bold)),
           subtitle: Text(product.barcode),
           trailing: Text(
-            '${stock.toStringAsFixed(0)} ${product.unit}',
+            '${AppFormatter.formatDouble(stock)} ${product.unit}',
             style: TextStyle(
               fontWeight: FontWeight.w900,
               color: isLow ? Colors.orange : Theme.of(context).colorScheme.primary,

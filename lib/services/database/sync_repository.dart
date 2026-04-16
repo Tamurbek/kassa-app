@@ -29,7 +29,12 @@ class SyncRepository {
           final Map<String, dynamic> mutable = Map.from(record);
           final id = table == 'settings' ? record['key'] : record['id'];
 
-          if (table == 'sales') {
+          if (table == 'products') {
+            final barcodes = await db.query('product_additional_barcodes', where: 'productId = ?', whereArgs: [id]);
+            final boxBarcodes = await db.query('product_additional_box_barcodes', where: 'productId = ?', whereArgs: [id]);
+            mutable['additionalBarcodes'] = barcodes.map((b) => b['barcode']).toList();
+            mutable['additionalBoxBarcodes'] = boxBarcodes.map((b) => b['barcode']).toList();
+          } else if (table == 'sales') {
             mutable['items'] = await db.query('sale_items', where: 'saleId = ?', whereArgs: [id]);
           } else if (table == 'returns') {
             mutable['items'] = await db.query('return_items', where: 'returnId = ?', whereArgs: [id]);

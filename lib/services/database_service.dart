@@ -380,10 +380,34 @@ class DatabaseService {
         
         final Map<String, dynamic> mutable = Map.from(data);
         final List<dynamic>? items = mutable.remove('items') as List<dynamic>?;
+        final List<dynamic>? barcodes = mutable.remove('additionalBarcodes') as List<dynamic>?;
+        final List<dynamic>? boxBarcodes = mutable.remove('additionalBoxBarcodes') as List<dynamic>?;
+        final Map<String, dynamic>? stocks = mutable.remove('stocks') as Map<String, dynamic>?;
+
         mutable['isSynced'] = 1;
         final id = tableName == 'settings' ? mutable['key'] : mutable['id'];
 
         await txn.insert(tableName, mutable, conflictAlgorithm: ConflictAlgorithm.replace);
+
+        if (tableName == 'products') {
+          if (barcodes != null) {
+            await txn.delete('product_additional_barcodes', where: 'productId = ?', whereArgs: [id]);
+            for (var b in barcodes) {
+              await txn.insert('product_additional_barcodes', {'productId': id, 'barcode': b.toString()});
+            }
+          }
+          if (boxBarcodes != null) {
+            await txn.delete('product_additional_box_barcodes', where: 'productId = ?', whereArgs: [id]);
+            for (var b in boxBarcodes) {
+              await txn.insert('product_additional_box_barcodes', {'productId': id, 'barcode': b.toString()});
+            }
+          }
+          if (stocks != null) {
+            for (var s in stocks.entries) {
+              await txn.insert('stocks', {'productId': id, 'warehouseId': s.key, 'quantity': s.value}, conflictAlgorithm: ConflictAlgorithm.replace);
+            }
+          }
+        }
 
         if (items != null) {
           String itemTable = '';

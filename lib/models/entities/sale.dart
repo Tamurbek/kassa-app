@@ -54,6 +54,7 @@ class SaleItem {
   final double quantity;
   final double price; // selling price
   final double costPrice; // NEW: cost at time of sale
+  final bool isBox; // NEW: true if sold as a full block/box
 
   SaleItem({
     required this.productId,
@@ -61,6 +62,7 @@ class SaleItem {
     required this.quantity,
     required this.price,
     this.costPrice = 0.0,
+    this.isBox = false,
   });
 
   SaleItem copyWith({
@@ -69,12 +71,14 @@ class SaleItem {
     double? quantity,
     double? price,
     double? costPrice,
+    bool? isBox,
   }) => SaleItem(
     productId: productId ?? this.productId,
     productName: productName ?? this.productName,
     quantity: quantity ?? this.quantity,
     price: price ?? this.price,
     costPrice: costPrice ?? this.costPrice,
+    isBox: isBox ?? this.isBox,
   );
 
   double get subtotal => quantity * price;
@@ -86,6 +90,7 @@ class SaleItem {
     'quantity': quantity,
     'price': price,
     'costPrice': costPrice,
+    'isBox': isBox ? 1 : 0,
   };
 
   factory SaleItem.fromJson(Map<String, dynamic> json) => SaleItem(
@@ -94,5 +99,6 @@ class SaleItem {
     quantity: double.tryParse(json['quantity']?.toString() ?? '1') ?? 1.0,
     price: double.tryParse(json['price']?.toString() ?? '0') ?? 0.0,
     costPrice: double.tryParse(json['costPrice']?.toString() ?? '0') ?? 0.0,
+    isBox: json['isBox'] == 1 || json['isBox'] == true,
   );
 }

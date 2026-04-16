@@ -8,6 +8,7 @@ import '../../providers/features/inventory_provider.dart';
 import '../../providers/app_state.dart';
 import '../../models/models.dart';
 import '../../services/print_service.dart';
+import '../../core/utils/formatter.dart';
 
 class SalesHistoryScreen extends StatefulWidget {
   final VoidCallback? onMenuPressed;
@@ -504,7 +505,7 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen> {
           ),
         ),
         trailing: Text(
-          '${sale.total.toStringAsFixed(0)} so\'m',
+          '${NumberFormat.currency(locale: 'uz_UZ', symbol: '', decimalDigits: 0).format(sale.total)} so\'m',
           style: TextStyle(
             fontWeight: FontWeight.w900,
             fontSize: 18,
@@ -541,7 +542,7 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen> {
                                 ),
                               ),
                               Text(
-                                '${item.quantity} x ${item.price.toStringAsFixed(0)}',
+                                '${AppFormatter.formatDouble(item.quantity)} x ${NumberFormat.currency(locale: 'uz_UZ', symbol: '', decimalDigits: 0).format(item.price)}',
                                 style: TextStyle(
                                   color: Colors.grey,
                                   fontSize: 12,
@@ -551,7 +552,7 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen> {
                           ),
                         ),
                         Text(
-                          '${(item.quantity * item.price).toStringAsFixed(0)} so\'m',
+                          '${NumberFormat.currency(locale: 'uz_UZ', symbol: '', decimalDigits: 0).format(item.quantity * item.price)} so\'m',
                           style: TextStyle(fontWeight: FontWeight.bold),
                         ),
                       ],
@@ -569,7 +570,7 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen> {
                       ),
                     ),
                     Text(
-                      '${sale.total.toStringAsFixed(0)} so\'m',
+                      '${NumberFormat.currency(locale: 'uz_UZ', symbol: '', decimalDigits: 0).format(sale.total)} so\'m',
                       style: TextStyle(
                         fontWeight: FontWeight.w900,
                         fontSize: 20,

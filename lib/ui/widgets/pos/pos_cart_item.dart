@@ -5,6 +5,7 @@ import '../../../providers/features/inventory_provider.dart';
 import '../../../providers/features/sales_provider.dart';
 import '../../../providers/features/settings_provider.dart';
 import 'package:simple_sale/core/utils/responsive.dart';
+import 'package:simple_sale/core/utils/formatter.dart';
 
 class POSCartItem extends StatelessWidget {
   final SaleItem item;
@@ -45,14 +46,16 @@ class POSCartItem extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  item.productName,
+                  item.productName + (item.isBox ? ' (BLOK)' : ''),
                   style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13.sp, letterSpacing: -0.3),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
                 SizedBox(height: 2.h),
                 Text(
-                  '${item.price.toStringAsFixed(0)} s',
+                  item.isBox 
+                    ? '${(item.price * (product?.quantityInBox ?? 1)).toStringAsFixed(0)} s / blok'
+                    : '${item.price.toStringAsFixed(0)} s',
                   style: TextStyle(
                     fontSize: 11.sp,
                     fontWeight: FontWeight.bold,
@@ -76,19 +79,19 @@ class POSCartItem extends StatelessWidget {
                 children: [
                   _QtyButton(
                     icon: Icons.remove,
-                    onTap: () => sales.updateCartQuantity(item.productId, item.quantity - 1),
+                    onTap: () => sales.decrementCartItem(item.productId, item.isBox, product: product, warehouseId: settings.currentRegister?.warehouseId),
                     color: Colors.red.withOpacity(0.08),
                     iconColor: Colors.red,
                   ),
                   InkWell(
                     onTap: () => onShowQuantityDialog(item),
                     child: Container(
-                      width: 40.w,
+                      width: 50.w,
                       alignment: Alignment.center,
                       child: Text(
-                        item.quantity % 1 == 0
-                            ? item.quantity.toInt().toString()
-                            : item.quantity.toStringAsFixed(1),
+                        item.isBox && product != null
+                            ? AppFormatter.formatDouble(item.quantity / product.quantityInBox)
+                            : AppFormatter.formatDouble(item.quantity),
                         style: TextStyle(fontWeight: FontWeight.w900, fontSize: 14.sp),
                       ),
                     ),
@@ -98,7 +101,7 @@ class POSCartItem extends StatelessWidget {
                     onTap: () {
                       if (product != null) {
                         try {
-                          sales.addToCart(product, warehouseId: settings.currentRegister?.warehouseId);
+                          sales.incrementCartItem(item.productId, item.isBox, product: product, warehouseId: settings.currentRegister?.warehouseId);
                         } catch (e) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(content: Text(e.toString().replaceAll('Exception: ', '')), backgroundColor: Colors.red),

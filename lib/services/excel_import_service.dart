@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import '../models/models.dart';
 import '../providers/features/inventory_provider.dart';
 import 'database_service.dart';
+import '../core/utils/formatter.dart';
 
 class ExcelImportService {
   static Future<void> importFromExcel(BuildContext context) async {
@@ -46,6 +47,7 @@ class ExcelImportService {
 
       // Column detection
       int nameIdx = 0, catIdx = 1, priceIdx = 2, costIdx = 3, barcodeIdx = 4, unitIdx = 5;
+      int qtyIdx = -1, warehouseIdx = -1, qtyInBoxIdx = -1, boxPriceIdx = -1, boxBarcodeIdx = -1;
       
       var headerRow = sheet.rows[0];
       for (int i = 0; i < headerRow.length; i++) {
@@ -56,6 +58,11 @@ class ExcelImportService {
           else if (val.contains('tan') || val.contains('cost')) costIdx = i;
           else if (val.contains('shtrix') || val.contains('barcode')) barcodeIdx = i;
           else if (val.contains('birlik') || val.contains('unit')) unitIdx = i;
+          else if (val.contains('soni') || val.contains('miqdor') || val.contains('qty')) qtyIdx = i;
+          else if (val.contains('ombor') || val.contains('warehouse')) warehouseIdx = i;
+          else if (val.contains('blok ichi') || val.contains('box qty') || val.contains('pak')) qtyInBoxIdx = i;
+          else if (val.contains('blok narxi') || val.contains('box price')) boxPriceIdx = i;
+          else if (val.contains('blok shtrix') || val.contains('box barcode')) boxBarcodeIdx = i;
       }
 
       Set<String> excelCategories = {};
@@ -75,8 +82,23 @@ class ExcelImportService {
         String costStr = row.length > costIdx ? _getCellValue(row[costIdx]) : '0';
         double costPrice = _parseRobustDouble(costStr);
         
-        String barcode = (row.length > barcodeIdx ? _getCellValue(row[barcodeIdx]) : '');
+        String additionalBarcodesRaw = (row.length > barcodeIdx ? _getCellValue(row[barcodeIdx]) : '');
+        List<String> barcodes = additionalBarcodesRaw.split(RegExp(r'[,;]')).map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
+        String barcode = barcodes.isNotEmpty ? barcodes[0] : '';
+        List<String> additionalBarcodes = barcodes.length > 1 ? barcodes.sublist(1) : [];
+        
         String unit = (row.length > unitIdx ? _getCellValue(row[unitIdx]) : 'dona');
+        double quantity = (qtyIdx != -1 && row.length > qtyIdx) ? _parseRobustDouble(_getCellValue(row[qtyIdx])) : 0;
+        String warehouseName = (warehouseIdx != -1 && row.length > warehouseIdx) ? _getCellValue(row[warehouseIdx]) : '';
+        
+        String qtyInBoxStr = (qtyInBoxIdx != -1 && row.length > qtyInBoxIdx) ? _getCellValue(row[qtyInBoxIdx]) : '1';
+        double qtyInBox = _parseRobustDouble(qtyInBoxStr);
+        double? boxPrice = (boxPriceIdx != -1 && row.length > boxPriceIdx) ? double.tryParse(_getCellValue(row[boxPriceIdx])) : null;
+        
+        String boxBarcodeRaw = (boxBarcodeIdx != -1 && row.length > boxBarcodeIdx) ? _getCellValue(row[boxBarcodeIdx]) : '';
+        List<String> boxBars = boxBarcodeRaw.split(RegExp(r'[,;]')).map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
+        String boxBarcode = boxBars.isNotEmpty ? boxBars[0] : '';
+        List<String> additionalBoxBarcodes = boxBars.length > 1 ? boxBars.sublist(1) : [];
 
         excelCategories.add(categoryName);
         rawRows.add({
@@ -85,7 +107,14 @@ class ExcelImportService {
           'price': price,
           'costPrice': costPrice,
           'barcode': barcode,
+          'additionalBarcodes': additionalBarcodes,
           'unit': unit,
+          'quantity': quantity,
+          'warehouseName': warehouseName,
+          'quantityInBox': qtyInBox > 0 ? qtyInBox : 1.0,
+          'boxPrice': boxPrice,
+          'boxBarcode': boxBarcode,
+          'additionalBoxBarcodes': additionalBoxBarcodes,
         });
       }
 
@@ -106,19 +135,67 @@ class ExcelImportService {
       );
 
       List<Product> productsToSave = [];
+      Map<String, List<StockEntryItem>> warehouseStockItems = {}; // warehouseId -> items
+
       for (var r in rawRows) {
         String catId = mapping[r['categoryName']]!;
-        productsToSave.add(Product.create(
+        final product = Product.create(
           r['name'],
           r['price'],
           catId,
           r['barcode'],
           costPrice: r['costPrice'],
           unit: r['unit'],
-        ));
+          quantityInBox: r['quantityInBox'],
+          boxPrice: r['boxPrice'],
+          boxBarcode: r['boxBarcode'],
+        ).copyWith(
+          additionalBarcodes: r['additionalBarcodes'] as List<String>,
+          additionalBoxBarcodes: r['additionalBoxBarcodes'] as List<String>,
+        );
+        
+        productsToSave.add(product);
+
+        if (r['quantity'] > 0) {
+          String warehouseId = '';
+          String wName = r['warehouseName'];
+          if (wName.isNotEmpty) {
+            final match = inventory.activeWarehouses.where((w) => w.name.toLowerCase() == wName.toLowerCase()).firstOrNull;
+            if (match != null) {
+              warehouseId = match.id;
+            }
+          }
+          
+          if (warehouseId.isEmpty) {
+            warehouseId = inventory.mainWarehouse?.id ?? '';
+          }
+
+          if (warehouseId.isNotEmpty) {
+            warehouseStockItems.putIfAbsent(warehouseId, () => []);
+            warehouseStockItems[warehouseId]!.add(StockEntryItem(
+              productId: product.id,
+              productName: product.name,
+              quantity: r['quantity'],
+              costPrice: r['costPrice'],
+              price: r['price'],
+            ));
+          }
+        }
       }
       
       await inventory.saveProductsBatch(productsToSave);
+
+      // Create Stock entries
+      for (var entry in warehouseStockItems.entries) {
+        final stockEntry = StockEntry(
+          id: const Uuid().v4(),
+          warehouseId: entry.key,
+          date: DateTime.now(),
+          items: entry.value,
+          description: 'Katalog importi bilan birga kirim qilindi',
+        );
+        await inventory.addStockEntry(stockEntry);
+      }
 
       Navigator.pop(context); // Close indicator
       _showSuccess(context, '${productsToSave.length} ta mahsulot muvaffaqiyatli qo\'shildi');
@@ -359,6 +436,11 @@ class ExcelImportService {
       sheetObject.cell(CellIndex.indexByString("D1")).value = TextCellValue("Sotish narxi");
       sheetObject.cell(CellIndex.indexByString("E1")).value = TextCellValue("Shtrix kod");
       sheetObject.cell(CellIndex.indexByString("F1")).value = TextCellValue("O'lchov birligi");
+      sheetObject.cell(CellIndex.indexByString("G1")).value = TextCellValue("Soni (Qoldiq)");
+      sheetObject.cell(CellIndex.indexByString("H1")).value = TextCellValue("Ombor nomi");
+      sheetObject.cell(CellIndex.indexByString("I1")).value = TextCellValue("Blok ichidagi soni");
+      sheetObject.cell(CellIndex.indexByString("J1")).value = TextCellValue("Blok narxi");
+      sheetObject.cell(CellIndex.indexByString("K1")).value = TextCellValue("Blok shtrix-kodi");
 
       var fileBytes = excel.save();
       String? outputPath = await FilePicker.platform.saveFile(
@@ -382,9 +464,7 @@ class ExcelImportService {
     if (v is TextCellValue) return v.value.toString().trim();
     if (v is IntCellValue) return v.value.toString();
     if (v is DoubleCellValue) {
-      String s = v.value.toString();
-      if (s.endsWith('.0')) return s.substring(0, s.length - 2);
-      return s;
+      return AppFormatter.formatDouble(v.value.toDouble());
     }
     if (v is BoolCellValue) return v.value.toString();
     return v.toString().trim();

@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'dart:io';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
+import 'package:simple_sale/core/utils/formatter.dart';
 
 class PrintService {
   static String _clean(String text) {
@@ -228,7 +229,7 @@ class PrintService {
                         mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                         children: [
                           pw.Text(
-                            _clean('${item.quantity % 1 == 0 ? item.quantity.toInt() : item.quantity} x ${NumberFormat.currency(locale: 'uz_UZ', symbol: '', decimalDigits: 0).format(item.price)}'),
+                            _clean('${AppFormatter.formatDouble(item.quantity)} x ${NumberFormat.currency(locale: 'uz_UZ', symbol: '', decimalDigits: 0).format(item.price)}'),
                             style: pw.TextStyle(fontSize: 8 * scale),
                           ),
                           pw.Text(
@@ -411,7 +412,7 @@ class PrintService {
       bytes.addAll(utf8.encode(_clean('${item.productName.toUpperCase()}\n')));
       
       // Quantity x Price
-      String qtyPrice = '${item.quantity % 1 == 0 ? item.quantity.toInt() : item.quantity} x ${NumberFormat.currency(locale: 'uz_UZ', symbol: '', decimalDigits: 0).format(item.price)}';
+      String qtyPrice = '${AppFormatter.formatDouble(item.quantity)} x ${NumberFormat.currency(locale: 'uz_UZ', symbol: '', decimalDigits: 0).format(item.price)}';
       // Item total (right side)
       String totalItem = NumberFormat.currency(locale: 'uz_UZ', symbol: '', decimalDigits: 0).format(item.quantity * item.price);
       
@@ -449,7 +450,7 @@ class PrintService {
     bytes.addAll([0x1B, 0x61, 0x01]); // Align center
     bytes.addAll([0x1B, 0x45, 0x01]); // bold on
     bytes.addAll([0x1D, 0x21, 0x01]); // double height
-    bytes.addAll(utf8.encode(_clean('TO\'LANADIGAN: ${total.toStringAsFixed(0)} so\'m\n')));
+    bytes.addAll(utf8.encode(_clean('TO\'LANADIGAN: ${NumberFormat.currency(locale: 'uz_UZ', symbol: '', decimalDigits: 0).format(total)} so\'m\n')));
     bytes.addAll([0x1D, 0x21, 0x00]); // normal size
     bytes.addAll([0x1B, 0x45, 0x00]); // bold off
     

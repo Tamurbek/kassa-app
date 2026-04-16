@@ -9,7 +9,7 @@ class DatabaseHelper {
   static Future<Database>? _initFuture;
   static bool _factoryInitialized = false;
 
-  static const int databaseVersion = 26;
+  static const int databaseVersion = 28;
   static const String databaseName = 'simple_sale.db';
 
   static Future<Database> get database async {
@@ -125,12 +125,22 @@ class DatabaseHelper {
         isDeleted INTEGER NOT NULL DEFAULT 0,
         unit TEXT NOT NULL DEFAULT 'dona',
         trackStock INTEGER NOT NULL DEFAULT 1,
+        quantityInBox REAL NOT NULL DEFAULT 1,
+        boxPrice REAL,
+        boxBarcode TEXT,
         updatedAt TEXT,
         isSynced INTEGER NOT NULL DEFAULT 0
       )
     ''');
     await db.execute('''
       CREATE TABLE product_additional_barcodes (
+        productId TEXT NOT NULL,
+        barcode TEXT NOT NULL,
+        PRIMARY KEY (productId, barcode)
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE product_additional_box_barcodes (
         productId TEXT NOT NULL,
         barcode TEXT NOT NULL,
         PRIMARY KEY (productId, barcode)
@@ -166,7 +176,8 @@ class DatabaseHelper {
         productName TEXT NOT NULL,
         quantity REAL NOT NULL,
         price REAL NOT NULL,
-        costPrice REAL NOT NULL DEFAULT 0
+        costPrice REAL NOT NULL DEFAULT 0,
+        isBox INTEGER NOT NULL DEFAULT 0
       )
     ''');
     await db.execute('''
@@ -247,7 +258,8 @@ class DatabaseHelper {
         quantity REAL NOT NULL,
         productName TEXT NOT NULL,
         costPrice REAL NOT NULL DEFAULT 0,
-        price REAL NOT NULL DEFAULT 0
+        price REAL NOT NULL DEFAULT 0,
+        isBox INTEGER NOT NULL DEFAULT 0
       )
     ''');
     await db.execute('''
@@ -639,6 +651,26 @@ class DatabaseHelper {
         )
       ''');
     }
+    if (oldVersion < 27) {
+      try {
+        await db.execute('ALTER TABLE products ADD COLUMN quantityInBox REAL NOT NULL DEFAULT 1');
+        await db.execute('ALTER TABLE products ADD COLUMN boxPrice REAL');
+        await db.execute('ALTER TABLE products ADD COLUMN boxBarcode TEXT');
+        await db.execute('ALTER TABLE sale_items ADD COLUMN isBox INTEGER NOT NULL DEFAULT 0');
+        await db.execute('ALTER TABLE stock_entry_items ADD COLUMN isBox INTEGER NOT NULL DEFAULT 0');
+      } catch (e) {
+        print("Migration 27 error: $e");
+      }
+    }
+    if (oldVersion < 28) {
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS product_additional_box_barcodes (
+          productId TEXT NOT NULL,
+          barcode TEXT NOT NULL,
+          PRIMARY KEY (productId, barcode)
+        )
+      ''');
+    }
   }
 
   static Future<void> clearAllData() async {
@@ -649,7 +681,8 @@ class DatabaseHelper {
           'sales', 'sale_items', 'returns', 'return_items', 
           'write_offs', 'write_off_items', 'inventories', 'inventory_items', 
           'stock_entries', 'stock_entry_items', 'users', 'settings', 
-          'stock_transfers', 'stock_transfer_items', 'stocks', 'product_additional_barcodes',
+          'stock_transfers', 'stock_transfer_items', 'stocks', 
+          'product_additional_barcodes', 'product_additional_box_barcodes',
           'suspended_sales', 'suspended_sale_items', 'organizations'
         ];
         for (var t in tables) {

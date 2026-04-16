@@ -20,6 +20,7 @@ import '../../services/scale_service.dart';
 import '../widgets/app_end_drawer.dart';
 import '../../providers/features/navigation_provider.dart';
 import '../../core/utils/responsive.dart';
+import '../../core/utils/formatter.dart';
 
 class POSScreen extends StatefulWidget {
   final VoidCallback? onMenuPressed;
@@ -80,15 +81,23 @@ class _POSScreenState extends State<POSScreen> {
     SaleItem item,
   ) {
     final product = inventory.products.where((p) => p.id == item.productId).firstOrNull;
-    final unit = product?.unit ?? 'dona';
-    final initialValue = item.quantity == 0 ? '' : (item.quantity % 1 == 0 ? item.quantity.toInt().toString() : item.quantity.toString());
+    final unit = item.isBox ? 'blok' : (product?.unit ?? 'dona');
+    final double displayQty = item.isBox && product != null ? item.quantity / product.quantityInBox : item.quantity;
+    
+    final initialValue = displayQty == 0 ? '' : AppFormatter.formatDouble(displayQty);
     final controller = TextEditingController(text: initialValue);
 
     void saveContent() {
       final text = controller.text.replaceAll(',', '.');
-      final newQty = double.tryParse(text) ?? 0;
+      double inputQty = double.tryParse(text) ?? 0;
+      
+      double finalQty = inputQty;
+      if (item.isBox && product != null) {
+        finalQty = inputQty * product.quantityInBox;
+      }
+
       try {
-        sales.updateCartQuantity(item.productId, newQty, product: product, warehouseId: context.read<SettingsProvider>().currentRegister?.warehouseId);
+        sales.updateCartQuantity(item.productId, finalQty, product: product, warehouseId: context.read<SettingsProvider>().currentRegister?.warehouseId, isBox: item.isBox);
         Navigator.pop(context);
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -325,7 +334,10 @@ class _POSScreenState extends State<POSScreen> {
       sales.addToCartByBarcode(barcode, inventory.products, warehouseId: settings.currentRegister?.warehouseId);
 
       final product = inventory.products.firstWhere(
-        (p) => p.barcode == barcode || p.additionalBarcodes.contains(barcode),
+        (p) => p.barcode == barcode || 
+               p.additionalBarcodes.contains(barcode) || 
+               p.boxBarcode == barcode || 
+               p.additionalBoxBarcodes.contains(barcode),
         orElse: () => throw Exception('Mahsulot topilmadi'),
       );
 
