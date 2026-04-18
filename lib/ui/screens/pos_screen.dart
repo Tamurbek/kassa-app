@@ -515,20 +515,23 @@ class _POSScreenState extends State<POSScreen> {
       ),
       child: Row(
         children: [
-          if (Navigator.canPop(context))
-            _buildTopBarAction(
-              icon: Icons.arrow_back_ios_new_rounded,
-              isActive: false,
-              onTap: () => Navigator.pop(context),
-              tooltip: 'Ortga qaytish',
-            )
-          else
-            _buildTopBarAction(
-              icon: Icons.arrow_back_ios_new_rounded,
-              isActive: false,
-              onTap: () => context.read<NavigationProvider>().openSessions(),
-              tooltip: 'Savdo bo\'limiga qaytish',
-            ),
+          _buildTopBarAction(
+            icon: Icons.arrow_back_ios_new_rounded,
+            isActive: false,
+            onTap: () {
+              if (Navigator.canPop(context)) {
+                Navigator.pop(context);
+              } else {
+                final nav = context.read<NavigationProvider>();
+                if (nav.canGoBack) {
+                  nav.goBack();
+                } else {
+                  nav.openSessions();
+                }
+              }
+            },
+            tooltip: 'Ortga qaytish',
+          ),
           const Spacer(),
           if (!isMobile) ...[
             _buildKassaInfo(settings, inventory),

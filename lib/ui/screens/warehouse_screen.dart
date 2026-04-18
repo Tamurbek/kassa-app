@@ -306,21 +306,23 @@ class _WarehouseScreenState extends State<WarehouseScreen> with SingleTickerProv
       ),
       child: Row(
         children: [
-          if (Navigator.canPop(context)) ...[
-            IconButton(
-              onPressed: () => Navigator.pop(context),
-              icon: const Icon(Icons.arrow_back_ios_new_rounded),
-              color: Theme.of(context).colorScheme.primary,
-            ),
-            const SizedBox(width: 8),
-          ] else ...[
-            IconButton(
-              onPressed: () => context.read<NavigationProvider>().openSessions(),
-              icon: const Icon(Icons.arrow_back_ios_new_rounded),
-              color: Theme.of(context).colorScheme.primary,
-            ),
-            const SizedBox(width: 8),
-          ],
+          IconButton(
+            onPressed: () {
+              if (Navigator.canPop(context)) {
+                Navigator.pop(context);
+              } else {
+                final nav = context.read<NavigationProvider>();
+                if (nav.canGoBack) {
+                  nav.goBack();
+                } else {
+                  nav.openSessions();
+                }
+              }
+            },
+            icon: const Icon(Icons.arrow_back_ios_new_rounded),
+            color: Theme.of(context).colorScheme.primary,
+          ),
+          const SizedBox(width: 8),
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(

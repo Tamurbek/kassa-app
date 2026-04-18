@@ -68,8 +68,17 @@ class _MainLayoutState extends State<MainLayout> {
     final sync = context.watch<SyncProvider>();
     final nav = context.watch<NavigationProvider>();
     
-    return Scaffold(
-          key: _scaffoldKey,
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (didPop) {
+        if (didPop) return;
+        final nav = context.read<NavigationProvider>();
+        if (nav.canGoBack) {
+          nav.goBack();
+        }
+      },
+      child: Scaffold(
+            key: _scaffoldKey,
           endDrawer: Drawer(
             width: 280,
             child: AppEndDrawer(
@@ -150,10 +159,10 @@ class _MainLayoutState extends State<MainLayout> {
 
   Widget _buildSidebar(BuildContext context, AuthProvider auth, SettingsProvider settings, SyncProvider sync, bool isMedium) {
     final Map<int, String> titles = {
-      0: 'Savdo (POS)',
-      1: 'Dashboard',
-      2: 'Savdo Tarixi',
-      3: 'Savdo Seanslari',
+      0: 'Savdo Seanslari',
+      1: 'Savdo (POS)',
+      2: 'Dashboard',
+      3: 'Savdo Tarixi',
       4: 'Ombor',
       5: 'Katalog',
       6: 'Hodimlar',
@@ -164,10 +173,10 @@ class _MainLayoutState extends State<MainLayout> {
     };
 
     final Map<int, IconData> icons = {
-      0: Icons.point_of_sale_rounded,
-      1: Icons.dashboard_rounded,
-      2: Icons.history_rounded,
-      3: Icons.timer_rounded,
+      0: Icons.timer_rounded,
+      1: Icons.point_of_sale_rounded,
+      2: Icons.dashboard_rounded,
+      3: Icons.history_rounded,
       4: Icons.inventory_2_rounded,
       5: Icons.category_rounded,
       6: Icons.people_rounded,
