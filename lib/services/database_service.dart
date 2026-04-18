@@ -40,6 +40,27 @@ class DatabaseService {
     await ProductRepository.deleteProduct(id);
     triggerUpdate();
   }
+  static Future<void> deleteProductsBatch(List<String> ids) async {
+    final db = await database;
+    await db.transaction((txn) async {
+      for (var id in ids) {
+        await txn.update('products', {'isDeleted': 1, 'updatedAt': DateTime.now().toIso8601String(), 'isSynced': 0}, where: 'id = ?', whereArgs: [id]);
+      }
+    });
+    triggerUpdate();
+  }
+  static Future<void> hardDeleteProductsBatch(List<String> ids) async {
+    final db = await database;
+    await db.transaction((txn) async {
+      for (var id in ids) {
+        await txn.delete('products', where: 'id = ?', whereArgs: [id]);
+        await txn.delete('product_additional_barcodes', where: 'productId = ?', whereArgs: [id]);
+        await txn.delete('product_additional_box_barcodes', where: 'productId = ?', whereArgs: [id]);
+        await txn.delete('stocks', where: 'productId = ?', whereArgs: [id]);
+      }
+    });
+    triggerUpdate();
+  }
 
   // --- Category ---
   static Future<List<Category>> getCategories() => CategoryRepository.getCategories();
@@ -51,6 +72,15 @@ class DatabaseService {
     await CategoryRepository.deleteCategory(id);
     triggerUpdate();
   }
+  static Future<void> hardDeleteCategoriesBatch(List<String> ids) async {
+    final db = await database;
+    await db.transaction((txn) async {
+      for (var id in ids) {
+        await txn.delete('categories', where: 'id = ?', whereArgs: [id]);
+      }
+    });
+    triggerUpdate();
+  }
 
   // --- Warehouse ---
   static Future<List<Warehouse>> getWarehouses() => WarehouseRepository.getWarehouses();
@@ -60,6 +90,15 @@ class DatabaseService {
   }
   static Future<void> deleteWarehouse(String id) async {
     await WarehouseRepository.deleteWarehouse(id);
+    triggerUpdate();
+  }
+  static Future<void> hardDeleteWarehousesBatch(List<String> ids) async {
+    final db = await database;
+    await db.transaction((txn) async {
+      for (var id in ids) {
+        await txn.delete('warehouses', where: 'id = ?', whereArgs: [id]);
+      }
+    });
     triggerUpdate();
   }
   static Future<List<Warehouse>> getAllWarehouses() async {
@@ -76,6 +115,15 @@ class DatabaseService {
   }
   static Future<void> deleteRegister(String id) async {
     await RegisterRepository.deleteRegister(id);
+    triggerUpdate();
+  }
+  static Future<void> hardDeleteRegistersBatch(List<String> ids) async {
+    final db = await database;
+    await db.transaction((txn) async {
+      for (var id in ids) {
+        await txn.delete('registers', where: 'id = ?', whereArgs: [id]);
+      }
+    });
     triggerUpdate();
   }
   static Future<List<Register>> getAllRegisters() async {
@@ -116,6 +164,12 @@ class DatabaseService {
     await StockRepository.deleteStockEntry(id);
     triggerUpdate();
   }
+  static Future<void> deleteStockEntriesBatch(List<String> ids) async {
+    for (var id in ids) {
+      await StockRepository.deleteStockEntry(id);
+    }
+    triggerUpdate();
+  }
 
   // --- Stock Transfer ---
   static Future<List<StockTransfer>> getStockTransfers() => StockRepository.getStockTransfers();
@@ -125,6 +179,12 @@ class DatabaseService {
   }
   static Future<void> deleteStockTransfer(String id) async {
     await StockRepository.deleteStockTransfer(id);
+    triggerUpdate();
+  }
+  static Future<void> deleteStockTransfersBatch(List<String> ids) async {
+    for (var id in ids) {
+      await StockRepository.deleteStockTransfer(id);
+    }
     triggerUpdate();
   }
 
@@ -139,6 +199,15 @@ class DatabaseService {
     await db.update('returns', {'isDeleted': 1, 'updatedAt': DateTime.now().toIso8601String(), 'isSynced': 0}, where: 'id = ?', whereArgs: [id]);
     triggerUpdate();
   }
+  static Future<void> deleteReturnsBatch(List<String> ids) async {
+    final db = await database;
+    await db.transaction((txn) async {
+      for (var id in ids) {
+        await txn.update('returns', {'isDeleted': 1, 'updatedAt': DateTime.now().toIso8601String(), 'isSynced': 0}, where: 'id = ?', whereArgs: [id]);
+      }
+    });
+    triggerUpdate();
+  }
 
   static Future<List<WriteOff>> getWriteOffs() => StockRepository.getWriteOffs();
   static Future<void> saveWriteOff(WriteOff writeOff) async {
@@ -148,6 +217,15 @@ class DatabaseService {
   static Future<void> deleteWriteOff(String id) async {
     final db = await database;
     await db.update('write_offs', {'isDeleted': 1, 'updatedAt': DateTime.now().toIso8601String(), 'isSynced': 0}, where: 'id = ?', whereArgs: [id]);
+    triggerUpdate();
+  }
+  static Future<void> deleteWriteOffsBatch(List<String> ids) async {
+    final db = await database;
+    await db.transaction((txn) async {
+      for (var id in ids) {
+        await txn.update('write_offs', {'isDeleted': 1, 'updatedAt': DateTime.now().toIso8601String(), 'isSynced': 0}, where: 'id = ?', whereArgs: [id]);
+      }
+    });
     triggerUpdate();
   }
 
@@ -161,6 +239,15 @@ class DatabaseService {
     await db.update('inventories', {'isDeleted': 1, 'updatedAt': DateTime.now().toIso8601String(), 'isSynced': 0}, where: 'id = ?', whereArgs: [id]);
     triggerUpdate();
   }
+  static Future<void> deleteInventoriesBatch(List<String> ids) async {
+    final db = await database;
+    await db.transaction((txn) async {
+      for (var id in ids) {
+        await txn.update('inventories', {'isDeleted': 1, 'updatedAt': DateTime.now().toIso8601String(), 'isSynced': 0}, where: 'id = ?', whereArgs: [id]);
+      }
+    });
+    triggerUpdate();
+  }
 
   // --- User ---
   static Future<List<User>> getUsers() => UserRepository.getUsers();
@@ -170,6 +257,15 @@ class DatabaseService {
   }
   static Future<void> deleteUser(String id) async {
     await UserRepository.deleteUser(id);
+    triggerUpdate();
+  }
+  static Future<void> hardDeleteUsersBatch(List<String> ids) async {
+    final db = await database;
+    await db.transaction((txn) async {
+      for (var id in ids) {
+        await txn.delete('users', where: 'id = ?', whereArgs: [id]);
+      }
+    });
     triggerUpdate();
   }
   static Future<List<User>> getAllUsers() async {

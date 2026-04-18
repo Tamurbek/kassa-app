@@ -29,4 +29,18 @@ class Warehouse {
     isMain: json['isMain'] == true || json['isMain'] == 1,
     isDeleted: json['isDeleted'] == true || json['isDeleted'] == 1,
   );
+
+  Warehouse copyWith({
+    String? id,
+    String? name,
+    bool? isMain,
+    bool? isDeleted,
+  }) {
+    return Warehouse(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      isMain: isMain ?? this.isMain,
+      isDeleted: isDeleted ?? this.isDeleted,
+    );
+  }
 }

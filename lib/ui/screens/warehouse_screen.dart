@@ -23,13 +23,22 @@ class WarehouseScreen extends StatefulWidget {
   State<WarehouseScreen> createState() => _WarehouseScreenState();
 }
 
-class _WarehouseScreenState extends State<WarehouseScreen> {
+class _WarehouseScreenState extends State<WarehouseScreen> with SingleTickerProviderStateMixin {
   String? selectedWarehouseId;
   final TextEditingController _searchController = TextEditingController();
+  late TabController _tabController;
+  final Set<String> _selectedIds = {};
 
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 7, vsync: this);
+    _tabController.addListener(() {
+      if (!_tabController.indexIsChanging) {
+        setState(() => _selectedIds.clear());
+      }
+    });
+
     final inventory = context.read<InventoryProvider>();
     if (inventory.warehouses.isNotEmpty) {
       selectedWarehouseId = inventory.mainWarehouse?.id;
@@ -61,105 +70,175 @@ class _WarehouseScreenState extends State<WarehouseScreen> {
 
 
 
-    return DefaultTabController(
-      length: 7,
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final isNarrow = constraints.maxWidth < 800;
-          final bool isShort = constraints.maxHeight < 700;
-          return Scaffold(
-            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-            body: Column(
+    return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      body: Column(
+        children: [
+          _buildHeader(inventory, MediaQuery.of(context).size.width, MediaQuery.of(context).size.height),
+          TabBar(
+            controller: _tabController,
+            isScrollable: true,
+            labelColor: Theme.of(context).colorScheme.primary,
+            unselectedLabelColor: Colors.grey.shade400,
+            indicatorColor: Theme.of(context).colorScheme.primary,
+            indicatorWeight: 3.h,
+            labelStyle: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.sp),
+            tabs: const [
+              Tab(text: 'Statistika'),
+              Tab(text: 'Qoldiqlar'),
+              Tab(text: 'Kirimlar'),
+              Tab(text: 'O\'tkazmalar'),
+              Tab(text: 'Vazvratlar'),
+              Tab(text: 'Hisobdan chiqarish'),
+              Tab(text: 'Inventarizatsiya'),
+            ],
+          ),
+          if (_tabController.index != 0) _buildSelectionBar(inventory, sales),
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
               children: [
-                Expanded(
-                  child: Center(
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 1400),
-                      child: Column(
-                        children: [
-                          _buildHeader(inventory, constraints.maxWidth, constraints.maxHeight),
-                          TabBar(
-                            isScrollable: true,
-                            labelColor: Theme.of(context).colorScheme.primary,
-                            unselectedLabelColor: Colors.grey.shade400,
-                            indicatorColor: Theme.of(context).colorScheme.primary,
-                            indicatorWeight: 3.h,
-                            labelStyle: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.sp),
-                            tabs: const [
-                              Tab(text: 'Statistika'),
-                              Tab(text: 'Qoldiqlar'),
-                              Tab(text: 'Kirimlar'),
-                              Tab(text: 'O\'tkazmalar'),
-                              Tab(text: 'Vazvratlar'),
-                              Tab(text: 'Hisobdan chiqarish'),
-                              Tab(text: 'Inventarizatsiya'),
-                            ],
-                          ),
-                          Expanded(
-                            child: TabBarView(
-                              children: [
-                                // TAB 0: Statistics Dashboard
-                                Padding(
-                                  padding: EdgeInsets.all(Responsive.isShort(context) ? 12.sp : 24.sp),
-                                  child: SingleChildScrollView(
-                                    child: _buildStatsRow(inventory, constraints.maxWidth),
-                                  ),
-                                ),
-                                
-                                // TAB 1: Detailed Product Balances
-                                Padding(
-                                  padding: EdgeInsets.all(Responsive.isShort(context) ? 12.sp : 24.sp),
-                                  child: Column(
-                                    children: [
-                                      _buildBalancesControlRow(inventory),
-                                      const SizedBox(height: 16),
-                                      Expanded(
-                                        child: Container(
-                                          decoration: BoxDecoration(
-                                            color: Theme.of(context).cardColor,
-                                            borderRadius: BorderRadius.circular(20),
-                                            border: Border.all(
-                                              color: Theme.of(context).dividerColor,
-                                            ),
-                                          ),
-                                          child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              Expanded(
-                                                child: filteredProducts.isEmpty
-                                                    ? _buildEmptySearch()
-                                                    : _buildProductsList(
-                                                        inventory,
-                                                        filteredProducts,
-                                                        isNarrow,
-                                                      ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                _buildHistoryList(inventory),
-                                _buildTransferList(inventory),
-                                _buildReturnsList(sales, inventory),
-                                _buildWriteOffsList(sales),
-                                _buildInventoriesList(inventory),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                // TAB 0: Statistics Dashboard
+                Padding(
+                  padding: EdgeInsets.all(Responsive.isShort(context) ? 12.sp : 24.sp),
+                  child: SingleChildScrollView(
+                    child: _buildStatsRow(inventory, MediaQuery.of(context).size.width),
                   ),
                 ),
+                
+                // TAB 1: Detailed Product Balances
+                Padding(
+                  padding: EdgeInsets.all(Responsive.isShort(context) ? 12.sp : 24.sp),
+                  child: Column(
+                    children: [
+                      _buildBalancesControlRow(inventory),
+                      const SizedBox(height: 16),
+                      Expanded(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).cardColor,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: Theme.of(context).dividerColor,
+                            ),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: filteredProducts.isEmpty
+                                    ? _buildEmptySearch()
+                                    : _buildProductsList(
+                                        inventory,
+                                        filteredProducts,
+                                      ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                _buildHistoryList(inventory),
+                _buildTransferList(inventory),
+                _buildReturnsList(sales, inventory),
+                _buildWriteOffsList(sales),
+                _buildInventoriesList(inventory),
               ],
             ),
-          );
-        },
+          ),
+        ],
+      ),
+      floatingActionButton: _selectedIds.isNotEmpty
+          ? FloatingActionButton.extended(
+              onPressed: () => _handleBatchDelete(inventory, sales),
+              label: Text('${_selectedIds.length} tani o\'chirish'),
+              icon: const Icon(Icons.delete_sweep_rounded),
+              backgroundColor: Colors.redAccent,
+            )
+          : null,
+    );
+  }
+
+  Widget _buildSelectionBar(InventoryProvider inventory, SalesProvider sales) {
+    List<dynamic> currentList = [];
+    switch (_tabController.index) {
+      case 1: currentList = inventory.activeProducts; break;
+      case 2: currentList = inventory.stockEntries; break;
+      case 3: currentList = inventory.transfers; break;
+      case 4: currentList = sales.returns; break;
+      case 5: currentList = sales.writeOffs; break;
+      case 6: currentList = inventory.inventories; break;
+    }
+
+    bool allSelected = currentList.isNotEmpty && currentList.every((item) => _selectedIds.contains(item.id));
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        border: Border(bottom: BorderSide(color: Theme.of(context).dividerColor)),
+      ),
+      child: Row(
+        children: [
+          Checkbox(
+            value: allSelected,
+            activeColor: Theme.of(context).colorScheme.primary,
+            onChanged: (val) {
+              setState(() {
+                if (val == true) {
+                  _selectedIds.addAll(currentList.map((e) => e.id as String));
+                } else {
+                  for (var e in currentList) { _selectedIds.remove(e.id); }
+                }
+              });
+            },
+          ),
+          Text(
+            'Barchasini belgilash (${currentList.length})',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.sp),
+          ),
+          const Spacer(),
+          if (_selectedIds.isNotEmpty)
+            TextButton(
+              onPressed: () => setState(() => _selectedIds.clear()),
+              child: const Text('Tanlovni tozalash'),
+            ),
+        ],
       ),
     );
+  }
+
+  Future<void> _handleBatchDelete(InventoryProvider inventory, SalesProvider sales) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Tasdiqlash'),
+        content: Text('${_selectedIds.length} ta ma\'lumotni o\'chirmoqchimisiz?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Yo\'q')),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () => Navigator.pop(ctx, true), 
+            child: const Text('Ha, o\'chirilsin', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      final ids = _selectedIds.toList();
+      switch (_tabController.index) {
+        case 1: await inventory.deleteProductsBatch(ids); break;
+        case 2: await inventory.deleteStockEntriesBatch(ids); break;
+        case 3: await inventory.deleteStockTransfersBatch(ids); break;
+        case 4: await sales.deleteReturnsBatch(ids); break;
+        case 5: await sales.deleteWriteOffsBatch(ids); break;
+        case 6: await inventory.deleteInventoriesBatch(ids); break;
+      }
+      setState(() => _selectedIds.clear());
+    }
   }
 
   Widget _buildBalancesControlRow(InventoryProvider inventory) {
@@ -434,7 +513,7 @@ class _WarehouseScreenState extends State<WarehouseScreen> {
     );
   }
 
-  Widget _buildProductsList(InventoryProvider inventory, List<Product> products, bool isNarrow) {
+  Widget _buildProductsList(InventoryProvider inventory, List<Product> products) {
      return ListView.separated(
       padding: EdgeInsets.all(Responsive.isShort(context) ? 12.sp : 24.sp),
       itemCount: products.length,
@@ -443,8 +522,31 @@ class _WarehouseScreenState extends State<WarehouseScreen> {
         final product = products[i];
         final stock = product.stocks[selectedWarehouseId] ?? 0;
         final isLow = stock <= 5;
+        final isSelected = _selectedIds.contains(product.id);
+
         return ListTile(
-          leading: Icon(Icons.shopping_bag_outlined, color: isLow ? Colors.orange : Colors.grey),
+          onTap: () {
+            setState(() {
+              if (isSelected) {
+                _selectedIds.remove(product.id);
+              } else {
+                _selectedIds.add(product.id);
+              }
+            });
+          },
+          leading: Checkbox(
+            value: isSelected,
+            activeColor: Theme.of(context).colorScheme.primary,
+            onChanged: (v) {
+              setState(() {
+                if (isSelected) {
+                  _selectedIds.remove(product.id);
+                } else {
+                  _selectedIds.add(product.id);
+                }
+              });
+            },
+          ),
           title: Text(product.name, style: const TextStyle(fontWeight: FontWeight.bold)),
           subtitle: Text(product.barcode),
           trailing: Text(
@@ -542,22 +644,39 @@ class _WarehouseScreenState extends State<WarehouseScreen> {
       itemCount: list.length,
       itemBuilder: (context, index) {
         final entry = list[index];
+        final isSelected = _selectedIds.contains(entry.id);
+
         return Container(
           margin: const EdgeInsets.only(bottom: 12),
           decoration: BoxDecoration(
-            color: Theme.of(context).cardColor,
+            color: isSelected ? Theme.of(context).colorScheme.primary.withOpacity(0.05) : Theme.of(context).cardColor,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Theme.of(context).dividerColor),
+            border: Border.all(color: isSelected ? Theme.of(context).colorScheme.primary : Theme.of(context).dividerColor),
           ),
           child: ListTile(
-            leading: CircleAvatar(backgroundColor: color.withOpacity(0.1), child: Icon(Icons.history, color: color, size: 20)),
+            onTap: () {
+              setState(() {
+                if (isSelected) { _selectedIds.remove(entry.id); }
+                else { _selectedIds.add(entry.id); }
+              });
+            },
+            leading: Checkbox(
+              value: isSelected,
+              activeColor: Theme.of(context).colorScheme.primary,
+              onChanged: (_) {
+                setState(() {
+                  if (isSelected) { _selectedIds.remove(entry.id); }
+                  else { _selectedIds.add(entry.id); }
+                });
+              },
+            ),
             title: Text(title(entry), style: const TextStyle(fontWeight: FontWeight.bold)),
             subtitle: Text(subtitle(entry)),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                IconButton(icon: const Icon(Icons.edit_rounded, size: 20), onPressed: () => onEdit(entry)),
-                IconButton(icon: const Icon(Icons.delete_rounded, color: Colors.grey, size: 20), onPressed: () => _confirmDelete(context, 'O\'chirishni tasdiqlaysizmi?', () => onDelete(entry))),
+                IconButton(icon: const Icon(Icons.edit_rounded, size: 20, color: Colors.blue), onPressed: () => onEdit(entry)),
+                IconButton(icon: const Icon(Icons.delete_rounded, color: Colors.redAccent, size: 20), onPressed: () => _confirmDelete(context, 'O\'chirishni tasdiqlaysizmi?', () => onDelete(entry))),
               ],
             ),
           ),

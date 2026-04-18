@@ -52,14 +52,14 @@ class ExcelImportService {
       var headerRow = sheet.rows[0];
       for (int i = 0; i < headerRow.length; i++) {
           String val = _getCellValue(headerRow[i]).toLowerCase();
-          if (val.contains('nom') || val.contains('name')) nameIdx = i;
+          if (val.contains('ombor') || val.contains('warehouse')) warehouseIdx = i;
+          else if (val.contains('nom') || val.contains('name')) nameIdx = i;
           else if (val.contains('tur') || val.contains('categor') || val.contains('kat')) catIdx = i;
           else if (val.contains('sotish') || val.contains('price') || val.contains('narx')) priceIdx = i;
           else if (val.contains('tan') || val.contains('cost')) costIdx = i;
           else if (val.contains('shtrix') || val.contains('barcode')) barcodeIdx = i;
           else if (val.contains('birlik') || val.contains('unit')) unitIdx = i;
           else if (val.contains('soni') || val.contains('miqdor') || val.contains('qty')) qtyIdx = i;
-          else if (val.contains('ombor') || val.contains('warehouse')) warehouseIdx = i;
           else if (val.contains('blok ichi') || val.contains('box qty') || val.contains('pak')) qtyInBoxIdx = i;
           else if (val.contains('blok narxi') || val.contains('box price')) boxPriceIdx = i;
           else if (val.contains('blok shtrix') || val.contains('box barcode')) boxBarcodeIdx = i;
@@ -315,10 +315,10 @@ class ExcelImportService {
       for (int i = 0; i < headerRow.length; i++) {
         String h = _getCellValue(headerRow[i]).toLowerCase().trim();
         if (h.contains('shtrix') || h.contains('barcode')) barcodeIdx = i;
-        if (h.contains('nomi') || h.contains('mahsulot')) nameIdx = i;
-        if (h.contains('soni') || h.contains('miqdor')) qtyIdx = i;
-        if (h.contains('tan') || h.contains('cost')) costIdx = i;
-        if (h.contains('sotish') || h.contains('price') || h.contains('sotuv')) priceIdx = i;
+        else if ((h.contains('nomi') || h.contains('mahsulot')) && !h.contains('ombor') && !h.contains('warehouse')) nameIdx = i;
+        else if (h.contains('soni') || h.contains('miqdor')) qtyIdx = i;
+        else if (h.contains('tan') || h.contains('cost')) costIdx = i;
+        else if (h.contains('sotish') || h.contains('price') || h.contains('sotuv')) priceIdx = i;
       }
 
       if (qtyIdx == -1 || (barcodeIdx == -1 && nameIdx == -1)) {

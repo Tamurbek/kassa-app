@@ -112,14 +112,22 @@ class InventoryProvider extends ChangeNotifier {
     await reloadData();
   }
 
+  Future<void> hardDeleteWarehousesBatch(List<String> ids) async {
+    await DatabaseService.hardDeleteWarehousesBatch(ids);
+    await reloadData();
+  }
+
   Future<void> restoreWarehouse(String id) async {
     final w = warehouses.firstWhere((w) => w.id == id);
-    await DatabaseService.saveWarehouse(Warehouse(
-      id: w.id,
-      name: w.name,
-      isMain: w.isMain,
-      isDeleted: false,
-    ));
+    await DatabaseService.saveWarehouse(w.copyWith(isDeleted: false));
+    await reloadData();
+  }
+
+  Future<void> restoreWarehousesBatch(List<String> ids) async {
+    for (var id in ids) {
+      final w = warehouses.firstWhere((w) => w.id == id);
+      await DatabaseService.saveWarehouse(w.copyWith(isDeleted: false));
+    }
     await reloadData();
   }
 
@@ -142,15 +150,22 @@ class InventoryProvider extends ChangeNotifier {
     await reloadData();
   }
 
+  Future<void> hardDeleteRegistersBatch(List<String> ids) async {
+    await DatabaseService.hardDeleteRegistersBatch(ids);
+    await reloadData();
+  }
+
   Future<void> restoreRegister(String id) async {
     final r = registers.firstWhere((r) => r.id == id);
-    await DatabaseService.saveRegister(Register(
-      id: r.id,
-      name: r.name,
-      warehouseId: r.warehouseId,
-      activeDeviceId: r.activeDeviceId,
-      isDeleted: false,
-    ));
+    await DatabaseService.saveRegister(r.copyWith(isDeleted: false));
+    await reloadData();
+  }
+
+  Future<void> restoreRegistersBatch(List<String> ids) async {
+    for (var id in ids) {
+      final r = registers.firstWhere((r) => r.id == id);
+      await DatabaseService.saveRegister(r.copyWith(isDeleted: false));
+    }
     await reloadData();
   }
 
@@ -194,10 +209,26 @@ class InventoryProvider extends ChangeNotifier {
     await DatabaseService.deleteProduct(id);
     await reloadData();
   }
+  Future<void> deleteProductsBatch(List<String> ids) async {
+    await DatabaseService.deleteProductsBatch(ids);
+    await reloadData();
+  }
+  Future<void> hardDeleteProductsBatch(List<String> ids) async {
+    await DatabaseService.hardDeleteProductsBatch(ids);
+    await reloadData();
+  }
 
   Future<void> restoreProduct(String id) async {
     final p = products.firstWhere((p) => p.id == id);
     await DatabaseService.saveProduct(p.copyWith(isDeleted: false));
+    await reloadData();
+  }
+
+  Future<void> restoreProductsBatch(List<String> ids) async {
+    for (var id in ids) {
+      final p = products.firstWhere((p) => p.id == id);
+      await DatabaseService.saveProduct(p.copyWith(isDeleted: false));
+    }
     await reloadData();
   }
 
@@ -210,10 +241,22 @@ class InventoryProvider extends ChangeNotifier {
      await DatabaseService.deleteCategory(id);
      await reloadData();
   }
+  Future<void> hardDeleteCategoriesBatch(List<String> ids) async {
+    await DatabaseService.hardDeleteCategoriesBatch(ids);
+    await reloadData();
+  }
 
   Future<void> restoreCategory(String id) async {
     final c = categories.firstWhere((c) => c.id == id);
     await DatabaseService.saveCategory(c.copyWith(isDeleted: false));
+    await reloadData();
+  }
+
+  Future<void> restoreCategoriesBatch(List<String> ids) async {
+    for (var id in ids) {
+      final c = categories.firstWhere((c) => c.id == id);
+      await DatabaseService.saveCategory(c.copyWith(isDeleted: false));
+    }
     await reloadData();
   }
 
@@ -237,9 +280,17 @@ class InventoryProvider extends ChangeNotifier {
     await DatabaseService.deleteStockEntry(id);
     await reloadData();
   }
+  Future<void> deleteStockEntriesBatch(List<String> ids) async {
+    await DatabaseService.deleteStockEntriesBatch(ids);
+    await reloadData();
+  }
 
   Future<void> deleteInventory(String id) async {
     await DatabaseService.deleteInventory(id);
+    await reloadData();
+  }
+  Future<void> deleteInventoriesBatch(List<String> ids) async {
+    await DatabaseService.deleteInventoriesBatch(ids);
     await reloadData();
   }
 
@@ -250,6 +301,10 @@ class InventoryProvider extends ChangeNotifier {
 
   Future<void> deleteStockTransfer(String id) async {
     await DatabaseService.deleteStockTransfer(id);
+    await reloadData();
+  }
+  Future<void> deleteStockTransfersBatch(List<String> ids) async {
+    await DatabaseService.deleteStockTransfersBatch(ids);
     await reloadData();
   }
 

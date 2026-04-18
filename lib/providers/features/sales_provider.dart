@@ -382,6 +382,10 @@ class SalesProvider extends ChangeNotifier {
     await DatabaseService.deleteReturn(id);
     await reloadSalesData();
   }
+  Future<void> deleteReturnsBatch(List<String> ids) async {
+    await DatabaseService.deleteReturnsBatch(ids);
+    await reloadSalesData();
+  }
 
   Future<void> addWriteOff(WriteOff writeOff) async {
     await DatabaseService.saveWriteOff(writeOff);
@@ -390,6 +394,10 @@ class SalesProvider extends ChangeNotifier {
 
   Future<void> deleteWriteOff(String id) async {
     await DatabaseService.deleteWriteOff(id);
+    await reloadSalesData();
+  }
+  Future<void> deleteWriteOffsBatch(List<String> ids) async {
+    await DatabaseService.deleteWriteOffsBatch(ids);
     await reloadSalesData();
   }
 }

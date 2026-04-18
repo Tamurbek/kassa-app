@@ -30,4 +30,20 @@ class User {
     role: UserRole.values[(json['role'] ?? 1) as int],
     isDeleted: json['isDeleted'] == 1 || json['isDeleted'] == true,
   );
+
+  User copyWith({
+    String? id,
+    String? name,
+    String? pin,
+    UserRole? role,
+    bool? isDeleted,
+  }) {
+    return User(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      pin: pin ?? this.pin,
+      role: role ?? this.role,
+      isDeleted: isDeleted ?? this.isDeleted,
+    );
+  }
 }

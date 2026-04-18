@@ -38,4 +38,20 @@ class Register {
     activeDeviceId: json['activeDeviceId']?.toString(),
     isDeleted: json['isDeleted'] == true || json['isDeleted'] == 1,
   );
+
+  Register copyWith({
+    String? id,
+    String? name,
+    String? warehouseId,
+    String? activeDeviceId,
+    bool? isDeleted,
+  }) {
+    return Register(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      warehouseId: warehouseId ?? this.warehouseId,
+      activeDeviceId: activeDeviceId ?? this.activeDeviceId,
+      isDeleted: isDeleted ?? this.isDeleted,
+    );
+  }
 }

@@ -146,6 +146,26 @@ class AuthProvider extends ChangeNotifier {
     await DatabaseService.saveUser(updated);
     await reloadUsers();
   }
+
+  Future<void> restoreUsersBatch(List<String> ids) async {
+    for (var id in ids) {
+      final user = _users.firstWhere((u) => u.id == id);
+      final updated = User(
+        id: user.id,
+        name: user.name,
+        pin: user.pin,
+        role: user.role,
+        isDeleted: false,
+      );
+      await DatabaseService.saveUser(updated);
+    }
+    await reloadUsers();
+  }
+
+  Future<void> hardDeleteUsersBatch(List<String> ids) async {
+    await DatabaseService.hardDeleteUsersBatch(ids);
+    await reloadUsers();
+  }
   String get activationRequestCode {
     if (deviceId == null) return "Unknown";
     return deviceId!.substring(0, 8).toUpperCase();

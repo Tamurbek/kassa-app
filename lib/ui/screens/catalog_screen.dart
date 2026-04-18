@@ -33,6 +33,8 @@ class _CatalogScreenState extends State<CatalogScreen>
   bool _isSearching = false;
   final int _limit = 50;
   
+  final Set<String> _selectedProductIds = {};
+  
   Timer? _debounce;
 
   InventoryProvider? _inventoryProvider;
@@ -43,7 +45,13 @@ class _CatalogScreenState extends State<CatalogScreen>
     _tabController = TabController(length: 2, vsync: this);
     _tabController.addListener(() {
       if (_tabController.indexIsChanging) return;
-      setState(() {});
+      if (_tabController.index != 0) {
+        setState(() {
+          _selectedProductIds.clear();
+        });
+      } else {
+        setState(() {});
+      }
     });
     
     _scrollController.addListener(_onScroll);
@@ -151,7 +159,8 @@ class _CatalogScreenState extends State<CatalogScreen>
                 ],
               ),
               _buildSearchBar(),
-              if (_tabController.index == 0) _buildCategoryFilterBar(),
+               if (_tabController.index == 0) _buildSelectionBar(),
+               if (_tabController.index == 0) _buildCategoryFilterBar(),
               Expanded(
                 child: TabBarView(
                   controller: _tabController,
@@ -163,9 +172,87 @@ class _CatalogScreenState extends State<CatalogScreen>
               ),
             ],
           ),
+          floatingActionButton: (_selectedProductIds.isNotEmpty)
+            ? FloatingActionButton.extended(
+                onPressed: _deleteSelectedProducts,
+                label: Text('${_selectedProductIds.length} tani o\'chirish'),
+                icon: const Icon(Icons.delete_sweep_rounded),
+                backgroundColor: Colors.redAccent,
+              )
+            : null,
         );
       },
     );
+  }
+
+  Widget _buildSelectionBar() {
+    bool allVisibleSelected = _products.isNotEmpty && _products.every((p) => _selectedProductIds.contains(p.id));
+    
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        border: Border(bottom: BorderSide(color: Theme.of(context).dividerColor)),
+      ),
+      child: Row(
+        children: [
+          Checkbox(
+            value: allVisibleSelected,
+            activeColor: Theme.of(context).colorScheme.primary,
+            onChanged: (val) {
+              setState(() {
+                if (val == true) {
+                  _selectedProductIds.addAll(_products.map((p) => p.id));
+                } else {
+                  for (var p in _products) {
+                    _selectedProductIds.remove(p.id);
+                  }
+                }
+              });
+            },
+          ),
+          Text(
+            'Barchasini belgilash (${_products.length})',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.sp),
+          ),
+          const Spacer(),
+          if (_selectedProductIds.isNotEmpty)
+            TextButton(
+              onPressed: () => setState(() => _selectedProductIds.clear()),
+              child: const Text('Tanlovni tozalash'),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _deleteSelectedProducts() async {
+    if (_selectedProductIds.isEmpty) return;
+    
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Tasdiqlash'),
+        content: Text('${_selectedProductIds.length} ta mahsulotni o\'chirmoqchimisiz?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Yo\'q')),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () => Navigator.pop(context, true), 
+            child: const Text('Ha, o\'chirilsin', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      final inventory = context.read<InventoryProvider>();
+      await inventory.deleteProductsBatch(_selectedProductIds.toList());
+      setState(() {
+        _selectedProductIds.clear();
+      });
+      _loadProducts(reset: true);
+    }
   }
 
   Widget _buildHeader(double width) {
@@ -489,9 +576,21 @@ class _CatalogScreenState extends State<CatalogScreen>
         }
 
         final p = _products[index];
+        final isSelected = _selectedProductIds.contains(p.id);
+        
         return _buildListItem(
           title: p.name,
           subtitle: 'Shtrix: ${p.barcode}',
+          isSelected: isSelected,
+          onTap: () {
+            setState(() {
+              if (isSelected) {
+                _selectedProductIds.remove(p.id);
+              } else {
+                _selectedProductIds.add(p.id);
+              }
+            });
+          },
           onEdit: () => Navigator.push(
             context,
             MaterialPageRoute(
@@ -553,15 +652,30 @@ class _CatalogScreenState extends State<CatalogScreen>
     required String subtitle,
     required VoidCallback onEdit,
     required VoidCallback onDelete,
+    bool isSelected = false,
+    VoidCallback? onTap,
   }) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
+        color: isSelected 
+          ? Theme.of(context).colorScheme.primary.withOpacity(0.05) 
+          : Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(Responsive.borderRadius),
-        border: Border.all(color: Theme.of(context).dividerColor),
+        border: Border.all(
+          color: isSelected 
+            ? Theme.of(context).colorScheme.primary 
+            : Theme.of(context).dividerColor,
+          width: isSelected ? 1.5 : 1,
+        ),
       ),
       child: ListTile(
+        onTap: onTap,
+        leading: Checkbox(
+          value: isSelected,
+          activeColor: Theme.of(context).colorScheme.primary,
+          onChanged: (_) => onTap?.call(),
+        ),
         title: Text(title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.sp)),
         subtitle: Text(subtitle, style: TextStyle(fontSize: 12.sp)),
         trailing: Row(
