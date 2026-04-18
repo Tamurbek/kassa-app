@@ -28,6 +28,9 @@ class _WarehouseScreenState extends State<WarehouseScreen> with SingleTickerProv
   final TextEditingController _searchController = TextEditingController();
   late TabController _tabController;
   final Set<String> _selectedIds = {};
+  
+  // Sorting state
+  int _sortOrder = 0; // 0: None, 1: Ascending, 2: Descending
 
   @override
   void initState() {
@@ -67,6 +70,21 @@ class _WarehouseScreenState extends State<WarehouseScreen> with SingleTickerProv
           p.barcode.contains(searchQuery);
       return matchesSearch;
     }).toList();
+
+    // Apply Sorting
+    if (_sortOrder == 1) {
+      filteredProducts.sort((a, b) {
+        final stockA = a.stocks[selectedWarehouseId] ?? 0;
+        final stockB = b.stocks[selectedWarehouseId] ?? 0;
+        return stockA.compareTo(stockB);
+      });
+    } else if (_sortOrder == 2) {
+      filteredProducts.sort((a, b) {
+        final stockA = a.stocks[selectedWarehouseId] ?? 0;
+        final stockB = b.stocks[selectedWarehouseId] ?? 0;
+        return stockB.compareTo(stockA);
+      });
+    }
 
 
 
@@ -268,7 +286,44 @@ class _WarehouseScreenState extends State<WarehouseScreen> with SingleTickerProv
         ),
         const SizedBox(width: 16),
         _buildWarehouseSelector(inventory),
+        const SizedBox(width: 16),
+        _buildSortButton(),
       ],
+    );
+  }
+
+  Widget _buildSortButton() {
+    IconData icon;
+    String tooltip;
+    Color color = Theme.of(context).colorScheme.primary;
+
+    if (_sortOrder == 1) {
+      icon = Icons.south_rounded; // Ascending
+      tooltip = 'Kamayish tartibida saralash';
+    } else if (_sortOrder == 2) {
+      icon = Icons.north_rounded; // Descending
+      tooltip = 'Saralashni bekor qilish';
+    } else {
+      icon = Icons.sort_rounded; // None
+      tooltip = 'O\'sish tartibida saralash';
+      color = Colors.grey;
+    }
+
+    return Container(
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withOpacity(0.2)),
+      ),
+      child: IconButton(
+        icon: Icon(icon, color: color),
+        tooltip: tooltip,
+        onPressed: () {
+          setState(() {
+            _sortOrder = (_sortOrder + 1) % 3;
+          });
+        },
+      ),
     );
   }
 

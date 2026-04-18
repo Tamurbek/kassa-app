@@ -184,28 +184,87 @@ class ExcelImportService {
         builder: (_) => const Center(child: CircularProgressIndicator()),
       );
 
-      List<Product> productsToSave = [];
+      Map<String, Product> productsMap = {}; // id -> product
+      Map<String, String> barcodeToId = {}; // barcode -> id
       Map<String, List<StockEntryItem>> warehouseStockItems = {}; // warehouseId -> items
 
       for (var r in rawRows) {
         String catId = mapping[r['categoryName']]!;
-        final product = Product.create(
-          r['name'],
-          r['price'],
-          catId,
-          r['barcode'],
-          costPrice: r['costPrice'],
-          unit: r['unit'],
-          quantityInBox: r['quantityInBox'],
-          boxPrice: r['boxPrice'],
-          boxBarcode: r['boxBarcode'],
-        ).copyWith(
-          additionalBarcodes: r['additionalBarcodes'] as List<String>,
-          additionalBoxBarcodes: r['additionalBoxBarcodes'] as List<String>,
-        );
+        String barcode = r['barcode'] as String;
+        String name = r['name'] as String;
         
-        productsToSave.add(product);
+        Product? product;
 
+        // 1. Check if we already processed this product in THIS import session
+        if (barcode.isNotEmpty && barcodeToId.containsKey(barcode)) {
+          product = productsMap[barcodeToId[barcode]];
+        }
+
+        // 2. Search in existing database products (including deleted ones)
+        if (product == null) {
+          Product? existing;
+          if (barcode.isNotEmpty) {
+            existing = inventory.products.where((p) => p.barcode == barcode || p.additionalBarcodes.contains(barcode)).firstOrNull;
+          }
+          
+          // Fallback to name search if barcode not found or empty
+          if (existing == null && name.isNotEmpty) {
+            existing = inventory.products.where((p) => p.name.toLowerCase() == name.toLowerCase()).firstOrNull;
+          }
+
+          if (existing != null) {
+            // Update existing product
+            product = existing.copyWith(
+              name: name,
+              price: r['price'],
+              costPrice: r['costPrice'],
+              categoryId: catId,
+              unit: r['unit'],
+              quantityInBox: r['quantityInBox'],
+              boxPrice: r['boxPrice'],
+              boxBarcode: r['boxBarcode'],
+              isDeleted: false, // Restore if it was deleted
+              additionalBarcodes: r['additionalBarcodes'] as List<String>,
+              additionalBoxBarcodes: r['additionalBoxBarcodes'] as List<String>,
+            );
+          } else {
+            // Create new product
+            product = Product.create(
+              name,
+              r['price'],
+              catId,
+              barcode,
+              costPrice: r['costPrice'],
+              unit: r['unit'],
+              quantityInBox: r['quantityInBox'],
+              boxPrice: r['boxPrice'],
+              boxBarcode: r['boxBarcode'],
+            ).copyWith(
+              additionalBarcodes: r['additionalBarcodes'] as List<String>,
+              additionalBoxBarcodes: r['additionalBoxBarcodes'] as List<String>,
+            );
+          }
+        } else {
+          // If we already have a product in this session, just update its info from this row
+          product = product.copyWith(
+            name: name,
+            price: r['price'],
+            costPrice: r['costPrice'],
+            categoryId: catId,
+            unit: r['unit'],
+            quantityInBox: r['quantityInBox'],
+            boxPrice: r['boxPrice'],
+            boxBarcode: r['boxBarcode'],
+          );
+        }
+
+        // Update tracking maps
+        productsMap[product.id] = product;
+        if (product.barcode.isNotEmpty) {
+          barcodeToId[product.barcode] = product.id;
+        }
+
+        // Stock Entry Logic
         if (r['quantity'] > 0) {
           String warehouseId = '';
           String wName = r['warehouseName'];
@@ -230,6 +289,8 @@ class ExcelImportService {
           }
         }
       }
+
+      List<Product> productsToSave = productsMap.values.toList();
       
       await inventory.saveProductsBatch(productsToSave);
 
