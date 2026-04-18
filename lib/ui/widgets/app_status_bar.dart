@@ -121,8 +121,23 @@ class AppStatusBar extends StatelessWidget {
             ),
           ],
           
+          const SizedBox(width: 20),
+          
+          // Lock Screen button
+          Tooltip(
+            message: 'Ekranni qulflash',
+            child: InkWell(
+              onTap: onExit, // reuse logout logic as lock
+              borderRadius: BorderRadius.circular(8),
+              child: Padding(
+                padding: const EdgeInsets.all(6),
+                child: Icon(Icons.lock_outline_rounded, size: 18.sp, color: Colors.blueGrey.shade700),
+              ),
+            ),
+          ),
+
           if (onExit != null) ...[
-            const SizedBox(width: 28),
+            const SizedBox(width: 12),
             InkWell(
               onTap: onExit,
               borderRadius: BorderRadius.circular(8),

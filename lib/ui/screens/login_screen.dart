@@ -342,10 +342,14 @@ class _LoginScreenState extends State<LoginScreen> {
                             color: theme.colorScheme.primary.withOpacity(0.08),
                             borderRadius: BorderRadius.circular(AppConstants.borderRadius.sp * 1.5),
                           ),
-                          child: Icon(
-                            Icons.shopping_bag_rounded,
-                            size: isShort ? 40.sp : 64.sp,
-                            color: theme.colorScheme.primary,
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(AppConstants.borderRadius.sp),
+                            child: Image.asset(
+                              'assets/icon.png',
+                              width: isShort ? 40.sp : 64.sp,
+                              height: isShort ? 40.sp : 64.sp,
+                              fit: BoxFit.cover,
+                            ),
                           ),
                         ),
                       ),

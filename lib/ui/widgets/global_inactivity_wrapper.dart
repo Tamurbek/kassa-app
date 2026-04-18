@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/features/auth_provider.dart';
+import '../../providers/features/settings_provider.dart';
 
 class GlobalInactivityWrapper extends StatefulWidget {
   final Widget child;
@@ -13,7 +14,6 @@ class GlobalInactivityWrapper extends StatefulWidget {
 
 class _GlobalInactivityWrapperState extends State<GlobalInactivityWrapper> {
   Timer? _inactivityTimer;
-  static const inactivityTimeout = Duration(minutes: 5);
 
   void _resetInactivityTimer() {
     // Only manage timer if user is logged in
@@ -24,11 +24,22 @@ class _GlobalInactivityWrapperState extends State<GlobalInactivityWrapper> {
       return;
     }
 
+    final settings = context.read<SettingsProvider>();
+    final timeout = Duration(minutes: settings.inactivityTimeoutMinutes);
+
+    // If timeout is 0 or less, disable inactivity logout
+    if (timeout.inMinutes <= 0) {
+      _inactivityTimer?.cancel();
+      _inactivityTimer = null;
+      return;
+    }
+
     _inactivityTimer?.cancel();
-    _inactivityTimer = Timer(inactivityTimeout, () {
+    _inactivityTimer = Timer(timeout, () {
       if (mounted) {
         final auth = context.read<AuthProvider>();
         if (auth.currentUser != null) {
+          debugPrint('GlobalInactivityWrapper: Timeout reached (${timeout.inMinutes} min). Logging out...');
           auth.logout();
         }
       }
@@ -38,7 +49,6 @@ class _GlobalInactivityWrapperState extends State<GlobalInactivityWrapper> {
   @override
   void initState() {
     super.initState();
-    // Start timer if user is already logged in (unlikely at this stage but safe)
     WidgetsBinding.instance.addPostFrameCallback((_) => _resetInactivityTimer());
   }
 
@@ -59,6 +69,8 @@ class _GlobalInactivityWrapperState extends State<GlobalInactivityWrapper> {
         onPointerDown: (_) => _resetInactivityTimer(),
         onPointerMove: (_) => _resetInactivityTimer(),
         onPointerUp: (_) => _resetInactivityTimer(),
+        onPointerHover: (_) => _resetInactivityTimer(),
+        onPointerSignal: (_) => _resetInactivityTimer(),
         behavior: HitTestBehavior.translucent,
         child: widget.child,
       ),

@@ -35,6 +35,7 @@ class SettingsProvider extends ChangeNotifier {
   bool isStarterDataLoaded = false;
   String appVersion = AppConstants.appVersion;
   String? deviceId;
+  int inactivityTimeoutMinutes = 5; // Default to 5 minutes
 
   // Scale Settings
   String? scalePort;
@@ -146,6 +147,9 @@ class SettingsProvider extends ChangeNotifier {
       // 7. Full Screen Mode (Apply window size only on startup or explicit toggle)
       isStarterDataLoaded = getSafeBool('isStarterDataLoaded', defaultValue: false);
       isFullScreen = getSafeBool('isFullScreen', defaultValue: false);
+      inactivityTimeoutMinutes = dbSettings['inactivityTimeoutMinutes'] != null 
+          ? int.tryParse(dbSettings['inactivityTimeoutMinutes']!) ?? 5 
+          : prefs.getInt('inactivityTimeoutMinutes') ?? 5;
       if (isInitialLoad && (Platform.isWindows || Platform.isMacOS || Platform.isLinux)) {
         if (isFullScreen) {
           if (Platform.isWindows) {
@@ -343,6 +347,14 @@ class SettingsProvider extends ChangeNotifier {
         await windowManager.center();
       }
     }
+    notifyListeners();
+  }
+
+  Future<void> updateInactivityTimeout(int minutes) async {
+    inactivityTimeoutMinutes = minutes;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('inactivityTimeoutMinutes', minutes);
+    await DatabaseService.saveSetting('inactivityTimeoutMinutes', minutes.toString());
     notifyListeners();
   }
 }

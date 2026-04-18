@@ -193,6 +193,16 @@ class SettingsScreen extends StatelessWidget {
                           ),
                           onTap: () => settings.toggleFullScreen(),
                         ),
+                        _buildSettingsTile(
+                          context,
+                          icon: Icons.timer_outlined,
+                          color: Colors.orange,
+                          title: 'Ekran qulflanish vaqti',
+                          subtitle: settings.inactivityTimeoutMinutes <= 0 
+                            ? 'O\'chirilgan' 
+                            : '${settings.inactivityTimeoutMinutes} daqiqa harakatsizlikdan so\'ng',
+                          onTap: () => _showTimeoutPicker(context, settings),
+                        ),
                       ],
 
                     ),
@@ -1046,6 +1056,56 @@ class SettingsScreen extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  void _showTimeoutPicker(BuildContext context, SettingsProvider settings) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Theme.of(context).cardColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Ekran qulflanish vaqtini tanlang',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            Expanded(
+              child: ListView(
+                children: [
+                  _buildTimeoutOption(context, settings, 0, 'O\'chirilgan'),
+                  _buildTimeoutOption(context, settings, 1, '1 daqiqa'),
+                  _buildTimeoutOption(context, settings, 2, '2 daqiqa'),
+                  _buildTimeoutOption(context, settings, 5, '5 daqiqa'),
+                  _buildTimeoutOption(context, settings, 10, '10 daqiqa'),
+                  _buildTimeoutOption(context, settings, 15, '15 daqiqa'),
+                  _buildTimeoutOption(context, settings, 30, '30 daqiqa'),
+                  _buildTimeoutOption(context, settings, 60, '1 soat'),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTimeoutOption(BuildContext context, SettingsProvider settings, int minutes, String label) {
+    final isSelected = settings.inactivityTimeoutMinutes == minutes;
+    return ListTile(
+      title: Text(label),
+      trailing: isSelected ? Icon(Icons.check_circle, color: Theme.of(context).colorScheme.primary) : null,
+      onTap: () {
+        settings.updateInactivityTimeout(minutes);
+        Navigator.pop(context);
+      },
     );
   }
 }

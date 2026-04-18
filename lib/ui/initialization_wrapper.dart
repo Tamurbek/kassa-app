@@ -141,7 +141,12 @@ class _InitializationWrapperState extends State<InitializationWrapper> {
                   width: 96,
                   height: 96,
                   color: AppTheme.primaryColor.withOpacity(0.1),
-                  child: const Icon(Icons.shopping_bag_rounded, size: 56, color: AppTheme.primaryColor),
+                  child: Image.asset(
+                    'assets/icon.png',
+                    width: 96,
+                    height: 96,
+                    fit: BoxFit.cover,
+                  ),
                 ),
               ),
               const SizedBox(height: 32),
