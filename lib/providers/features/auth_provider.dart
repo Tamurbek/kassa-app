@@ -86,7 +86,7 @@ class AuthProvider extends ChangeNotifier {
   }
 
   Future<void> reloadUsers() async {
-    _users = await DatabaseService.getUsers();
+    _users = await DatabaseService.getUsers(includeDeleted: true);
     
     // If empty, add default users
     if (_users.isEmpty) {

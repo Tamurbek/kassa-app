@@ -3,9 +3,13 @@ import '../../models/models.dart';
 import 'database_helper.dart';
 
 class RegisterRepository {
-  static Future<List<Register>> getRegisters() async {
+  static Future<List<Register>> getRegisters({bool includeDeleted = false}) async {
     final db = await DatabaseHelper.database;
-    final List<Map<String, dynamic>> maps = await db.query('registers', where: 'isDeleted = 0', orderBy: 'name ASC');
+    final List<Map<String, dynamic>> maps = await db.query(
+      'registers', 
+      where: includeDeleted ? null : 'isDeleted = 0', 
+      orderBy: 'name ASC'
+    );
     return List.generate(maps.length, (i) => Register.fromJson(maps[i]));
   }
 

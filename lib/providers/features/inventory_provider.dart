@@ -73,10 +73,10 @@ class InventoryProvider extends ChangeNotifier {
         }
       }
 
-      categories = await DatabaseService.getCategories();
-      products = await DatabaseService.getProducts(); 
-      warehouses = await DatabaseService.getAllWarehouses();
-      registers = await DatabaseService.getAllRegisters();
+      categories = await DatabaseService.getCategories(includeDeleted: true);
+      products = await DatabaseService.getProducts(includeDeleted: true); 
+      warehouses = await DatabaseService.getAllWarehouses(includeDeleted: true);
+      registers = await DatabaseService.getAllRegisters(includeDeleted: true);
       organizations = await DatabaseService.getOrganizations();
       
       stockEntries = await DatabaseService.getStockEntries();

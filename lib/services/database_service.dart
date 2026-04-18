@@ -30,8 +30,8 @@ class DatabaseService {
   static Future<void> replaceDatabase(File newFile) => DatabaseHelper.replaceDatabase(newFile);
 
   // --- Product ---
-  static Future<List<Product>> getProducts({int? limit, int? offset, String? searchQuery, String? categoryId}) => 
-    ProductRepository.getProducts(limit: limit, offset: offset, searchQuery: searchQuery, categoryId: categoryId);
+  static Future<List<Product>> getProducts({int? limit, int? offset, String? searchQuery, String? categoryId, bool includeDeleted = false}) => 
+    ProductRepository.getProducts(limit: limit, offset: offset, searchQuery: searchQuery, categoryId: categoryId, includeDeleted: includeDeleted);
   static Future<void> saveProduct(Product product) async {
     await ProductRepository.saveProduct(product);
     triggerUpdate();
@@ -63,7 +63,7 @@ class DatabaseService {
   }
 
   // --- Category ---
-  static Future<List<Category>> getCategories() => CategoryRepository.getCategories();
+  static Future<List<Category>> getCategories({bool includeDeleted = false}) => CategoryRepository.getCategories(includeDeleted: includeDeleted);
   static Future<void> saveCategory(Category category) async {
     await CategoryRepository.saveCategory(category);
     triggerUpdate();
@@ -83,7 +83,7 @@ class DatabaseService {
   }
 
   // --- Warehouse ---
-  static Future<List<Warehouse>> getWarehouses() => WarehouseRepository.getWarehouses();
+  static Future<List<Warehouse>> getWarehouses({bool includeDeleted = false}) => WarehouseRepository.getWarehouses(includeDeleted: includeDeleted);
   static Future<void> saveWarehouse(Warehouse warehouse) async {
     await WarehouseRepository.saveWarehouse(warehouse);
     triggerUpdate();
@@ -101,14 +101,18 @@ class DatabaseService {
     });
     triggerUpdate();
   }
-  static Future<List<Warehouse>> getAllWarehouses() async {
+  static Future<List<Warehouse>> getAllWarehouses({bool includeDeleted = true}) async {
     final db = await database;
-    final List<Map<String, dynamic>> maps = await db.query('warehouses', orderBy: 'name ASC');
+    final List<Map<String, dynamic>> maps = await db.query(
+      'warehouses', 
+      where: includeDeleted ? null : 'isDeleted = 0',
+      orderBy: 'name ASC'
+    );
     return List.generate(maps.length, (i) => Warehouse.fromJson(maps[i]));
   }
 
   // --- Register ---
-  static Future<List<Register>> getRegisters() => RegisterRepository.getRegisters();
+  static Future<List<Register>> getRegisters({bool includeDeleted = false}) => RegisterRepository.getRegisters(includeDeleted: includeDeleted);
   static Future<void> saveRegister(Register register) async {
     await RegisterRepository.saveRegister(register);
     triggerUpdate();
@@ -126,9 +130,13 @@ class DatabaseService {
     });
     triggerUpdate();
   }
-  static Future<List<Register>> getAllRegisters() async {
+  static Future<List<Register>> getAllRegisters({bool includeDeleted = true}) async {
     final db = await database;
-    final List<Map<String, dynamic>> maps = await db.query('registers', orderBy: 'name ASC');
+    final List<Map<String, dynamic>> maps = await db.query(
+      'registers', 
+      where: includeDeleted ? null : 'isDeleted = 0',
+      orderBy: 'name ASC'
+    );
     return List.generate(maps.length, (i) => Register.fromJson(maps[i]));
   }
 
@@ -250,7 +258,7 @@ class DatabaseService {
   }
 
   // --- User ---
-  static Future<List<User>> getUsers() => UserRepository.getUsers();
+  static Future<List<User>> getUsers({bool includeDeleted = false}) => UserRepository.getUsers(includeDeleted: includeDeleted);
   static Future<void> saveUser(User user) async {
     await UserRepository.saveUser(user);
     triggerUpdate();

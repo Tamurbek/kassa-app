@@ -3,11 +3,11 @@ import '../../models/models.dart';
 import 'database_helper.dart';
 
 class UserRepository {
-  static Future<List<User>> getUsers() async {
+  static Future<List<User>> getUsers({bool includeDeleted = false}) async {
     final db = await DatabaseHelper.database;
     final List<Map<String, dynamic>> maps = await db.query(
       'users', 
-      where: 'isDeleted = 0',
+      where: includeDeleted ? null : 'isDeleted = 0',
       orderBy: 'name ASC'
     );
     return List.generate(maps.length, (i) => User.fromJson(maps[i]));

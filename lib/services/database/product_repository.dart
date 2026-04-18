@@ -3,10 +3,10 @@ import '../../models/models.dart';
 import 'database_helper.dart';
 
 class ProductRepository {
-  static Future<List<Product>> getProducts({int? limit, int? offset, String? searchQuery, String? categoryId}) async {
+  static Future<List<Product>> getProducts({int? limit, int? offset, String? searchQuery, String? categoryId, bool includeDeleted = false}) async {
     final db = await DatabaseHelper.database;
     
-    String whereClause = 'isDeleted = 0';
+    String whereClause = includeDeleted ? '1=1' : 'isDeleted = 0';
     List<dynamic> whereArgs = [];
 
     if (searchQuery != null && searchQuery.isNotEmpty) {
