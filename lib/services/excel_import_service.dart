@@ -153,6 +153,10 @@ class ExcelImportService {
         return;
       }
 
+      // Category mapping
+      Map<String, String>? mapping = await _showMappingDialog(context, excelCategories.toList(), inventory);
+      if (mapping == null) return;
+
       // Warehouse mapping (NEW)
       Set<String> excelWarehouses = rawRows.map((r) => r['warehouseName'] as String).where((w) => w.isNotEmpty).toSet();
       Map<String, String> warehouseMapping = {};
