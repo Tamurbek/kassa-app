@@ -56,6 +56,12 @@ class ExcelImportService {
 
           if (val.contains('ombor') || val.contains('warehouse')) {
             warehouseIdx = i;
+          } else          if (val.contains('blok narxi') || val.contains('box price') || val.contains('upakovka narxi')) {
+            boxPriceIdx = i;
+          } else if (val.contains('blok ichi') || val.contains('box qty') || val.contains('pachka') || val.contains('upakovka soni')) {
+            qtyInBoxIdx = i;
+          } else if (val.contains('blok shtrix') || val.contains('box barcode')) {
+            boxBarcodeIdx = i;
           } else if (val.contains('tan') || val.contains('cost') || val.contains('buy')) {
             costIdx = i;
           } else if (val.contains('sotish') || val.contains('sotuv') || val.contains('price') || val.contains('selling')) {
@@ -70,12 +76,6 @@ class ExcelImportService {
             unitIdx = i;
           } else if (val.contains('soni') || val.contains('miqdor') || val.contains('qty') || val.contains('qoldiq')) {
             qtyIdx = i;
-          } else if (val.contains('blok ichi') || val.contains('box qty') || val.contains('pachka')) {
-            qtyInBoxIdx = i;
-          } else if (val.contains('blok narxi') || val.contains('box price')) {
-            boxPriceIdx = i;
-          } else if (val.contains('blok shtrix') || val.contains('box barcode')) {
-            boxBarcodeIdx = i;
           } else if (val.contains('narx')) {
             // Fallback for generic "narx" if priceIdx is not set
             if (priceIdx == -1) priceIdx = i;
