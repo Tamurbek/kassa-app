@@ -6,7 +6,6 @@ import '../../providers/features/settings_provider.dart';
 import '../../models/models.dart';
 import 'product_form_screen.dart';
 import '../../services/excel_import_service.dart';
-import '../../services/starter_data_service.dart';
 import '../../core/utils/responsive.dart';
 import '../../providers/features/navigation_provider.dart';
 
@@ -338,13 +337,6 @@ class _CatalogScreenState extends State<CatalogScreen>
                 onTap: () => ExcelImportService.importFromExcel(context),
                 color: Colors.green,
               ),
-              if (!context.watch<SettingsProvider>().isStarterDataLoaded)
-                _buildActionButton(
-                  icon: Icons.auto_awesome_motion_rounded,
-                  label: showLabels ? 'Katalogni to\'ldirish' : null,
-                  onTap: () => _loadStarterData(context),
-                  color: Colors.orange,
-                ),
               const SizedBox(width: 12),
               _buildActionButton(
                 icon: Icons.add_circle_outline_rounded,
@@ -755,33 +747,4 @@ class _CatalogScreenState extends State<CatalogScreen>
     );
   }
 
-  void _loadStarterData(BuildContext context) async {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => const Center(child: CircularProgressIndicator()),
-    );
-    try {
-      final count = await StarterDataService.seed1000Products();
-      if (context.mounted) {
-        Navigator.pop(context); // Close indicator
-        await context.read<SettingsProvider>().markStarterDataAsLoaded();
-        // The listener will automatically trigger _loadProducts(reset: true)
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('$count ta real mahsulot muvaffaqiyatli yuklandi!'),
-            backgroundColor: Colors.green,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
-    } catch (e) {
-      if (context.mounted) {
-        Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Xatolik: $e'), backgroundColor: Colors.red),
-        );
-      }
-    }
-  }
 }

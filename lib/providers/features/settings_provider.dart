@@ -32,7 +32,6 @@ class SettingsProvider extends ChangeNotifier {
   bool isBarcodeScanMode = false;
   bool shouldTrackInventory = true;
   bool isFullScreen = false;
-  bool isStarterDataLoaded = false;
   String appVersion = AppConstants.appVersion;
   String? deviceId;
   int inactivityTimeoutMinutes = 5; // Default to 5 minutes
@@ -145,7 +144,6 @@ class SettingsProvider extends ChangeNotifier {
       scaleProtocol = dbSettings['scaleProtocol'] ?? prefs.getString('scaleProtocol') ?? 'NCI';
 
       // 7. Full Screen Mode (Apply window size only on startup or explicit toggle)
-      isStarterDataLoaded = getSafeBool('isStarterDataLoaded', defaultValue: false);
       isFullScreen = getSafeBool('isFullScreen', defaultValue: false);
       inactivityTimeoutMinutes = dbSettings['inactivityTimeoutMinutes'] != null 
           ? int.tryParse(dbSettings['inactivityTimeoutMinutes']!) ?? 5 
@@ -315,12 +313,6 @@ class SettingsProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> markStarterDataAsLoaded() async {
-    isStarterDataLoaded = true;
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('isStarterDataLoaded', true);
-    notifyListeners();
-  }
 
   Future<void> toggleFullScreen() async {
     isFullScreen = !isFullScreen;
