@@ -45,55 +45,85 @@ class ExcelImportService {
         return;
       }
 
-      // Column detection
-      int nameIdx = 0, catIdx = 1, priceIdx = 2, costIdx = 3, barcodeIdx = 4, unitIdx = 5;
+      // Column detection with better defaults
+      int nameIdx = -1, catIdx = -1, priceIdx = -1, costIdx = -1, barcodeIdx = -1, unitIdx = -1;
       int qtyIdx = -1, warehouseIdx = -1, qtyInBoxIdx = -1, boxPriceIdx = -1, boxBarcodeIdx = -1;
       
       var headerRow = sheet.rows[0];
       for (int i = 0; i < headerRow.length; i++) {
-          String val = _getCellValue(headerRow[i]).toLowerCase();
-          if (val.contains('ombor') || val.contains('warehouse')) warehouseIdx = i;
-          else if (val.contains('nom') || val.contains('name')) nameIdx = i;
-          else if (val.contains('tur') || val.contains('categor') || val.contains('kat')) catIdx = i;
-          else if (val.contains('sotish') || val.contains('price') || val.contains('narx')) priceIdx = i;
-          else if (val.contains('tan') || val.contains('cost')) costIdx = i;
-          else if (val.contains('shtrix') || val.contains('barcode')) barcodeIdx = i;
-          else if (val.contains('birlik') || val.contains('unit')) unitIdx = i;
-          else if (val.contains('soni') || val.contains('miqdor') || val.contains('qty')) qtyIdx = i;
-          else if (val.contains('blok ichi') || val.contains('box qty') || val.contains('pak')) qtyInBoxIdx = i;
-          else if (val.contains('blok narxi') || val.contains('box price')) boxPriceIdx = i;
-          else if (val.contains('blok shtrix') || val.contains('box barcode')) boxBarcodeIdx = i;
+          String val = _getCellValue(headerRow[i]).toLowerCase().trim();
+          if (val.isEmpty) continue;
+
+          if (val.contains('ombor') || val.contains('warehouse')) {
+            warehouseIdx = i;
+          } else if (val.contains('tan') || val.contains('cost') || val.contains('buy')) {
+            costIdx = i;
+          } else if (val.contains('sotish') || val.contains('sotuv') || val.contains('price') || val.contains('selling')) {
+            priceIdx = i;
+          } else if (val.contains('nom') || val.contains('name') || val.contains('mahsulot')) {
+            nameIdx = i;
+          } else if (val.contains('tur') || val.contains('categor') || val.contains('kat')) {
+            catIdx = i;
+          } else if (val.contains('shtrix') || val.contains('barcode')) {
+            barcodeIdx = i;
+          } else if (val.contains('birlik') || val.contains('unit')) {
+            unitIdx = i;
+          } else if (val.contains('soni') || val.contains('miqdor') || val.contains('qty') || val.contains('qoldiq')) {
+            qtyIdx = i;
+          } else if (val.contains('blok ichi') || val.contains('box qty') || val.contains('pachka')) {
+            qtyInBoxIdx = i;
+          } else if (val.contains('blok narxi') || val.contains('box price')) {
+            boxPriceIdx = i;
+          } else if (val.contains('blok shtrix') || val.contains('box barcode')) {
+            boxBarcodeIdx = i;
+          } else if (val.contains('narx')) {
+            // Fallback for generic "narx" if priceIdx is not set
+            if (priceIdx == -1) priceIdx = i;
+          }
       }
+
+      // If defaults not found, use common indices as last resort
+      if (nameIdx == -1) nameIdx = 0;
+      if (catIdx == -1) catIdx = 1;
+      if (costIdx == -1) costIdx = 2;
+      if (priceIdx == -1) priceIdx = 3;
 
       Set<String> excelCategories = {};
       List<Map<String, dynamic>> rawRows = [];
 
       for (int i = 1; i < sheet.maxRows; i++) {
         var row = sheet.rows[i];
-        if (row.length <= nameIdx || row[nameIdx]?.value == null) continue;
+        if (nameIdx >= row.length || row[nameIdx]?.value == null) continue;
 
         String name = _getCellValue(row[nameIdx]);
-        String categoryName = (row.length > catIdx ? _getCellValue(row[catIdx]) : '') ;
+        if (name.isEmpty) continue;
+
+        String categoryName = (catIdx != -1 && row.length > catIdx) ? _getCellValue(row[catIdx]) : '';
         if (categoryName.isEmpty) categoryName = 'Boshqa';
         
-        String priceStr = row.length > priceIdx ? _getCellValue(row[priceIdx]) : '0';
+        String priceStr = (priceIdx != -1 && row.length > priceIdx) ? _getCellValue(row[priceIdx]) : '0';
         double price = _parseRobustDouble(priceStr);
         
-        String costStr = row.length > costIdx ? _getCellValue(row[costIdx]) : '0';
+        String costStr = (costIdx != -1 && row.length > costIdx) ? _getCellValue(row[costIdx]) : '0';
         double costPrice = _parseRobustDouble(costStr);
         
-        String additionalBarcodesRaw = (row.length > barcodeIdx ? _getCellValue(row[barcodeIdx]) : '');
+        String additionalBarcodesRaw = (barcodeIdx != -1 && row.length > barcodeIdx ? _getCellValue(row[barcodeIdx]) : '');
         List<String> barcodes = additionalBarcodesRaw.split(RegExp(r'[,;]')).map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
         String barcode = barcodes.isNotEmpty ? barcodes[0] : '';
         List<String> additionalBarcodes = barcodes.length > 1 ? barcodes.sublist(1) : [];
         
-        String unit = (row.length > unitIdx ? _getCellValue(row[unitIdx]) : 'dona');
+        String unit = (unitIdx != -1 && row.length > unitIdx ? _getCellValue(row[unitIdx]) : 'dona');
         double quantity = (qtyIdx != -1 && row.length > qtyIdx) ? _parseRobustDouble(_getCellValue(row[qtyIdx])) : 0;
         String warehouseName = (warehouseIdx != -1 && row.length > warehouseIdx) ? _getCellValue(row[warehouseIdx]) : '';
         
         String qtyInBoxStr = (qtyInBoxIdx != -1 && row.length > qtyInBoxIdx) ? _getCellValue(row[qtyInBoxIdx]) : '1';
         double qtyInBox = _parseRobustDouble(qtyInBoxStr);
-        double? boxPrice = (boxPriceIdx != -1 && row.length > boxPriceIdx) ? double.tryParse(_getCellValue(row[boxPriceIdx])) : null;
+        
+        double? boxPrice;
+        if (boxPriceIdx != -1 && row.length > boxPriceIdx) {
+          String val = _getCellValue(row[boxPriceIdx]);
+          if (val.isNotEmpty) boxPrice = _parseRobustDouble(val);
+        }
         
         String boxBarcodeRaw = (boxBarcodeIdx != -1 && row.length > boxBarcodeIdx) ? _getCellValue(row[boxBarcodeIdx]) : '';
         List<String> boxBars = boxBarcodeRaw.split(RegExp(r'[,;]')).map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
@@ -123,9 +153,25 @@ class ExcelImportService {
         return;
       }
 
-      // Category mapping
-      Map<String, String>? mapping = await _showMappingDialog(context, excelCategories.toList(), inventory);
-      if (mapping == null) return;
+      // Warehouse mapping (NEW)
+      Set<String> excelWarehouses = rawRows.map((r) => r['warehouseName'] as String).where((w) => w.isNotEmpty).toSet();
+      Map<String, String> warehouseMapping = {};
+      
+      if (excelWarehouses.isNotEmpty) {
+        for (var wName in excelWarehouses) {
+          final match = inventory.activeWarehouses.where((w) => w.name.toLowerCase() == wName.toLowerCase().trim()).firstOrNull;
+          if (match != null) {
+            warehouseMapping[wName] = match.id;
+          }
+        }
+        
+        List<String> remainingWarehouses = excelWarehouses.where((w) => !warehouseMapping.containsKey(w)).toList();
+        if (remainingWarehouses.isNotEmpty) {
+          Map<String, String>? wMap = await _showWarehouseMappingDialog(context, remainingWarehouses, inventory);
+          if (wMap == null) return; // User cancelled
+          warehouseMapping.addAll(wMap);
+        }
+      }
 
       // Final Import
       showDialog(
@@ -159,11 +205,9 @@ class ExcelImportService {
         if (r['quantity'] > 0) {
           String warehouseId = '';
           String wName = r['warehouseName'];
-          if (wName.isNotEmpty) {
-            final match = inventory.activeWarehouses.where((w) => w.name.toLowerCase() == wName.toLowerCase()).firstOrNull;
-            if (match != null) {
-              warehouseId = match.id;
-            }
+          
+          if (wName.isNotEmpty && warehouseMapping.containsKey(wName)) {
+            warehouseId = warehouseMapping[wName]!;
           }
           
           if (warehouseId.isEmpty) {
@@ -285,6 +329,61 @@ class ExcelImportService {
     );
   }
 
+  static Future<Map<String, String>?> _showWarehouseMappingDialog(
+      BuildContext context, List<String> excelWarehouses, InventoryProvider inventory) async {
+    
+    Map<String, String> mapping = {};
+    String mainWarehouseId = inventory.mainWarehouse?.id ?? '';
+
+    return await showDialog<Map<String, String>>(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          title: const Text('Omborlarni biriktirish'),
+          content: SizedBox(
+            width: 500,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Exceldagi quyidagi omborlar tizimda topilmadi. Ularni mavjud omborlarga biriktiring:'),
+                  const SizedBox(height: 20),
+                  ...excelWarehouses.map((wName) => Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: Row(
+                      children: [
+                        Expanded(child: Text(wName, style: const TextStyle(fontWeight: FontWeight.bold))),
+                        const Icon(Icons.arrow_right_alt),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: DropdownButtonFormField<String>(
+                            value: mapping[wName] ?? (inventory.activeWarehouses.length == 1 ? mainWarehouseId : null),
+                            decoration: const InputDecoration(isDense: true, border: OutlineInputBorder()),
+                            hint: const Text('Tanlang...'),
+                            items: inventory.activeWarehouses.map((w) => DropdownMenuItem(value: w.id, child: Text(w.name))).toList(),
+                            onChanged: (val) => setState(() => mapping[wName] = val!),
+                          ),
+                        ),
+                      ],
+                    ),
+                  )),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Bekor qilish')),
+            ElevatedButton(
+              onPressed: mapping.length == excelWarehouses.length ? () => Navigator.pop(context, mapping) : null,
+              child: const Text('Davom etish'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   static Future<List<StockEntryItem>?> parseStockEntryFile(BuildContext context) async {
     final inventory = Provider.of<InventoryProvider>(context, listen: false);
     
@@ -314,11 +413,21 @@ class ExcelImportService {
       var headerRow = sheet.rows[0];
       for (int i = 0; i < headerRow.length; i++) {
         String h = _getCellValue(headerRow[i]).toLowerCase().trim();
-        if (h.contains('shtrix') || h.contains('barcode')) barcodeIdx = i;
-        else if ((h.contains('nomi') || h.contains('mahsulot')) && !h.contains('ombor') && !h.contains('warehouse')) nameIdx = i;
-        else if (h.contains('soni') || h.contains('miqdor')) qtyIdx = i;
-        else if (h.contains('tan') || h.contains('cost')) costIdx = i;
-        else if (h.contains('sotish') || h.contains('price') || h.contains('sotuv')) priceIdx = i;
+        if (h.isEmpty) continue;
+        
+        if (h.contains('shtrix') || h.contains('barcode')) {
+          barcodeIdx = i;
+        } else if (h.contains('tan') || h.contains('cost') || h.contains('buy')) {
+          costIdx = i;
+        } else if (h.contains('sotish') || h.contains('price') || h.contains('sotuv') || h.contains('sotish')) {
+          priceIdx = i;
+        } else if ((h.contains('nomi') || h.contains('mahsulot')) && !h.contains('ombor') && !h.contains('warehouse')) {
+          nameIdx = i;
+        } else if (h.contains('soni') || h.contains('miqdor') || h.contains('qty') || h.contains('qoldiq')) {
+          qtyIdx = i;
+        } else if (h.contains('narx')) {
+          if (priceIdx == -1) priceIdx = i;
+        }
       }
 
       if (qtyIdx == -1 || (barcodeIdx == -1 && nameIdx == -1)) {
