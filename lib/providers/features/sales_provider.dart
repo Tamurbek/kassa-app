@@ -195,6 +195,28 @@ class SalesProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void updateCartItemMode(String productId, bool oldIsBox, bool newIsBox, double newQuantity, {Product? product}) {
+    final index = cart.indexWhere((item) => item.productId == productId && item.isBox == oldIsBox);
+    if (index != -1) {
+      final oldItem = cart[index];
+      
+      // If we are switching to a mode that already exists in the cart, we might want to merge
+      // but for simplicity, let's just update the current item's mode and price
+      double price = product?.price ?? oldItem.price;
+      if (newIsBox && product != null) {
+        double bPrice = product.boxPrice ?? (product.price * product.quantityInBox);
+        price = bPrice / product.quantityInBox;
+      }
+
+      cart[index] = oldItem.copyWith(
+        isBox: newIsBox,
+        quantity: newQuantity,
+        price: price,
+      );
+      notifyListeners();
+    }
+  }
+
   void updateCartQuantity(String productId, double newQuantity, {Product? product, String? warehouseId, bool isBox = false}) {
     final index = cart.indexWhere((item) => item.productId == productId && item.isBox == isBox);
     if (index != -1) {

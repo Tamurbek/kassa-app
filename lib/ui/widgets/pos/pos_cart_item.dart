@@ -62,6 +62,46 @@ class POSCartItem extends StatelessWidget {
                     color: Theme.of(context).textTheme.bodySmall?.color?.withOpacity(0.5),
                   ),
                 ),
+                if (product != null && product.quantityInBox > 1) ...[
+                  SizedBox(height: 8.h),
+                  InkWell(
+                    onTap: () {
+                      // Toggle isBox mode
+                      final newIsBox = !item.isBox;
+                      final double newQty = newIsBox ? (1.0 * product.quantityInBox) : 1.0;
+                      sales.updateCartItemMode(item.productId, item.isBox, newIsBox, newQty, product: product);
+                    },
+                    child: Container(
+                      padding: EdgeInsets.symmetric(horizontal: 8.sp, vertical: 2.h),
+                      decoration: BoxDecoration(
+                        color: item.isBox ? Colors.amber.withOpacity(0.15) : Colors.blue.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(color: (item.isBox ? Colors.amber : Colors.blue).withOpacity(0.3)),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            item.isBox ? Icons.inventory_2_outlined : Icons.ads_click_rounded, 
+                            size: 10.sp, 
+                            color: item.isBox ? Colors.orange.shade900 : Colors.blue.shade900
+                          ),
+                          SizedBox(width: 4.w),
+                          Text(
+                            item.isBox ? 'BLOK REJIMIDA' : 'DONA REJIMIDA',
+                            style: TextStyle(
+                              fontSize: 9.sp, 
+                              fontWeight: FontWeight.w900,
+                              color: item.isBox ? Colors.orange.shade900 : Colors.blue.shade900,
+                            ),
+                          ),
+                          SizedBox(width: 4.w),
+                          Icon(Icons.swap_horiz_rounded, size: 10.sp, color: Colors.grey),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ],
             ),
           ),

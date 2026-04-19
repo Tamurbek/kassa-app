@@ -68,7 +68,7 @@ class _InitializationWrapperState extends State<InitializationWrapper> {
     _lastUser = authProvider.currentUser;
 
     if (!state.isInitialized || !authProvider.isInitialized) {
-      return _buildSplashScreen(context);
+      return _buildSplashScreen(context, state);
     }
 
     if (state.initializationError != null) {
@@ -126,7 +126,7 @@ class _InitializationWrapperState extends State<InitializationWrapper> {
     );
   }
 
-  Widget _buildSplashScreen(BuildContext context) {
+  Widget _buildSplashScreen(BuildContext context, AppState state) {
     return Scaffold(
       backgroundColor: AppTheme.darkBg,
       body: Center(
