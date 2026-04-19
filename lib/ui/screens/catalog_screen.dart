@@ -215,12 +215,147 @@ class _CatalogScreenState extends State<CatalogScreen>
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.sp),
           ),
           const Spacer(),
-          if (_selectedProductIds.isNotEmpty)
-            TextButton(
-              onPressed: () => setState(() => _selectedProductIds.clear()),
-              child: const Text('Tanlovni tozalash'),
+          if (_selectedProductIds.isNotEmpty) ...[
+            Text(
+              '${_selectedProductIds.length} ta tanlandi',
+              style: TextStyle(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.bold),
             ),
+            const SizedBox(width: 16),
+            ElevatedButton.icon(
+              onPressed: _showBatchEditDialog,
+              icon: const Icon(Icons.edit_note_rounded, size: 18),
+              label: const Text('Ommaviy tahrir'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.indigo,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+              ),
+            ),
+            const SizedBox(width: 8),
+            TextButton.icon(
+              onPressed: () => setState(() => _selectedProductIds.clear()),
+              icon: const Icon(Icons.close_rounded, size: 18),
+              label: const Text('Tozalash'),
+            ),
+            const SizedBox(width: 8),
+            if (_selectedCategoryId != null)
+              OutlinedButton.icon(
+                onPressed: () {
+                  setState(() {
+                    _selectedProductIds.addAll(_products.map((p) => p.id));
+                  });
+                },
+                icon: const Icon(Icons.category_rounded, size: 18),
+                label: const Text('Kategoriyadagini belgilash'),
+              ),
+          ],
         ],
+      ),
+    );
+  }
+
+  Future<void> _showBatchEditDialog() async {
+    final inventory = context.read<InventoryProvider>();
+    String? targetCategoryId;
+    String? targetUnit;
+    double priceChangePercent = 0;
+    bool changeCategory = false;
+    bool changeUnit = false;
+    bool changePrice = false;
+
+    await showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: Text('${_selectedProductIds.length} ta mahsulotni tahrirlash'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CheckboxListTile(
+                  title: const Text('Kategoriyani o\'zgartirish'),
+                  value: changeCategory,
+                  onChanged: (v) => setDialogState(() => changeCategory = v!),
+                ),
+                if (changeCategory)
+                  DropdownButtonFormField<String>(
+                    value: targetCategoryId,
+                    decoration: const InputDecoration(labelText: 'Yangi kategoriya', border: OutlineInputBorder()),
+                    items: inventory.activeCategories.map((c) => DropdownMenuItem(value: c.id, child: Text(c.name))).toList(),
+                    onChanged: (v) => setDialogState(() => targetCategoryId = v),
+                  ),
+                const Divider(),
+                CheckboxListTile(
+                  title: const Text('O\'lchov birligini o\'zgartirish'),
+                  value: changeUnit,
+                  onChanged: (v) => setDialogState(() => changeUnit = v!),
+                ),
+                if (changeUnit)
+                  DropdownButtonFormField<String>(
+                    value: targetUnit,
+                    decoration: const InputDecoration(labelText: 'Yangi birlik', border: OutlineInputBorder()),
+                    items: ['dona', 'kg', 'litr', 'metr', 'pachka', 'blok'].map((u) => DropdownMenuItem(value: u, child: Text(u))).toList(),
+                    onChanged: (v) => setDialogState(() => targetUnit = v),
+                  ),
+                const Divider(),
+                CheckboxListTile(
+                  title: const Text('Narxni o\'zgartirish (%)'),
+                  value: changePrice,
+                  onChanged: (v) => setDialogState(() => changePrice = v!),
+                ),
+                if (changePrice)
+                  TextFormField(
+                    decoration: const InputDecoration(
+                      labelText: 'Foiz (masalan: 10 yoki -5)',
+                      helperText: 'Ijobiy son - qimmatlashish, manfiy - arzonlashish',
+                      border: OutlineInputBorder(),
+                    ),
+                    keyboardType: TextInputType.number,
+                    onChanged: (v) => priceChangePercent = double.tryParse(v) ?? 0,
+                  ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Bekor qilish')),
+            ElevatedButton(
+              onPressed: () async {
+                final List<Product> updatedProducts = [];
+                for (var id in _selectedProductIds) {
+                  final p = inventory.products.where((prod) => prod.id == id).firstOrNull;
+                  if (p != null) {
+                    Product updated = p;
+                    if (changeCategory && targetCategoryId != null) {
+                      updated = updated.copyWith(categoryId: targetCategoryId);
+                    }
+                    if (changeUnit && targetUnit != null) {
+                      updated = updated.copyWith(unit: targetUnit);
+                    }
+                    if (changePrice && priceChangePercent != 0) {
+                      updated = updated.copyWith(price: updated.price * (1 + priceChangePercent / 100));
+                    }
+                    updatedProducts.add(updated);
+                  }
+                }
+
+                if (updatedProducts.isNotEmpty) {
+                  await inventory.saveProductsBatch(updatedProducts);
+                  if (mounted) {
+                    setState(() {
+                      _selectedProductIds.clear();
+                    });
+                    _loadProducts(reset: true);
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('${updatedProducts.length} ta mahsulot yangilandi'), backgroundColor: Colors.green),
+                    );
+                  }
+                }
+              },
+              child: const Text('Saqlash'),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -417,49 +552,88 @@ class _CatalogScreenState extends State<CatalogScreen>
   Widget _buildSearchBar() {
     return Column(
       children: [
-        Container(
-          padding: EdgeInsets.fromLTRB(24.sp, 16.sp, 24.sp, 0),
-          color: Theme.of(context).cardColor.withOpacity(0.5),
-          child: TextField(
-            controller: _searchController,
-            onChanged: (val) {
-              if (_debounce?.isActive ?? false) _debounce?.cancel();
-              _debounce = Timer(const Duration(milliseconds: 500), () {
-                if (mounted) {
-                  setState(() => _searchText = val.toLowerCase());
-                  if (_tabController.index == 0) _loadProducts(reset: true);
-                }
-              });
-            },
-            decoration: InputDecoration(
-              hintText: _tabController.index == 0
-                  ? 'Mahsulot nomi yoki shtrix-kodi...'
-                  : 'Kategoriya nomi...',
-              prefixIcon: Icon(Icons.search_rounded, size: 20.sp),
-              suffixIcon: _searchText.isNotEmpty
-                  ? IconButton(
-                      icon: const Icon(Icons.close_rounded),
-                      onPressed: () {
-                        _searchController.clear();
-                        setState(() => _searchText = '');
-                        if (_tabController.index == 0) _loadProducts(reset: true);
+          Container(
+            padding: EdgeInsets.fromLTRB(24.sp, 16.sp, 24.sp, 0),
+            color: Theme.of(context).cardColor.withOpacity(0.5),
+            child: Row(
+              children: [
+                Expanded(
+                  flex: 3,
+                  child: TextField(
+                    controller: _searchController,
+                    onChanged: (val) {
+                      if (_debounce?.isActive ?? false) _debounce?.cancel();
+                      _debounce = Timer(const Duration(milliseconds: 500), () {
+                        if (mounted) {
+                          setState(() => _searchText = val.toLowerCase());
+                          if (_tabController.index == 0) _loadProducts(reset: true);
+                        }
+                      });
+                    },
+                    decoration: InputDecoration(
+                      hintText: _tabController.index == 0
+                          ? 'Nomi yoki shtrix-kodi...'
+                          : 'Kategoriya nomi...',
+                      prefixIcon: Icon(Icons.search_rounded, size: 20.sp),
+                      suffixIcon: _searchText.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.close_rounded),
+                              onPressed: () {
+                                _searchController.clear();
+                                setState(() => _searchText = '');
+                                if (_tabController.index == 0) _loadProducts(reset: true);
+                              },
+                            )
+                          : null,
+                      filled: true,
+                      fillColor: Theme.of(context).scaffoldBackgroundColor,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: Theme.of(context).dividerColor),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: Theme.of(context).dividerColor),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    ),
+                  ),
+                ),
+                if (_tabController.index == 0) ...[
+                  const SizedBox(width: 12),
+                  Expanded(
+                    flex: 2,
+                    child: DropdownButtonFormField<String?>(
+                      value: _selectedCategoryId,
+                      decoration: InputDecoration(
+                        filled: true,
+                        fillColor: Theme.of(context).scaffoldBackgroundColor,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: Theme.of(context).dividerColor),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                        hintText: 'Kategoriya',
+                      ),
+                      items: [
+                        const DropdownMenuItem(value: null, child: Text('Barchasi')),
+                        ...context.watch<InventoryProvider>().activeCategories.map(
+                          (c) => DropdownMenuItem(value: c.id, child: Text(c.name)),
+                        ),
+                      ],
+                      onChanged: (val) {
+                        setState(() {
+                          _selectedCategoryId = val;
+                          _selectedProductIds.clear();
+                        });
+                        _loadProducts(reset: true);
                       },
-                    )
-                  : null,
-              filled: true,
-              fillColor: Theme.of(context).scaffoldBackgroundColor,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: Theme.of(context).dividerColor),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: Theme.of(context).dividerColor),
-              ),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    ),
+                  ),
+                ],
+              ],
             ),
           ),
-        ),
         if (_isSearching)
           const LinearProgressIndicator(minHeight: 2),
       ],
