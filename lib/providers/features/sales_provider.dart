@@ -170,15 +170,16 @@ class SalesProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void addToCartByBarcode(String barcode, List<Product> products, {String? warehouseId}) {
+  Product? addToCartByBarcode(String barcode, List<Product> products, {String? warehouseId}) {
     try {
       // 1. Check for WEIGHTED BARCODE (e.g. from a scale)
       // Standard format: PP IIIII WWWWW C
       // PP = Prefix (usually 21, 22, 23, 24, 25, 29)
       // IIIII = Product code (PLU)
       // WWWWW = Weight in grams (e.g. 00500 = 0.5kg)
-      if (barcode.length == 13 && (barcode.startsWith('21') || barcode.startsWith('22') || barcode.startsWith('23') || 
-          barcode.startsWith('24') || barcode.startsWith('25') || barcode.startsWith('29'))) {
+      if (barcode.length == 13 && (barcode.startsWith('20') || barcode.startsWith('21') || barcode.startsWith('22') || 
+          barcode.startsWith('23') || barcode.startsWith('24') || barcode.startsWith('25') || 
+          barcode.startsWith('28') || barcode.startsWith('29'))) {
         
         final String productCode = barcode.substring(2, 7);
         final String weightStr = barcode.substring(7, 12);
@@ -193,7 +194,7 @@ class SalesProvider extends ChangeNotifier {
 
         if (product != null) {
           _addToCartWithQuantity(product, weight, warehouseId: warehouseId);
-          return;
+          return product;
         }
       }
 
@@ -208,11 +209,12 @@ class SalesProvider extends ChangeNotifier {
       final bool isBox = product.boxBarcode == barcode || 
                         product.additionalBoxBarcodes.contains(barcode);
       addToCart(product, warehouseId: warehouseId, isBox: isBox);
+      return product;
     } catch (e) {
       if (e.toString().contains('Exception:')) {
         rethrow;
       }
-      throw Exception('Mahsulot topilmadi: $barcode');
+      return null;
     }
   }
 

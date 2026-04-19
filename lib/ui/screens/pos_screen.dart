@@ -315,7 +315,7 @@ class _POSScreenState extends State<POSScreen> {
   void _processBarcode(String barcode) {
     if (barcode.isEmpty) return;
 
-    // Prevent double processing within a short time (e.g. 300ms)
+    // Prevent double processing within a short time (e.g. 500ms)
     final now = DateTime.now();
     if (_lastBarcode == barcode &&
         _lastBarcodeTime != null &&
@@ -331,15 +331,11 @@ class _POSScreenState extends State<POSScreen> {
       final sales = context.read<SalesProvider>();
       final settings = context.read<SettingsProvider>();
       
-      sales.addToCartByBarcode(barcode, inventory.products, warehouseId: settings.currentRegister?.warehouseId);
+      final product = sales.addToCartByBarcode(barcode, inventory.products, warehouseId: settings.currentRegister?.warehouseId);
 
-      final product = inventory.products.firstWhere(
-        (p) => p.barcode == barcode || 
-               p.additionalBarcodes.contains(barcode) || 
-               p.boxBarcode == barcode || 
-               p.additionalBoxBarcodes.contains(barcode),
-        orElse: () => throw Exception('Mahsulot topilmadi'),
-      );
+      if (product == null) {
+        throw Exception('Mahsulot topilmadi');
+      }
 
       // Clear fields if we successfully added
       if (_searchController.text == barcode) {
@@ -351,16 +347,20 @@ class _POSScreenState extends State<POSScreen> {
         SnackBar(
           content: Text('${product.name} savatga qo\'shildi'),
           duration: const Duration(milliseconds: 700),
-          backgroundColor: Theme.of(
-            context,
-          ).colorScheme.primary, // Using theme color
+          backgroundColor: Theme.of(context).colorScheme.primary,
           behavior: SnackBarBehavior.floating,
           margin: const EdgeInsets.all(20),
         ),
       );
     } catch (e) {
-      // If it's not a barcode, just let it be (maybe a regular enter in search)
-      debugPrint('Not a valid barcode: $barcode');
+      debugPrint('Barcode processing error: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString().replaceAll('Exception: ', '')),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 2),
+        ),
+      );
     }
   }
 
