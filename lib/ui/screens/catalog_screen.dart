@@ -818,6 +818,15 @@ class _CatalogScreenState extends State<CatalogScreen>
 
   void _showDuplicatesDialog(Map<String, List<Product>> barcodeDupes, Map<String, List<Product>> nameDupes) {
     Set<String> selectedIds = {};
+    
+    // Collect all unique IDs present in the dialog to handle "Select All"
+    Set<String> allDupeIds = {};
+    for (var list in barcodeDupes.values) {
+      for (var p in list) allDupeIds.add(p.id);
+    }
+    for (var list in nameDupes.values) {
+      for (var p in list) allDupeIds.add(p.id);
+    }
 
     showDialog(
       context: context,
@@ -832,6 +841,19 @@ class _CatalogScreenState extends State<CatalogScreen>
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    CheckboxListTile(
+                      controlAffinity: ListTileControlAffinity.leading,
+                      title: const Text('Barchasini belgilash', style: TextStyle(fontWeight: FontWeight.bold)),
+                      value: selectedIds.length == allDupeIds.length && allDupeIds.isNotEmpty,
+                      onChanged: (val) => setDialogState(() {
+                        if (val == true) {
+                          selectedIds.addAll(allDupeIds);
+                        } else {
+                          selectedIds.clear();
+                        }
+                      }),
+                    ),
+                    const Divider(),
                     if (barcodeDupes.isNotEmpty) ...[
                       const Text('Bir xil shtrix-kodli mahsulotlar:',
                           style: TextStyle(fontWeight: FontWeight.bold, color: Colors.orange)),
@@ -980,6 +1002,19 @@ class _CatalogScreenState extends State<CatalogScreen>
                   children: [
                     const Text('Ushbu mahsulotlarda shtrix-kod mavjud emas. Ularni tanlab, avtomatik kod berishingiz mumkin.'),
                     const SizedBox(height: 16),
+                    CheckboxListTile(
+                      controlAffinity: ListTileControlAffinity.leading,
+                      title: const Text('Barchasini belgilash', style: TextStyle(fontWeight: FontWeight.bold)),
+                      value: selectedIds.length == missing.length,
+                      onChanged: (val) => setDialogState(() {
+                        if (val == true) {
+                          selectedIds.addAll(missing.map((p) => p.id));
+                        } else {
+                          selectedIds.clear();
+                        }
+                      }),
+                    ),
+                    const Divider(),
                     ...missing.map((p) {
                       final isSelected = selectedIds.contains(p.id);
                       return ListTile(
