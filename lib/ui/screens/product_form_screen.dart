@@ -30,6 +30,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
   late TextEditingController _boxPriceController;
   late TextEditingController _boxBarcodeController;
   String? _selectedCategoryId;
+  String _selectedUnit = 'dona';
   bool _trackStock = true;
   List<TextEditingController> _additionalBarcodeControllers = [];
   List<TextEditingController> _additionalBoxBarcodeControllers = [];
@@ -53,6 +54,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
       text: widget.product?.boxBarcode ?? '',
     );
     _selectedCategoryId = widget.product?.categoryId;
+    _selectedUnit = widget.product?.unit ?? 'dona';
     _trackStock = widget.product?.trackStock ?? true;
     _additionalBarcodeControllers = (widget.product?.additionalBarcodes ?? [])
         .map((b) => TextEditingController(text: b))
@@ -144,6 +146,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
           quantityInBox: quantityInBox,
           boxPrice: boxPrice,
           boxBarcode: boxBarcode,
+          unit: _selectedUnit,
         );
       } else {
         product = Product.create(
@@ -156,6 +159,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
           quantityInBox: quantityInBox,
           boxPrice: boxPrice,
           boxBarcode: boxBarcode,
+          unit: _selectedUnit,
         ).copyWith(
           additionalBarcodes: additionalBarcodes,
           additionalBoxBarcodes: additionalBoxBarcodes,
@@ -267,6 +271,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                   Row(
                     children: [
                       Expanded(
+                        flex: 2,
                         child: _buildTextField(
                           'Tan narxi',
                           _costPriceController,
@@ -276,12 +281,18 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                       ),
                       const SizedBox(width: 16),
                       Expanded(
+                        flex: 2,
                         child: _buildTextField(
                           'Sotish narxi',
                           _priceController,
                           Icons.sell_outlined,
                           isNumber: true,
                         ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        flex: 1,
+                        child: _buildUnitDropdown(),
                       ),
                     ],
                   ),
@@ -434,6 +445,46 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
               }
               return null;
             },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildUnitDropdown() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Birlik',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 13,
+            color: Theme.of(context).textTheme.bodySmall?.color,
+          ),
+        ),
+        SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          decoration: BoxDecoration(
+            color: Theme.of(context).cardColor,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Theme.of(context).dividerColor),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              value: _selectedUnit,
+              isExpanded: true,
+              icon: Icon(
+                Icons.keyboard_arrow_down_rounded,
+                color: Theme.of(context).colorScheme.primary,
+                size: 20,
+              ),
+              items: ['dona', 'kg', 'litr', 'metr', 'pachka', 'blok']
+                  .map((u) => DropdownMenuItem(value: u, child: Text(u, style: const TextStyle(fontSize: 13))))
+                  .toList(),
+              onChanged: (v) => setState(() => _selectedUnit = v!),
+            ),
           ),
         ),
       ],
