@@ -339,6 +339,13 @@ class _CatalogScreenState extends State<CatalogScreen>
               ),
               const SizedBox(width: 12),
               _buildActionButton(
+                icon: Icons.copy_all_rounded,
+                label: showLabels ? 'Dublikatlar' : null,
+                onTap: _checkDuplicates,
+                color: Colors.orange,
+              ),
+              const SizedBox(width: 12),
+              _buildActionButton(
                 icon: Icons.add_circle_outline_rounded,
                 label: showLabels ? 'Yangi qo\'shish' : null,
                 onTap: () {
@@ -747,4 +754,107 @@ class _CatalogScreenState extends State<CatalogScreen>
     );
   }
 
+  void _checkDuplicates() {
+    final inventory = context.read<InventoryProvider>();
+    final products = inventory.activeProducts;
+
+    Map<String, List<Product>> barcodeDupes = {};
+    Map<String, List<Product>> nameDupes = {};
+
+    for (var p in products) {
+      // Collect all barcodes for this product to check uniqueness
+      final allBarcodes = [p.barcode, ...p.additionalBarcodes, p.boxBarcode ?? '', ...p.additionalBoxBarcodes]
+          .where((b) => b.isNotEmpty).toSet();
+      
+      for (var b in allBarcodes) {
+        barcodeDupes.putIfAbsent(b, () => []).add(p);
+      }
+
+      String normalizedName = p.name.toLowerCase().trim();
+      if (normalizedName.isNotEmpty) {
+        nameDupes.putIfAbsent(normalizedName, () => []).add(p);
+      }
+    }
+
+    // Filter only those that have 2 or more products
+    barcodeDupes.removeWhere((key, list) => list.length < 2);
+    nameDupes.removeWhere((key, list) => list.length < 2);
+
+    if (barcodeDupes.isEmpty && nameDupes.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Dublikatlar topilmadi'), backgroundColor: Colors.green),
+      );
+      return;
+    }
+
+    _showDuplicatesDialog(barcodeDupes, nameDupes);
+  }
+
+  void _showDuplicatesDialog(Map<String, List<Product>> barcodeDupes, Map<String, List<Product>> nameDupes) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Topilgan dublikatlar'),
+        content: SizedBox(
+          width: 600,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (barcodeDupes.isNotEmpty) ...[
+                  const Text('Bir xil shtrix-kodli mahsulotlar:', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.orange)),
+                  const SizedBox(height: 10),
+                  ...barcodeDupes.entries.map((entry) => _buildDupeEntry(entry.key, entry.value)),
+                ],
+                if (nameDupes.isNotEmpty) ...[
+                  const SizedBox(height: 20),
+                  const Text('Bir xil nomli mahsulotlar:', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue)),
+                  const SizedBox(height: 10),
+                  ...nameDupes.entries.map((entry) => _buildDupeEntry(entry.key, entry.value)),
+                ],
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Yopish')),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDupeEntry(String key, List<Product> list) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.grey.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.withOpacity(0.3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(key, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+          const Divider(),
+          ...list.map((p) => ListTile(
+            dense: true,
+            title: Text(p.name, style: const TextStyle(fontWeight: FontWeight.w600)),
+            subtitle: Text('Shtrix: ${p.barcode}'),
+            trailing: IconButton(
+              icon: const Icon(Icons.edit, size: 18, color: Colors.blue),
+              onPressed: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => ProductFormScreen(product: p)),
+                ).then((_) => _loadProducts(reset: true));
+              },
+            ),
+          )),
+        ],
+      ),
+    );
+  }
 }
