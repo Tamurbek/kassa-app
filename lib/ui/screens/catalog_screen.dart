@@ -351,7 +351,8 @@ class _CatalogScreenState extends State<CatalogScreen>
                     case 'dupes': _checkDuplicates(); break;
                     case 'missing': _checkMissingBarcodes(); break;
                     case 'scale_export': 
-                      ExcelImportService.exportForScale(context, inventory.products); 
+                      final inv = context.read<InventoryProvider>();
+                      ExcelImportService.exportForScale(context, inv.products); 
                       break;
                   }
                 },
