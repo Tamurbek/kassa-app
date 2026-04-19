@@ -110,7 +110,7 @@ class ExcelImportService {
         String additionalBarcodesRaw = (barcodeIdx != -1 && row.length > barcodeIdx ? _getCellValue(row[barcodeIdx]) : '');
         List<String> barcodes = additionalBarcodesRaw.split(RegExp(r'[,;]')).map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
         String barcode = barcodes.isNotEmpty ? barcodes[0] : '';
-        List<String> additionalBarcodes = barcodes.length > 1 ? barcodes.sublist(1) : [];
+        List<String> additionalBarcodes = barcodes; // Include all barcodes in the additional list as well
         
         String unit = (unitIdx != -1 && row.length > unitIdx ? _getCellValue(row[unitIdx]) : 'dona');
         double quantity = (qtyIdx != -1 && row.length > qtyIdx) ? _parseRobustDouble(_getCellValue(row[qtyIdx])) : 0;
@@ -128,7 +128,7 @@ class ExcelImportService {
         String boxBarcodeRaw = (boxBarcodeIdx != -1 && row.length > boxBarcodeIdx) ? _getCellValue(row[boxBarcodeIdx]) : '';
         List<String> boxBars = boxBarcodeRaw.split(RegExp(r'[,;]')).map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
         String boxBarcode = boxBars.isNotEmpty ? boxBars[0] : '';
-        List<String> additionalBoxBarcodes = boxBars.length > 1 ? boxBars.sublist(1) : [];
+        List<String> additionalBoxBarcodes = boxBars; // Include all box barcodes in the additional list as well
 
         excelCategories.add(categoryName);
         rawRows.add({
@@ -233,6 +233,7 @@ class ExcelImportService {
               unit: r['unit'],
               quantityInBox: r['quantityInBox'],
               boxPrice: r['boxPrice'],
+              barcode: barcode.isNotEmpty ? barcode : null,
               boxBarcode: r['boxBarcode'],
               isDeleted: false, // Restore if it was deleted
               additionalBarcodes: r['additionalBarcodes'] as List<String>,
