@@ -748,4 +748,13 @@ class SyncProvider extends ChangeNotifier {
       throw Exception('Fayldan tiklashda xatolik: $e');
     }
   }
+  Future<void> toggleCloudMode(bool value) async {
+    isCloudMode = value;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('isCloudMode', value);
+    
+    // Reload sync to connect/disconnect cloud WS
+    await loadSync();
+    notifyListeners();
+  }
 }

@@ -133,6 +133,18 @@ class SettingsScreen extends StatelessWidget {
                             subtitle: 'Ma\'lumotlarni bulutga yoki faylga saqlash',
                             onTap: () => _showCloudDialog(context, sync),
                           ),
+                          _buildSettingsTile(
+                            context,
+                            icon: Icons.cloud_done_rounded,
+                            color: Colors.blue,
+                            title: 'Bulutli Sinxronizatsiya (Cloud)',
+                            subtitle: sync.isCloudMode ? 'Yoqilgan (Online)' : 'O\'chirilgan (Offline)',
+                            trailing: Switch(
+                              value: sync.isCloudMode,
+                              onChanged: (v) => sync.toggleCloudMode(v),
+                            ),
+                            onTap: () => sync.toggleCloudMode(!sync.isCloudMode),
+                          ),
                         ],
                       ),
                     ],
