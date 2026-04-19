@@ -791,40 +791,95 @@ class _CatalogScreenState extends State<CatalogScreen>
   }
 
   void _showDuplicatesDialog(Map<String, List<Product>> barcodeDupes, Map<String, List<Product>> nameDupes) {
+    Set<String> selectedIds = {};
+
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Topilgan dublikatlar'),
-        content: SizedBox(
-          width: 600,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (barcodeDupes.isNotEmpty) ...[
-                  const Text('Bir xil shtrix-kodli mahsulotlar:', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.orange)),
-                  const SizedBox(height: 10),
-                  ...barcodeDupes.entries.map((entry) => _buildDupeEntry(entry.key, entry.value)),
-                ],
-                if (nameDupes.isNotEmpty) ...[
-                  const SizedBox(height: 20),
-                  const Text('Bir xil nomli mahsulotlar:', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue)),
-                  const SizedBox(height: 10),
-                  ...nameDupes.entries.map((entry) => _buildDupeEntry(entry.key, entry.value)),
-                ],
-              ],
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          return AlertDialog(
+            title: const Text('Topilgan dublikatlar'),
+            content: SizedBox(
+              width: 600,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (barcodeDupes.isNotEmpty) ...[
+                      const Text('Bir xil shtrix-kodli mahsulotlar:',
+                          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.orange)),
+                      const SizedBox(height: 10),
+                      ...barcodeDupes.entries.map((entry) => _buildDupeEntry(
+                            entry.key,
+                            entry.value,
+                            selectedIds,
+                            (id, val) => setDialogState(() {
+                              if (val) selectedIds.add(id);
+                              else selectedIds.remove(id);
+                            }),
+                          )),
+                    ],
+                    if (nameDupes.isNotEmpty) ...[
+                      const SizedBox(height: 20),
+                      const Text('Bir xil nomli mahsulotlar:',
+                          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue)),
+                      const SizedBox(height: 10),
+                      ...nameDupes.entries.map((entry) => _buildDupeEntry(
+                            entry.key,
+                            entry.value,
+                            selectedIds,
+                            (id, val) => setDialogState(() {
+                              if (val) selectedIds.add(id);
+                              else selectedIds.remove(id);
+                            }),
+                          )),
+                    ],
+                  ],
+                ),
+              ),
             ),
-          ),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Yopish')),
-        ],
+            actions: [
+              if (selectedIds.isNotEmpty)
+                ElevatedButton.icon(
+                  onPressed: () async {
+                    final confirmed = await showDialog<bool>(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: const Text('Tasdiqlash'),
+                        content: Text('${selectedIds.length} ta mahsulotni o\'chirmoqchimisiz?'),
+                        actions: [
+                          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Yo\'q')),
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                            onPressed: () => Navigator.pop(context, true),
+                            child: const Text('Ha, o\'chirilsin', style: TextStyle(color: Colors.white)),
+                          ),
+                        ],
+                      ),
+                    );
+
+                    if (confirmed == true) {
+                      await context.read<InventoryProvider>().deleteProductsBatch(selectedIds.toList());
+                      if (context.mounted) {
+                        Navigator.pop(context); // Close dupe dialog
+                        _loadProducts(reset: true);
+                      }
+                    }
+                  },
+                  icon: const Icon(Icons.delete_sweep, size: 18),
+                  label: Text('${selectedIds.length} tani o\'chirish'),
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent, foregroundColor: Colors.white),
+                ),
+              TextButton(onPressed: () => Navigator.pop(context), child: const Text('Yopish')),
+            ],
+          );
+        },
       ),
     );
   }
 
-  Widget _buildDupeEntry(String key, List<Product> list) {
+  Widget _buildDupeEntry(String key, List<Product> list, Set<String> selectedIds, Function(String, bool) onSelected) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
@@ -838,21 +893,29 @@ class _CatalogScreenState extends State<CatalogScreen>
         children: [
           Text(key, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
           const Divider(),
-          ...list.map((p) => ListTile(
-            dense: true,
-            title: Text(p.name, style: const TextStyle(fontWeight: FontWeight.w600)),
-            subtitle: Text('Shtrix: ${p.barcode}'),
-            trailing: IconButton(
-              icon: const Icon(Icons.edit, size: 18, color: Colors.blue),
-              onPressed: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => ProductFormScreen(product: p)),
-                ).then((_) => _loadProducts(reset: true));
-              },
-            ),
-          )),
+          ...list.map((p) {
+            final isSelected = selectedIds.contains(p.id);
+            return ListTile(
+              dense: true,
+              leading: Checkbox(
+                value: isSelected,
+                onChanged: (val) => onSelected(p.id, val ?? false),
+              ),
+              title: Text(p.name, style: const TextStyle(fontWeight: FontWeight.w600)),
+              subtitle: Text('Shtrix: ${p.barcode}'),
+              onTap: () => onSelected(p.id, !isSelected),
+              trailing: IconButton(
+                icon: const Icon(Icons.edit, size: 18, color: Colors.blue),
+                onPressed: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => ProductFormScreen(product: p)),
+                  ).then((_) => _loadProducts(reset: true));
+                },
+              ),
+            );
+          }),
         ],
       ),
     );

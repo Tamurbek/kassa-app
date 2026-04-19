@@ -314,45 +314,22 @@ class ExcelImportService {
 
       updatedCount = sessionProducts.length - createdCount;
 
-      List<Product> productsToSave = [];
-      for (var product in sessionProducts.values) {
-        // Prepare product with updated stocks from Excel rows
-        Product updatedProduct = product;
-        
-        // Find if we have stock entries for this product in the current import
-        for (var warehouseId in warehouseStockItems.keys) {
-          final items = warehouseStockItems[warehouseId]!;
-          final excelItem = items.where((it) => it.productId == product.id).firstOrNull;
-          
-          if (excelItem != null) {
-            // SET the stock to exactly what's in Excel, overwriting current value
-            Map<String, double> newStocks = Map.from(updatedProduct.stocks);
-            newStocks[warehouseId] = excelItem.quantity;
-            updatedProduct = updatedProduct.copyWith(stocks: newStocks);
-          }
-        }
-        productsToSave.add(updatedProduct);
-      }
+      List<Product> productsToSave = sessionProducts.values.toList();
       
-      // Important: skipRecalculate here because we will do it after adding InventoryEntry
+      // Important: skipRecalculate here because we will do it after adding StockEntry
       await inventory.saveProductsBatch(productsToSave, skipRecalculate: true);
 
-      // Create Inventory entries (Invertarizatsiya) to explicitly SET the stock levels
+      // Create Stock entries (Ombor kirimi) to record the receipt of items from Excel
       for (var entry in warehouseStockItems.entries) {
-        final inventoryEntry = InventoryEntry(
+        final stockEntry = StockEntry(
           id: const Uuid().v4(),
           warehouseId: entry.key,
           date: DateTime.now(),
-          items: entry.value.map((it) => InventoryItem(
-            productId: it.productId,
-            productName: it.productName,
-            expectedQuantity: 0, // We don't care about expected, we are setting actual
-            actualQuantity: it.quantity,
-          )).toList(),
-          description: 'Katalog importi: Qoldiqlar Exceldagiga tenglashtirildi',
+          items: entry.value,
+          description: 'Katalog importi orqali kirim qilindi',
         );
         
-        await inventory.addInventory(inventoryEntry);
+        await inventory.addStockEntry(stockEntry);
       }
 
       await inventory.reloadData(forceRecalculate: true);
