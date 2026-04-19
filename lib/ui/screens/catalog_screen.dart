@@ -325,27 +325,6 @@ class _CatalogScreenState extends State<CatalogScreen>
           Row(
             children: [
               _buildActionButton(
-                icon: Icons.download_rounded,
-                label: showLabels ? 'Shablon' : null,
-                onTap: () => ExcelImportService.downloadTemplate(context),
-                color: Colors.blueGrey,
-              ),
-              const SizedBox(width: 12),
-              _buildActionButton(
-                icon: Icons.upload_file_rounded,
-                label: showLabels ? 'Excel Import' : null,
-                onTap: () => ExcelImportService.importFromExcel(context),
-                color: Colors.green,
-              ),
-              const SizedBox(width: 12),
-              _buildActionButton(
-                icon: Icons.copy_all_rounded,
-                label: showLabels ? 'Dublikatlar' : null,
-                onTap: _checkDuplicates,
-                color: Colors.orange,
-              ),
-              const SizedBox(width: 12),
-              _buildActionButton(
                 icon: Icons.add_circle_outline_rounded,
                 label: showLabels ? 'Yangi qo\'shish' : null,
                 onTap: () {
@@ -361,6 +340,53 @@ class _CatalogScreenState extends State<CatalogScreen>
                     _showCategoryDialog(inventory, null);
                   }
                 },
+              ),
+              const SizedBox(width: 8),
+              PopupMenuButton<String>(
+                icon: const Icon(Icons.more_vert_rounded),
+                onSelected: (value) {
+                  switch (value) {
+                    case 'template': ExcelImportService.downloadTemplate(context); break;
+                    case 'import': ExcelImportService.importFromExcel(context); break;
+                    case 'dupes': _checkDuplicates(); break;
+                    case 'missing': _checkMissingBarcodes(); break;
+                  }
+                },
+                itemBuilder: (context) => [
+                  const PopupMenuItem(
+                    value: 'import',
+                    child: ListTile(
+                      leading: Icon(Icons.upload_file_rounded, color: Colors.green),
+                      title: Text('Excel Import'),
+                      dense: true,
+                    ),
+                  ),
+                  const PopupMenuItem(
+                    value: 'template',
+                    child: ListTile(
+                      leading: Icon(Icons.download_rounded, color: Colors.blueGrey),
+                      title: Text('Shablonni yuklash'),
+                      dense: true,
+                    ),
+                  ),
+                  const PopupMenuDivider(),
+                  const PopupMenuItem(
+                    value: 'dupes',
+                    child: ListTile(
+                      leading: Icon(Icons.copy_all_rounded, color: Colors.orange),
+                      title: Text('Dublikatlarni aniqlash'),
+                      dense: true,
+                    ),
+                  ),
+                  const PopupMenuItem(
+                    value: 'missing',
+                    child: ListTile(
+                      leading: Icon(Icons.barcode_reader, color: Colors.redAccent),
+                      title: Text('Shtrix-kodsiz mahsulotlar'),
+                      dense: true,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -917,6 +943,99 @@ class _CatalogScreenState extends State<CatalogScreen>
             );
           }),
         ],
+      ),
+    );
+  }
+  void _checkMissingBarcodes() {
+    final inventory = context.read<InventoryProvider>();
+    final missing = inventory.activeProducts.where((p) => p.barcode.isEmpty).toList();
+
+    if (missing.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Shtrix-kodi yo\'q mahsulotlar topilmadi'), backgroundColor: Colors.green),
+      );
+      return;
+    }
+
+    _showMissingBarcodesDialog(missing);
+  }
+
+  void _showMissingBarcodesDialog(List<Product> missing) {
+    Set<String> selectedIds = {};
+    
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          return AlertDialog(
+            title: Text('Shtrix-kodsiz mahsulotlar (${missing.length})'),
+            content: SizedBox(
+              width: 500,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text('Ushbu mahsulotlarda shtrix-kod mavjud emas. Ularni tanlab, avtomatik kod berishingiz mumkin.'),
+                    const SizedBox(height: 16),
+                    ...missing.map((p) {
+                      final isSelected = selectedIds.contains(p.id);
+                      return ListTile(
+                        dense: true,
+                        leading: Checkbox(
+                          value: isSelected,
+                          onChanged: (val) => setDialogState(() {
+                            if (val == true) selectedIds.add(p.id);
+                            else selectedIds.remove(p.id);
+                          }),
+                        ),
+                        title: Text(p.name),
+                        onTap: () => setDialogState(() {
+                          if (isSelected) selectedIds.remove(p.id);
+                          else selectedIds.add(p.id);
+                        }),
+                        trailing: IconButton(
+                          icon: const Icon(Icons.edit, size: 18, color: Colors.blue),
+                          onPressed: () {
+                            Navigator.pop(context);
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => ProductFormScreen(product: p)),
+                            ).then((_) => _loadProducts(reset: true));
+                          },
+                        ),
+                      );
+                    }),
+                  ],
+                ),
+              ),
+            ),
+            actions: [
+              if (selectedIds.isNotEmpty)
+                ElevatedButton.icon(
+                  onPressed: () async {
+                    final inventory = context.read<InventoryProvider>();
+                    List<Product> updated = [];
+                    for (var id in selectedIds) {
+                      final p = missing.firstWhere((p) => p.id == id);
+                      updated.add(p.copyWith(barcode: inventory.generateBarcode()));
+                    }
+                    await inventory.saveProductsBatch(updated);
+                    if (context.mounted) {
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('${updated.length} ta mahsulotga avtomatik kod berildi')),
+                      );
+                      _loadProducts(reset: true);
+                    }
+                  },
+                  icon: const Icon(Icons.auto_fix_high_rounded),
+                  label: Text('${selectedIds.length} taga kod berish'),
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.blueAccent, foregroundColor: Colors.white),
+                ),
+              TextButton(onPressed: () => Navigator.pop(context), child: const Text('Yopish')),
+            ],
+          );
+        },
       ),
     );
   }
