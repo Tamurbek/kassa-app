@@ -231,6 +231,20 @@ class _CatalogScreenState extends State<CatalogScreen>
                 padding: const EdgeInsets.symmetric(horizontal: 12),
               ),
             ),
+            ElevatedButton.icon(
+              onPressed: () {
+                final inv = context.read<InventoryProvider>();
+                final exportList = inv.products.where((p) => _selectedProductIds.contains(p.id)).toList();
+                ExcelImportService.exportForScale(context, exportList);
+              },
+              icon: const Icon(Icons.scale_rounded, size: 18),
+              label: const Text('Taroziga'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.teal,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+              ),
+            ),
             const SizedBox(width: 8),
             TextButton.icon(
               onPressed: () => setState(() => _selectedProductIds.clear()),
@@ -487,7 +501,10 @@ class _CatalogScreenState extends State<CatalogScreen>
                     case 'missing': _checkMissingBarcodes(); break;
                     case 'scale_export': 
                       final inv = context.read<InventoryProvider>();
-                      ExcelImportService.exportForScale(context, inv.products); 
+                      final exportList = _selectedProductIds.isNotEmpty 
+                        ? inv.products.where((p) => _selectedProductIds.contains(p.id)).toList()
+                        : inv.products;
+                      ExcelImportService.exportForScale(context, exportList); 
                       break;
                   }
                 },
