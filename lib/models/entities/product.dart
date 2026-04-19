@@ -17,7 +17,8 @@ class Product {
   final bool trackStock; // NEW: Should this item subtract from warehouse?
   final double quantityInBox; // NEW: How many units in a box/block
   final double? boxPrice; // NEW: Optional special price for a full box
-  final String? boxBarcode; // NEW: Barcode for the full box
+  final String? boxBarcode; // NEW: Optional barcode for a full box
+  final String? pluCode; // NEW: Dedicated PLU code for weighted items (usually 5 digits)
   
   // Performance optimization: pre-calculate normalized strings for search
   late final String normalizedName;
@@ -40,6 +41,7 @@ class Product {
     this.quantityInBox = 1.0,
     this.boxPrice,
     this.boxBarcode,
+    this.pluCode,
   }) {
     normalizedName = _normalize(name);
     normalizedBarcode = _normalize(barcode);
@@ -63,6 +65,7 @@ class Product {
       final normalizedVariant = _normalize(variant);
       if (normalizedName.contains(normalizedVariant) || 
           normalizedBarcode.contains(normalizedVariant) ||
+          (pluCode != null && pluCode!.contains(normalizedVariant)) ||
           additionalBarcodes.any((b) => _normalize(b).contains(normalizedVariant)) ||
           (boxBarcode != null && _normalize(boxBarcode!).contains(normalizedVariant)) ||
           additionalBoxBarcodes.any((b) => _normalize(b).contains(normalizedVariant))) {
@@ -84,6 +87,7 @@ class Product {
     double quantityInBox = 1.0,
     double? boxPrice,
     String? boxBarcode,
+    String? pluCode,
   }) => Product(
     id: Uuid().v4(),
     name: name,
@@ -100,6 +104,7 @@ class Product {
     quantityInBox: quantityInBox,
     boxPrice: boxPrice,
     boxBarcode: boxBarcode,
+    pluCode: pluCode,
   );
 
   Product copyWith({
@@ -118,6 +123,7 @@ class Product {
     double? quantityInBox,
     double? boxPrice,
     String? boxBarcode,
+    String? pluCode,
   }) => Product(
     id: id,
     name: name ?? this.name,
@@ -135,6 +141,7 @@ class Product {
     quantityInBox: quantityInBox ?? this.quantityInBox,
     boxPrice: boxPrice ?? this.boxPrice,
     boxBarcode: boxBarcode ?? this.boxBarcode,
+    pluCode: pluCode ?? this.pluCode,
   );
 
   Map<String, dynamic> toJson() => {
@@ -154,6 +161,7 @@ class Product {
     'quantityInBox': quantityInBox,
     'boxPrice': boxPrice,
     'boxBarcode': boxBarcode,
+    'pluCode': pluCode,
   };
 
   factory Product.fromJson(Map<String, dynamic> json) {
@@ -194,6 +202,7 @@ class Product {
       quantityInBox: double.tryParse(json['quantityInBox']?.toString() ?? '1') ?? 1.0,
       boxPrice: double.tryParse(json['boxPrice']?.toString() ?? ''),
       boxBarcode: json['boxBarcode']?.toString(),
+      pluCode: json['pluCode']?.toString(),
     );
   }
 }

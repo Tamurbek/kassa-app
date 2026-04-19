@@ -29,6 +29,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
   late TextEditingController _quantityInBoxController;
   late TextEditingController _boxPriceController;
   late TextEditingController _boxBarcodeController;
+  late final TextEditingController _pluCodeController;
   String? _selectedCategoryId;
   String _selectedUnit = 'dona';
   bool _trackStock = true;
@@ -43,6 +44,9 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
     _costPriceController = TextEditingController(text: widget.product?.costPrice == 0 ? '' : widget.product?.costPrice.toString());
     _barcodeController = TextEditingController(
       text: widget.product?.barcode ?? '',
+    );
+    _pluCodeController = TextEditingController(
+      text: widget.product?.pluCode ?? '',
     );
     _quantityInBoxController = TextEditingController(
       text: AppFormatter.formatDouble(widget.product?.quantityInBox ?? 1.0),
@@ -70,6 +74,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
     _priceController.dispose();
     _costPriceController.dispose();
     _barcodeController.dispose();
+    _pluCodeController.dispose();
     for (var c in _additionalBarcodeControllers) {
       c.dispose();
     }
@@ -99,6 +104,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
       final price = double.tryParse(_priceController.text) ?? 0.0;
       final costPrice = double.tryParse(_costPriceController.text) ?? 0.0;
       final barcode = _barcodeController.text.trim();
+      final pluCode = _pluCodeController.text.trim();
       final quantityInBox = double.tryParse(_quantityInBoxController.text) ?? 1.0;
       final boxPrice = double.tryParse(_boxPriceController.text);
       final boxBarcode = _boxBarcodeController.text.trim();
@@ -140,6 +146,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
           name: name,
           categoryId: _selectedCategoryId ?? '',
           barcode: barcode,
+          pluCode: pluCode.isEmpty ? null : pluCode,
           additionalBarcodes: additionalBarcodes,
           additionalBoxBarcodes: additionalBoxBarcodes,
           trackStock: _trackStock,
@@ -160,6 +167,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
           boxPrice: boxPrice,
           boxBarcode: boxBarcode,
           unit: _selectedUnit,
+          pluCode: pluCode.isEmpty ? null : pluCode,
         ).copyWith(
           additionalBarcodes: additionalBarcodes,
           additionalBoxBarcodes: additionalBoxBarcodes,
@@ -300,6 +308,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                   Row(
                     children: [
                       Expanded(
+                        flex: 3,
                         child: _buildTextField(
                           'Shtrix-kod',
                           _barcodeController,
@@ -314,6 +323,17 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                               });
                             },
                           ),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        flex: 1,
+                        child: _buildTextField(
+                          'PLU kodi (Tarozi)',
+                          _pluCodeController,
+                          Icons.scale_rounded,
+                          isRequired: false,
+                          isNumber: true,
                         ),
                       ),
                     ],

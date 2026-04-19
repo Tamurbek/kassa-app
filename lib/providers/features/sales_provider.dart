@@ -185,11 +185,13 @@ class SalesProvider extends ChangeNotifier {
         final String weightStr = barcode.substring(7, 12);
         final double weight = double.parse(weightStr) / 1000.0; // convert grams to kg
 
-        // Find product by code (either exact match or PLU)
+        // Find product by PLU code (dedicated field) or exact match/PLU in barcode
         final product = products.where((p) => 
+          p.pluCode == productCode || 
+          p.pluCode == productCode.replaceFirst(RegExp('^0+'), '') ||
           p.barcode == productCode || 
           p.additionalBarcodes.contains(productCode) ||
-          p.barcode == productCode.replaceFirst(RegExp('^0+'), '') // Also check without leading zeros
+          p.barcode == productCode.replaceFirst(RegExp('^0+'), '')
         ).firstOrNull;
 
         if (product != null) {

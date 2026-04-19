@@ -14,8 +14,8 @@ class ProductRepository {
       final variations = Translit.getVariations(searchQuery);
       List<String> orGroups = [];
       for (var variant in variations) {
-        orGroups.add('(name LIKE ? OR barcode LIKE ? OR boxBarcode LIKE ? OR id IN (SELECT productId FROM product_additional_barcodes WHERE barcode LIKE ?) OR id IN (SELECT productId FROM product_additional_box_barcodes WHERE barcode LIKE ?))');
-        whereArgs.addAll(['%$variant%', '%$variant%', '%$variant%', '%$variant%', '%$variant%']);
+        orGroups.add('(name LIKE ? OR barcode LIKE ? OR pluCode LIKE ? OR boxBarcode LIKE ? OR id IN (SELECT productId FROM product_additional_barcodes WHERE barcode LIKE ?) OR id IN (SELECT productId FROM product_additional_box_barcodes WHERE barcode LIKE ?))');
+        whereArgs.addAll(['%$variant%', '%$variant%', '%$variant%', '%$variant%', '%$variant%', '%$variant%']);
       }
       whereClause += ' AND (${orGroups.join(' OR ')})';
     }

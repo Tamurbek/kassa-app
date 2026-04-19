@@ -499,6 +499,7 @@ class _CatalogScreenState extends State<CatalogScreen>
                     case 'import': ExcelImportService.importFromExcel(context); break;
                     case 'dupes': _checkDuplicates(); break;
                     case 'missing': _checkMissingBarcodes(); break;
+                    case 'auto_plu': _autoGeneratePLU(); break;
                     case 'scale_export': 
                       final inv = context.read<InventoryProvider>();
                       final exportList = _selectedProductIds.isNotEmpty 
@@ -531,6 +532,15 @@ class _CatalogScreenState extends State<CatalogScreen>
                     child: ListTile(
                       leading: Icon(Icons.scale_rounded, color: Colors.indigo),
                       title: Text('Taroziga eksport'),
+                      dense: true,
+                    ),
+                  ),
+                  const PopupMenuDivider(),
+                  const PopupMenuItem(
+                    value: 'auto_plu',
+                    child: ListTile(
+                      leading: Icon(Icons.auto_fix_high_rounded, color: Colors.blue),
+                      title: Text('Avto-PLU generatsiya'),
                       dense: true,
                     ),
                   ),
@@ -1172,6 +1182,65 @@ class _CatalogScreenState extends State<CatalogScreen>
       ),
     );
   }
+  void _autoGeneratePLU() async {
+    final inventory = context.read<InventoryProvider>();
+    final targetProducts = inventory.products.where((p) => (p.pluCode == null || p.pluCode!.isEmpty)).toList();
+    
+    if (targetProducts.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('PLU kodi yo\'q tortiladigan mahsulotlar topilmadi')),
+      );
+      return;
+    }
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Avto-generatsiya'),
+        content: Text('${targetProducts.length} ta mahsulot uchun avtomatik PLU kodi yaratilsinmi?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Yo\'q')),
+          ElevatedButton(onPressed: () => Navigator.pop(context, true), child: const Text('Ha')),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => const Center(child: CircularProgressIndicator()),
+      );
+
+      final List<Product> updated = [];
+      int lastPlu = 0;
+      
+      // Find the highest existing PLU code
+      for (var p in inventory.products) {
+        if (p.pluCode != null && p.pluCode!.isNotEmpty) {
+          int? val = int.tryParse(p.pluCode!);
+          if (val != null && val > lastPlu) lastPlu = val;
+        }
+      }
+
+      for (var p in targetProducts) {
+        lastPlu++;
+        // PLU codes are typically 5 digits in many scales, but can be shorter. 
+        // We'll pad to 5 digits for consistency.
+        updated.add(p.copyWith(pluCode: lastPlu.toString().padLeft(5, '0')));
+      }
+
+      await inventory.saveProductsBatch(updated);
+      if (mounted) {
+        Navigator.pop(context); // Close indicator
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${updated.length} ta mahsulot uchun PLU kodi yaratildi'), backgroundColor: Colors.green),
+        );
+        _loadProducts(reset: true);
+      }
+    }
+  }
+
   void _checkMissingBarcodes() {
     final inventory = context.read<InventoryProvider>();
     final missing = inventory.activeProducts.where((p) {

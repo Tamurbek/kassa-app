@@ -9,7 +9,7 @@ class DatabaseHelper {
   static Future<Database>? _initFuture;
   static bool _factoryInitialized = false;
 
-  static const int databaseVersion = 28;
+  static const int databaseVersion = 29;
   static const String databaseName = 'simple_sale.db';
 
   static Future<Database> get database async {
@@ -128,6 +128,7 @@ class DatabaseHelper {
         quantityInBox REAL NOT NULL DEFAULT 1,
         boxPrice REAL,
         boxBarcode TEXT,
+        pluCode TEXT,
         updatedAt TEXT,
         isSynced INTEGER NOT NULL DEFAULT 0
       )
@@ -670,6 +671,13 @@ class DatabaseHelper {
           PRIMARY KEY (productId, barcode)
         )
       ''');
+    }
+    if (oldVersion < 29) {
+      try {
+        await db.execute('ALTER TABLE products ADD COLUMN pluCode TEXT');
+      } catch (e) {
+        print("Migration 29 error: $e");
+      }
     }
   }
 

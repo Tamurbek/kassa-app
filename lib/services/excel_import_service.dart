@@ -46,7 +46,7 @@ class ExcelImportService {
       }
 
       // Column detection with better defaults
-      int nameIdx = -1, catIdx = -1, priceIdx = -1, costIdx = -1, barcodeIdx = -1, unitIdx = -1;
+      int nameIdx = -1, catIdx = -1, priceIdx = -1, costIdx = -1, barcodeIdx = -1, unitIdx = -1, pluIdx = -1;
       int qtyIdx = -1, warehouseIdx = -1, qtyInBoxIdx = -1, boxPriceIdx = -1, boxBarcodeIdx = -1;
       
       var headerRow = sheet.rows[0];
@@ -56,7 +56,9 @@ class ExcelImportService {
 
           if (val.contains('ombor') || val.contains('warehouse')) {
             warehouseIdx = i;
-          } else          if (val.contains('blok narxi') || val.contains('box price') || val.contains('upakovka narxi')) {
+          } else if (val.contains('plu') || val.contains('tarozi kodi')) {
+            pluIdx = i;
+          } else if (val.contains('blok narxi') || val.contains('box price') || val.contains('upakovka narxi')) {
             boxPriceIdx = i;
           } else if (val.contains('blok ichi') || val.contains('box qty') || val.contains('pachka') || val.contains('upakovka soni')) {
             qtyInBoxIdx = i;
@@ -112,6 +114,8 @@ class ExcelImportService {
         String barcode = barcodes.isNotEmpty ? barcodes[0] : '';
         List<String> additionalBarcodes = barcodes; // Include all barcodes in the additional list as well
         
+        String pluCode = (pluIdx != -1 && row.length > pluIdx) ? _getCellValue(row[pluIdx]) : '';
+
         String unit = (unitIdx != -1 && row.length > unitIdx ? _getCellValue(row[unitIdx]) : 'dona');
         double quantity = (qtyIdx != -1 && row.length > qtyIdx) ? _parseRobustDouble(_getCellValue(row[qtyIdx])) : 0;
         String warehouseName = (warehouseIdx != -1 && row.length > warehouseIdx) ? _getCellValue(row[warehouseIdx]) : '';
@@ -137,6 +141,7 @@ class ExcelImportService {
           'price': price,
           'costPrice': costPrice,
           'barcode': barcode,
+          'pluCode': pluCode,
           'additionalBarcodes': additionalBarcodes,
           'unit': unit,
           'quantity': quantity,
@@ -264,6 +269,7 @@ class ExcelImportService {
             boxPrice: r['boxPrice'],
             barcode: effectiveBarcode,
             boxBarcode: r['boxBarcode'],
+            pluCode: (r['pluCode'] as String).isEmpty ? product.pluCode : r['pluCode'],
             isDeleted: false,
             additionalBarcodes: r['additionalBarcodes'] as List<String>,
             additionalBoxBarcodes: r['additionalBoxBarcodes'] as List<String>,
@@ -283,6 +289,7 @@ class ExcelImportService {
             boxPrice: r['boxPrice'],
             boxBarcode: r['boxBarcode'],
             trackStock: true,
+            pluCode: (r['pluCode'] as String).isEmpty ? null : r['pluCode'],
           ).copyWith(
             additionalBarcodes: r['additionalBarcodes'] as List<String>,
             additionalBoxBarcodes: r['additionalBoxBarcodes'] as List<String>,
@@ -669,6 +676,7 @@ class ExcelImportService {
       sheetObject.cell(CellIndex.indexByString("I1")).value = TextCellValue("Blok ichidagi soni");
       sheetObject.cell(CellIndex.indexByString("J1")).value = TextCellValue("Blok narxi");
       sheetObject.cell(CellIndex.indexByString("K1")).value = TextCellValue("Blok shtrix-kodi");
+      sheetObject.cell(CellIndex.indexByString("L1")).value = TextCellValue("PLU kodi");
 
       var fileBytes = excel.save();
       String? outputPath = await FilePicker.platform.saveFile(
@@ -706,10 +714,12 @@ class ExcelImportService {
         final p = products[i];
         int row = i + 1;
         
-        // PLU: Use barcode if it's a short number, otherwise use index
-        String plu = p.barcode.length <= 5 && int.tryParse(p.barcode) != null 
-            ? p.barcode 
-            : (i + 1).toString();
+        // PLU: Priority: 1. p.pluCode, 2. short numeric barcode, 3. index
+        String plu = (p.pluCode != null && p.pluCode!.isNotEmpty)
+            ? p.pluCode!
+            : (p.barcode.length <= 5 && int.tryParse(p.barcode) != null 
+                ? p.barcode 
+                : (i + 1).toString());
             
         sheetObject.cell(CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: row)).value = TextCellValue(plu);
         sheetObject.cell(CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: row)).value = TextCellValue(p.name);
