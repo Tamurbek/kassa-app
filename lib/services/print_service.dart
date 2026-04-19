@@ -48,6 +48,18 @@ class PrintService {
         .where((char) => char.codeUnitAt(0) < 128) // Only ASCII remains after transliteration
         .join('');
   }
+  static List<String> _wrapText(String text, int width) {
+    List<String> lines = [];
+    text = _clean(text);
+    while (text.length > width) {
+      int spaceIndex = text.lastIndexOf(' ', width);
+      if (spaceIndex == -1) spaceIndex = width;
+      lines.add(text.substring(0, spaceIndex).trim());
+      text = text.substring(spaceIndex).trim();
+    }
+    if (text.isNotEmpty) lines.add(text);
+    return lines;
+  }
 
   static Future<void> printBarcodeLabels({
     required List<Map<String, dynamic>> items, // [{'product': Product, 'quantity': int}]
@@ -461,9 +473,12 @@ class PrintService {
     bytes.addAll(utf8.encode('$divider\n\n'));
 
     for (var item in items) {
-      // Product Name (Upper Case for clarity)
+      // Product Name (Wrapped for long names)
       bytes.addAll([0x1B, 0x45, 0x01]); // bold on for name
-      bytes.addAll(utf8.encode(_clean('${item.productName.toUpperCase()}\n')));
+      List<String> wrappedName = _wrapText(item.productName.toUpperCase(), maxChars);
+      for (var line in wrappedName) {
+        bytes.addAll(utf8.encode(_clean('$line\n')));
+      }
       bytes.addAll([0x1B, 0x45, 0x00]); // bold off
       
       // Quantity x Price
