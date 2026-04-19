@@ -171,7 +171,7 @@ class _InitializationWrapperState extends State<InitializationWrapper> {
               ),
               const SizedBox(height: 8),
               Text(
-                'v${AppConstants.appVersion}',
+                'v${state.appVersion}',
                 style: GoogleFonts.outfit(
                   fontSize: 12,
                   color: Colors.white.withOpacity(0.2),

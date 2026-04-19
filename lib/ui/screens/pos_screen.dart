@@ -632,7 +632,7 @@ class _POSScreenState extends State<POSScreen> {
             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11),
           ),
           Text(
-            'v${AppConstants.appVersion}',
+            'v${settings.appVersion}',
             style: const TextStyle(fontSize: 9, color: Colors.grey),
           ),
         ],
