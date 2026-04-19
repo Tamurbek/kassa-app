@@ -215,7 +215,8 @@ class ExcelImportService {
                             effectiveBarcode == 'yo\'q' || 
                             effectiveBarcode == 'yoq' || 
                             effectiveBarcode == 'bo\'sh' || 
-                            effectiveBarcode == 'bosh';
+                            effectiveBarcode == 'bosh' ||
+                            effectiveBarcode == 'kelmagan';
         
         if (isPlaceholder) {
           effectiveBarcode = inventory.generateBarcode();

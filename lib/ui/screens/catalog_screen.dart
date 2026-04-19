@@ -972,7 +972,7 @@ class _CatalogScreenState extends State<CatalogScreen>
     final inventory = context.read<InventoryProvider>();
     final missing = inventory.activeProducts.where((p) {
       final b = p.barcode.trim().toLowerCase();
-      return b.isEmpty || b == '0' || b == 'yo\'q' || b == 'yoq' || b == 'bo\'sh' || b == 'bosh';
+      return b.isEmpty || b == '0' || b == 'yo\'q' || b == 'yoq' || b == 'bo\'sh' || b == 'bosh' || b == 'kelmagan';
     }).toList();
 
     if (missing.isEmpty) {
