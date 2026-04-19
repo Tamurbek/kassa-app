@@ -203,8 +203,19 @@ class ExcelImportService {
         // 2. Search in existing database products (including deleted ones)
         if (product == null) {
           Product? existing;
-          if (barcode.isNotEmpty) {
-            existing = inventory.products.where((p) => p.barcode == barcode || p.additionalBarcodes.contains(barcode)).firstOrNull;
+          final rowBarcodes = [r['barcode'] as String, ...(r['additionalBarcodes'] as List<String>)].where((b) => b.isNotEmpty).toList();
+          
+          if (rowBarcodes.isNotEmpty) {
+            // Check if ANY of the barcodes from Excel match ANY existing product (primary or additional)
+            for (var b in rowBarcodes) {
+              existing = inventory.products.where((p) => 
+                p.barcode == b || 
+                p.additionalBarcodes.contains(b) ||
+                p.boxBarcode == b ||
+                p.additionalBoxBarcodes.contains(b)
+              ).firstOrNull;
+              if (existing != null) break;
+            }
           }
           
           // Fallback to name search if barcode not found or empty
@@ -226,6 +237,7 @@ class ExcelImportService {
               isDeleted: false, // Restore if it was deleted
               additionalBarcodes: r['additionalBarcodes'] as List<String>,
               additionalBoxBarcodes: r['additionalBoxBarcodes'] as List<String>,
+              trackStock: true, // Ensure tracking is enabled
             );
           } else {
             // Create new product
@@ -239,6 +251,7 @@ class ExcelImportService {
               quantityInBox: r['quantityInBox'],
               boxPrice: r['boxPrice'],
               boxBarcode: r['boxBarcode'],
+              trackStock: true, // Explicitly enable for new products
             ).copyWith(
               additionalBarcodes: r['additionalBarcodes'] as List<String>,
               additionalBoxBarcodes: r['additionalBoxBarcodes'] as List<String>,
@@ -290,24 +303,51 @@ class ExcelImportService {
         }
       }
 
-      List<Product> productsToSave = productsMap.values.toList();
+      List<Product> productsToSave = [];
+      for (var product in productsMap.values) {
+        // Prepare product with updated stocks from Excel rows
+        Product updatedProduct = product;
+        
+        // Find if we have stock entries for this product in the current import
+        for (var warehouseId in warehouseStockItems.keys) {
+          final items = warehouseStockItems[warehouseId]!;
+          final excelItem = items.where((it) => it.productId == product.id).firstOrNull;
+          
+          if (excelItem != null) {
+            // SET the stock to exactly what's in Excel, overwriting current value
+            Map<String, double> newStocks = Map.from(updatedProduct.stocks);
+            newStocks[warehouseId] = excelItem.quantity;
+            updatedProduct = updatedProduct.copyWith(stocks: newStocks);
+          }
+        }
+        productsToSave.add(updatedProduct);
+      }
       
-      await inventory.saveProductsBatch(productsToSave);
+      // Important: skipRecalculate here because we will do it after adding InventoryEntry
+      await inventory.saveProductsBatch(productsToSave, skipRecalculate: true);
 
-      // Create Stock entries
+      // Create Inventory entries (Invertarizatsiya) to explicitly SET the stock levels
       for (var entry in warehouseStockItems.entries) {
-        final stockEntry = StockEntry(
+        final inventoryEntry = InventoryEntry(
           id: const Uuid().v4(),
           warehouseId: entry.key,
           date: DateTime.now(),
-          items: entry.value,
-          description: 'Katalog importi bilan birga kirim qilindi',
+          items: entry.value.map((it) => InventoryItem(
+            productId: it.productId,
+            productName: it.productName,
+            expectedQuantity: 0, // We don't care about expected, we are setting actual
+            actualQuantity: it.quantity,
+          )).toList(),
+          description: 'Katalog importi: Qoldiqlar Exceldagiga tenglashtirildi',
         );
-        await inventory.addStockEntry(stockEntry);
+        
+        await inventory.addInventory(inventoryEntry);
       }
 
+      await inventory.reloadData(forceRecalculate: true);
+
       Navigator.pop(context); // Close indicator
-      _showSuccess(context, '${productsToSave.length} ta mahsulot muvaffaqiyatli qo\'shildi');
+      _showSuccess(context, '${productsToSave.length} ta mahsulot muvaffaqiyatli yangilandi');
 
     } catch (e) {
       if (Navigator.canPop(context)) Navigator.pop(context);
@@ -520,7 +560,16 @@ class ExcelImportService {
 
         Product? product;
         if (barcode.isNotEmpty) {
-           product = inventory.activeProducts.where((p) => p.barcode == barcode || p.additionalBarcodes.contains(barcode)).firstOrNull;
+           final bars = barcode.split(RegExp(r'[,;]')).map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
+           for (var b in bars) {
+             product = inventory.activeProducts.where((p) => 
+               p.barcode == b || 
+               p.additionalBarcodes.contains(b) ||
+               p.boxBarcode == b ||
+               p.additionalBoxBarcodes.contains(b)
+             ).firstOrNull;
+             if (product != null) break;
+           }
         }
         if (product == null && name.isNotEmpty) {
            product = inventory.activeProducts.where((p) => p.name.toLowerCase() == name.toLowerCase()).firstOrNull;
