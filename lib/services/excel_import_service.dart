@@ -207,7 +207,14 @@ class ExcelImportService {
         String catId = mapping[r['categoryName']]!;
         String primaryBarcode = r['barcode'] as String;
         String name = (r['name'] as String).trim();
-        List<String> rowBarcodes = [primaryBarcode, ...(r['additionalBarcodes'] as List<String>)].where((b) => b.isNotEmpty).toList();
+
+        // Professional: Auto-generate unique barcode if missing
+        String effectiveBarcode = primaryBarcode.trim();
+        if (effectiveBarcode.isEmpty) {
+          effectiveBarcode = inventory.generateBarcode();
+        }
+
+        List<String> rowBarcodes = [effectiveBarcode, ...(r['additionalBarcodes'] as List<String>)].where((b) => b.isNotEmpty).toList();
         
         Product? product;
 
@@ -245,7 +252,7 @@ class ExcelImportService {
             unit: r['unit'],
             quantityInBox: r['quantityInBox'],
             boxPrice: r['boxPrice'],
-            barcode: primaryBarcode.isNotEmpty ? primaryBarcode : null,
+            barcode: effectiveBarcode,
             boxBarcode: r['boxBarcode'],
             isDeleted: false,
             additionalBarcodes: r['additionalBarcodes'] as List<String>,
@@ -259,7 +266,7 @@ class ExcelImportService {
             name,
             r['price'],
             catId,
-            primaryBarcode,
+            effectiveBarcode,
             costPrice: r['costPrice'],
             unit: r['unit'],
             quantityInBox: r['quantityInBox'],

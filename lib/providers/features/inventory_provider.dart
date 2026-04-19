@@ -308,10 +308,19 @@ class InventoryProvider extends ChangeNotifier {
     await reloadData();
   }
 
+  static int _barcodeCounter = 0;
   String generateBarcode() {
     final now = DateTime.now();
+    _barcodeCounter++;
+    if (_barcodeCounter > 99) _barcodeCounter = 1;
+    
+    // Core: Use last 8 digits of timestamp + 2 digit counter
     final timestamp = now.millisecondsSinceEpoch.toString();
-    final core = timestamp.substring(timestamp.length - 10);
-    return '200$core';
+    final core = timestamp.length > 8 
+        ? timestamp.substring(timestamp.length - 8) 
+        : timestamp.padLeft(8, '0');
+    
+    final counterStr = _barcodeCounter.toString().padLeft(2, '0');
+    return '200$core$counterStr';
   }
 }
