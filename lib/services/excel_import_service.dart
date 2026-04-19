@@ -184,82 +184,59 @@ class ExcelImportService {
         builder: (_) => const Center(child: CircularProgressIndicator()),
       );
 
-      Map<String, Product> productsMap = {}; // id -> product
-      Map<String, String> barcodeToId = {}; // barcode -> id
+      // Pre-index database products for professional performance (O(1) lookup)
+      Map<String, Product> dbBarcodeMap = {};
+      Map<String, Product> dbNameMap = {};
+      for (var p in inventory.products) {
+        final allBarcodes = [p.barcode, ...p.additionalBarcodes, p.boxBarcode ?? '', ...p.additionalBoxBarcodes].where((b) => b.isNotEmpty);
+        for (var b in allBarcodes) {
+          dbBarcodeMap[b] = p;
+        }
+        dbNameMap[p.name.toLowerCase().trim()] = p;
+      }
+
+      Map<String, Product> sessionProducts = {}; // id -> product
+      Map<String, String> sessionBarcodeMap = {}; // barcode -> id
+      Map<String, String> sessionNameMap = {};    // name.toLowerCase() -> id
       Map<String, List<StockEntryItem>> warehouseStockItems = {}; // warehouseId -> items
+
+      int updatedCount = 0;
+      int createdCount = 0;
 
       for (var r in rawRows) {
         String catId = mapping[r['categoryName']]!;
-        String barcode = r['barcode'] as String;
-        String name = r['name'] as String;
+        String primaryBarcode = r['barcode'] as String;
+        String name = (r['name'] as String).trim();
+        List<String> rowBarcodes = [primaryBarcode, ...(r['additionalBarcodes'] as List<String>)].where((b) => b.isNotEmpty).toList();
         
         Product? product;
 
-        // 1. Check if we already processed this product in THIS import session
-        if (barcode.isNotEmpty && barcodeToId.containsKey(barcode)) {
-          product = productsMap[barcodeToId[barcode]];
+        // 1. Check current SESSION first (prevents duplicates within the same Excel file)
+        for (var b in rowBarcodes) {
+          if (sessionBarcodeMap.containsKey(b)) {
+            product = sessionProducts[sessionBarcodeMap[b]];
+            break;
+          }
+        }
+        if (product == null && sessionNameMap.containsKey(name.toLowerCase())) {
+          product = sessionProducts[sessionNameMap[name.toLowerCase()]];
         }
 
-        // 2. Search in existing database products (including deleted ones)
+        // 2. Check DATABASE (if not found in session)
         if (product == null) {
-          Product? existing;
-          final rowBarcodes = [r['barcode'] as String, ...(r['additionalBarcodes'] as List<String>)].where((b) => b.isNotEmpty).toList();
-          
-          if (rowBarcodes.isNotEmpty) {
-            // Check if ANY of the barcodes from Excel match ANY existing product (primary or additional)
-            for (var b in rowBarcodes) {
-              existing = inventory.products.where((p) => 
-                p.barcode == b || 
-                p.additionalBarcodes.contains(b) ||
-                p.boxBarcode == b ||
-                p.additionalBoxBarcodes.contains(b)
-              ).firstOrNull;
-              if (existing != null) break;
+          for (var b in rowBarcodes) {
+            if (dbBarcodeMap.containsKey(b)) {
+              product = dbBarcodeMap[b];
+              break;
             }
           }
-          
-          // Fallback to name search if barcode not found or empty
-          if (existing == null && name.isNotEmpty) {
-            existing = inventory.products.where((p) => p.name.toLowerCase() == name.toLowerCase()).firstOrNull;
+          if (product == null && dbNameMap.containsKey(name.toLowerCase())) {
+            product = dbNameMap[name.toLowerCase()];
           }
+        }
 
-          if (existing != null) {
-            // Update existing product
-            product = existing.copyWith(
-              name: name,
-              price: r['price'],
-              costPrice: r['costPrice'],
-              categoryId: catId,
-              unit: r['unit'],
-              quantityInBox: r['quantityInBox'],
-              boxPrice: r['boxPrice'],
-              barcode: barcode.isNotEmpty ? barcode : null,
-              boxBarcode: r['boxBarcode'],
-              isDeleted: false, // Restore if it was deleted
-              additionalBarcodes: r['additionalBarcodes'] as List<String>,
-              additionalBoxBarcodes: r['additionalBoxBarcodes'] as List<String>,
-              trackStock: true, // Ensure tracking is enabled
-            );
-          } else {
-            // Create new product
-            product = Product.create(
-              name,
-              r['price'],
-              catId,
-              barcode,
-              costPrice: r['costPrice'],
-              unit: r['unit'],
-              quantityInBox: r['quantityInBox'],
-              boxPrice: r['boxPrice'],
-              boxBarcode: r['boxBarcode'],
-              trackStock: true, // Explicitly enable for new products
-            ).copyWith(
-              additionalBarcodes: r['additionalBarcodes'] as List<String>,
-              additionalBoxBarcodes: r['additionalBoxBarcodes'] as List<String>,
-            );
-          }
-        } else {
-          // If we already have a product in this session, just update its info from this row
+        if (product != null) {
+          // Update existing product
           product = product.copyWith(
             name: name,
             price: r['price'],
@@ -268,14 +245,45 @@ class ExcelImportService {
             unit: r['unit'],
             quantityInBox: r['quantityInBox'],
             boxPrice: r['boxPrice'],
+            barcode: primaryBarcode.isNotEmpty ? primaryBarcode : null,
             boxBarcode: r['boxBarcode'],
+            isDeleted: false,
+            additionalBarcodes: r['additionalBarcodes'] as List<String>,
+            additionalBoxBarcodes: r['additionalBoxBarcodes'] as List<String>,
+            trackStock: true,
           );
+          if (product.id.isEmpty) updatedCount++; // Should not happen with valid products
+        } else {
+          // Create new product
+          product = Product.create(
+            name,
+            r['price'],
+            catId,
+            primaryBarcode,
+            costPrice: r['costPrice'],
+            unit: r['unit'],
+            quantityInBox: r['quantityInBox'],
+            boxPrice: r['boxPrice'],
+            boxBarcode: r['boxBarcode'],
+            trackStock: true,
+          ).copyWith(
+            additionalBarcodes: r['additionalBarcodes'] as List<String>,
+            additionalBoxBarcodes: r['additionalBoxBarcodes'] as List<String>,
+          );
+          createdCount++;
         }
 
-        // Update tracking maps
-        productsMap[product.id] = product;
-        if (product.barcode.isNotEmpty) {
-          barcodeToId[product.barcode] = product.id;
+        // Update SESSION maps immediately for next rows
+        sessionProducts[product.id] = product;
+        final allPBarcodes = [product.barcode, ...product.additionalBarcodes, product.boxBarcode ?? '', ...product.additionalBoxBarcodes].where((b) => b.isNotEmpty);
+        for (var b in allPBarcodes) {
+          sessionBarcodeMap[b] = product.id;
+        }
+        sessionNameMap[product.name.toLowerCase()] = product.id;
+
+        // Update updatedCount if it was a DB product
+        if (updatedCount == 0 && createdCount == 0) {
+           // This logic is just for counting
         }
 
         // Stock Entry Logic
@@ -304,8 +312,10 @@ class ExcelImportService {
         }
       }
 
+      updatedCount = sessionProducts.length - createdCount;
+
       List<Product> productsToSave = [];
-      for (var product in productsMap.values) {
+      for (var product in sessionProducts.values) {
         // Prepare product with updated stocks from Excel rows
         Product updatedProduct = product;
         
@@ -348,7 +358,7 @@ class ExcelImportService {
       await inventory.reloadData(forceRecalculate: true);
 
       Navigator.pop(context); // Close indicator
-      _showSuccess(context, '${productsToSave.length} ta mahsulot muvaffaqiyatli yangilandi');
+      _showSuccess(context, '$createdCount ta yangi va $updatedCount ta mavjud mahsulot muvaffaqiyatli import qilindi');
 
     } catch (e) {
       if (Navigator.canPop(context)) Navigator.pop(context);
