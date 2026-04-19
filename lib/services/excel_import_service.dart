@@ -208,10 +208,19 @@ class ExcelImportService {
         String primaryBarcode = r['barcode'] as String;
         String name = (r['name'] as String).trim();
 
-        // Professional: Auto-generate unique barcode if missing
-        String effectiveBarcode = primaryBarcode.trim();
-        if (effectiveBarcode.isEmpty) {
+        // Professional: Auto-generate unique barcode if missing or contains placeholders
+        String effectiveBarcode = primaryBarcode.trim().toLowerCase();
+        bool isPlaceholder = effectiveBarcode.isEmpty || 
+                            effectiveBarcode == '0' || 
+                            effectiveBarcode == 'yo\'q' || 
+                            effectiveBarcode == 'yoq' || 
+                            effectiveBarcode == 'bo\'sh' || 
+                            effectiveBarcode == 'bosh';
+        
+        if (isPlaceholder) {
           effectiveBarcode = inventory.generateBarcode();
+        } else {
+          effectiveBarcode = primaryBarcode.trim(); // Keep original if not placeholder
         }
 
         List<String> rowBarcodes = [effectiveBarcode, ...(r['additionalBarcodes'] as List<String>)].where((b) => b.isNotEmpty).toList();
