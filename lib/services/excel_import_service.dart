@@ -686,6 +686,53 @@ class ExcelImportService {
     }
   }
 
+  static Future<void> exportForScale(BuildContext context, List<Product> products) async {
+    try {
+      final weighedProducts = products.where((p) => p.unit.toLowerCase() == 'kg').toList();
+      
+      if (weighedProducts.isEmpty) {
+        _showError(context, "Vaznli (kg) mahsulotlar topilmadi");
+        return;
+      }
+
+      var excel = Excel.createExcel();
+      Sheet sheetObject = excel['Sheet1'];
+
+      sheetObject.cell(CellIndex.indexByString("A1")).value = TextCellValue("PLU");
+      sheetObject.cell(CellIndex.indexByString("B1")).value = TextCellValue("Nomi");
+      sheetObject.cell(CellIndex.indexByString("C1")).value = TextCellValue("Narxi");
+      sheetObject.cell(CellIndex.indexByString("D1")).value = TextCellValue("Shtrix");
+
+      for (int i = 0; i < weighedProducts.length; i++) {
+        final p = weighedProducts[i];
+        int row = i + 1;
+        // PLU: Use barcode if it's a short number, otherwise use index
+        String plu = p.barcode.length <= 5 && int.tryParse(p.barcode) != null 
+            ? p.barcode 
+            : (i + 1).toString();
+            
+        sheetObject.cell(CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: row)).value = TextCellValue(plu);
+        sheetObject.cell(CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: row)).value = TextCellValue(p.name);
+        sheetObject.cell(CellIndex.indexByColumnRow(columnIndex: 2, rowIndex: row)).value = DoubleCellValue(p.price);
+        sheetObject.cell(CellIndex.indexByColumnRow(columnIndex: 3, rowIndex: row)).value = TextCellValue(p.barcode);
+      }
+
+      var fileBytes = excel.save();
+      String? outputPath = await FilePicker.platform.saveFile(
+        fileName: "tarozilar_uchun_eksport.xlsx",
+        allowedExtensions: ['xlsx'],
+        type: FileType.custom,
+      );
+
+      if (outputPath != null) {
+        File(outputPath)..createSync(recursive: true)..writeAsBytesSync(fileBytes!);
+        _showSuccess(context, "Tarozilar uchun ma'lumotlar saqlandi");
+      }
+    } catch (e) {
+      _showError(context, "Xatolik: $e");
+    }
+  }
+
   static String _getCellValue(Data? data) {
     if (data == null || data.value == null) return '';
     var v = data.value;

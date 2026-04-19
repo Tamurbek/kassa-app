@@ -350,6 +350,9 @@ class _CatalogScreenState extends State<CatalogScreen>
                     case 'import': ExcelImportService.importFromExcel(context); break;
                     case 'dupes': _checkDuplicates(); break;
                     case 'missing': _checkMissingBarcodes(); break;
+                    case 'scale_export': 
+                      ExcelImportService.exportForScale(context, inventory.products); 
+                      break;
                   }
                 },
                 itemBuilder: (context) => [
@@ -366,6 +369,15 @@ class _CatalogScreenState extends State<CatalogScreen>
                     child: ListTile(
                       leading: Icon(Icons.download_rounded, color: Colors.blueGrey),
                       title: Text('Shablonni yuklash'),
+                      dense: true,
+                    ),
+                  ),
+                  const PopupMenuDivider(),
+                  const PopupMenuItem(
+                    value: 'scale_export',
+                    child: ListTile(
+                      leading: Icon(Icons.scale_rounded, color: Colors.indigo),
+                      title: Text('Taroziga eksport'),
                       dense: true,
                     ),
                   ),
