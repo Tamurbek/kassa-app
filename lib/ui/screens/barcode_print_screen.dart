@@ -63,7 +63,7 @@ class _BarcodePrintScreenState extends State<BarcodePrintScreen> {
     final query = _searchController.text.toLowerCase();
     
     final filteredProducts = inventory.activeProducts.where((p) {
-      return p.name.toLowerCase().contains(query) || p.barcode.contains(query);
+      return p.matchesSearch(_searchController.text);
     }).toList();
 
     final auth = context.watch<AuthProvider>();

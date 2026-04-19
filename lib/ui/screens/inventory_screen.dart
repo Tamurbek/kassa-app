@@ -192,7 +192,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
                           optionsBuilder: (TextEditingValue textEditingValue) {
                             if (textEditingValue.text == '') return const Iterable<Product>.empty();
                             return inventoryProv.activeProducts.where((Product option) => 
-                              option.name.toLowerCase().contains(textEditingValue.text.toLowerCase())
+                              option.matchesSearch(textEditingValue.text)
                             );
                           },
                           onSelected: (Product selection) {

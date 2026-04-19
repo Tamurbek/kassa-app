@@ -1,5 +1,6 @@
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import '../../models/models.dart';
+import '../../core/utils/translit.dart';
 import 'database_helper.dart';
 
 class ProductRepository {
@@ -10,8 +11,13 @@ class ProductRepository {
     List<dynamic> whereArgs = [];
 
     if (searchQuery != null && searchQuery.isNotEmpty) {
-      whereClause += ' AND (name LIKE ? OR barcode LIKE ? OR boxBarcode LIKE ? OR id IN (SELECT productId FROM product_additional_barcodes WHERE barcode LIKE ?) OR id IN (SELECT productId FROM product_additional_box_barcodes WHERE barcode LIKE ?))';
-      whereArgs.addAll(['%$searchQuery%', '%$searchQuery%', '%$searchQuery%', '%$searchQuery%', '%$searchQuery%']);
+      final variations = Translit.getVariations(searchQuery);
+      List<String> orGroups = [];
+      for (var variant in variations) {
+        orGroups.add('(name LIKE ? OR barcode LIKE ? OR boxBarcode LIKE ? OR id IN (SELECT productId FROM product_additional_barcodes WHERE barcode LIKE ?) OR id IN (SELECT productId FROM product_additional_box_barcodes WHERE barcode LIKE ?))');
+        whereArgs.addAll(['%$variant%', '%$variant%', '%$variant%', '%$variant%', '%$variant%']);
+      }
+      whereClause += ' AND (${orGroups.join(' OR ')})';
     }
 
     if (categoryId != null && categoryId.isNotEmpty) {

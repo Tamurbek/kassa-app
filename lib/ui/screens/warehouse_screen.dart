@@ -65,10 +65,7 @@ class _WarehouseScreenState extends State<WarehouseScreen> with SingleTickerProv
     }
 
     final filteredProducts = inventory.activeProducts.where((p) {
-      final matchesSearch =
-          p.name.toLowerCase().contains(searchQuery) ||
-          p.barcode.contains(searchQuery);
-      return matchesSearch;
+      return p.matchesSearch(_searchController.text);
     }).toList();
 
     // Apply Sorting

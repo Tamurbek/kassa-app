@@ -1,4 +1,5 @@
 import 'package:uuid/uuid.dart';
+import '../../core/utils/translit.dart';
 
 class Product {
   final String id;
@@ -54,6 +55,22 @@ class Product {
   }
 
   double get stock => stocks.values.fold(0.0, (sum, val) => sum + val);
+  
+  bool matchesSearch(String searchQuery) {
+    if (searchQuery.isEmpty) return true;
+    final variations = Translit.getVariations(searchQuery);
+    for (var variant in variations) {
+      final normalizedVariant = _normalize(variant);
+      if (normalizedName.contains(normalizedVariant) || 
+          normalizedBarcode.contains(normalizedVariant) ||
+          additionalBarcodes.any((b) => _normalize(b).contains(normalizedVariant)) ||
+          (boxBarcode != null && _normalize(boxBarcode!).contains(normalizedVariant)) ||
+          additionalBoxBarcodes.any((b) => _normalize(b).contains(normalizedVariant))) {
+        return true;
+      }
+    }
+    return false;
+  }
 
   factory Product.create(
     String name,

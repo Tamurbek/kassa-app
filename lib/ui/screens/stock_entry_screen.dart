@@ -242,7 +242,7 @@ class _StockEntryScreenState extends State<StockEntryScreen> {
             displayStringForOption: (Product option) => option.name,
             optionsBuilder: (TextEditingValue textEditingValue) {
               if (textEditingValue.text == '') return const Iterable<Product>.empty();
-              return inventory.activeProducts.where((Product option) => option.name.toLowerCase().contains(textEditingValue.text.toLowerCase()));
+              return inventory.activeProducts.where((Product option) => option.matchesSearch(textEditingValue.text));
             },
             onSelected: (Product selection) {
               _addProductToItems(selection);
@@ -606,8 +606,7 @@ class _StockEntryScreenState extends State<StockEntryScreen> {
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) {
           final filteredProducts = inventory.activeProducts.where((p) {
-            final query = searchQuery.toLowerCase();
-            return p.name.toLowerCase().contains(query) || p.barcode.contains(query);
+            return p.matchesSearch(searchQuery);
           }).toList();
 
           return AlertDialog(

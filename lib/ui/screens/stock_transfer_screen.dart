@@ -231,12 +231,7 @@ class _StockTransferScreenState extends State<StockTransferScreen> {
             }
             final query = textEditingValue.text.toLowerCase();
             return inventory.activeProducts.where((p) {
-              final matchesBarcode = (p.barcode?.toLowerCase() ?? '').contains(query) || 
-                                   p.additionalBarcodes.any((b) => b.toLowerCase().contains(query)) ||
-                                   (p.boxBarcode?.toLowerCase() ?? '').contains(query) ||
-                                   p.additionalBoxBarcodes.any((b) => b.toLowerCase().contains(query));
-              final matchesName = p.name.toLowerCase().contains(query);
-              return matchesBarcode || matchesName;
+              return p.matchesSearch(textEditingValue.text);
             }).take(10); // Limit results for performance
           },
           displayStringForOption: (Product option) => option.name,
@@ -468,7 +463,7 @@ class _StockTransferScreenState extends State<StockTransferScreen> {
 
     // Try name match (if only 1 match found, add it)
     final matches = inventory.activeProducts.where(
-      (p) => p.name.toLowerCase().contains(search.toLowerCase())
+      (p) => p.matchesSearch(search)
     ).toList();
 
     if (matches.length == 1) {
