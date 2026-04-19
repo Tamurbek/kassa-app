@@ -688,10 +688,8 @@ class ExcelImportService {
 
   static Future<void> exportForScale(BuildContext context, List<Product> products) async {
     try {
-      final weighedProducts = products.where((p) => p.unit.toLowerCase() == 'kg').toList();
-      
-      if (weighedProducts.isEmpty) {
-        _showError(context, "Vaznli (kg) mahsulotlar topilmadi");
+      if (products.isEmpty) {
+        _showError(context, "Mahsulotlar topilmadi");
         return;
       }
 
@@ -702,10 +700,12 @@ class ExcelImportService {
       sheetObject.cell(CellIndex.indexByString("B1")).value = TextCellValue("Nomi");
       sheetObject.cell(CellIndex.indexByString("C1")).value = TextCellValue("Narxi");
       sheetObject.cell(CellIndex.indexByString("D1")).value = TextCellValue("Shtrix");
+      sheetObject.cell(CellIndex.indexByString("E1")).value = TextCellValue("Birlik");
 
-      for (int i = 0; i < weighedProducts.length; i++) {
-        final p = weighedProducts[i];
+      for (int i = 0; i < products.length; i++) {
+        final p = products[i];
         int row = i + 1;
+        
         // PLU: Use barcode if it's a short number, otherwise use index
         String plu = p.barcode.length <= 5 && int.tryParse(p.barcode) != null 
             ? p.barcode 
@@ -715,6 +715,7 @@ class ExcelImportService {
         sheetObject.cell(CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: row)).value = TextCellValue(p.name);
         sheetObject.cell(CellIndex.indexByColumnRow(columnIndex: 2, rowIndex: row)).value = DoubleCellValue(p.price);
         sheetObject.cell(CellIndex.indexByColumnRow(columnIndex: 3, rowIndex: row)).value = TextCellValue(p.barcode);
+        sheetObject.cell(CellIndex.indexByColumnRow(columnIndex: 4, rowIndex: row)).value = TextCellValue(p.unit);
       }
 
       var fileBytes = excel.save();
