@@ -172,6 +172,32 @@ class SalesProvider extends ChangeNotifier {
 
   void addToCartByBarcode(String barcode, List<Product> products, {String? warehouseId}) {
     try {
+      // 1. Check for WEIGHTED BARCODE (e.g. from a scale)
+      // Standard format: PP IIIII WWWWW C
+      // PP = Prefix (usually 21, 22, 23, 24, 25, 29)
+      // IIIII = Product code (PLU)
+      // WWWWW = Weight in grams (e.g. 00500 = 0.5kg)
+      if (barcode.length == 13 && (barcode.startsWith('21') || barcode.startsWith('22') || barcode.startsWith('23') || 
+          barcode.startsWith('24') || barcode.startsWith('25') || barcode.startsWith('29'))) {
+        
+        final String productCode = barcode.substring(2, 7);
+        final String weightStr = barcode.substring(7, 12);
+        final double weight = double.parse(weightStr) / 1000.0; // convert grams to kg
+
+        // Find product by code (either exact match or PLU)
+        final product = products.where((p) => 
+          p.barcode == productCode || 
+          p.additionalBarcodes.contains(productCode) ||
+          p.barcode == productCode.replaceFirst(RegExp('^0+'), '') // Also check without leading zeros
+        ).firstOrNull;
+
+        if (product != null) {
+          _addToCartWithQuantity(product, weight, warehouseId: warehouseId);
+          return;
+        }
+      }
+
+      // 2. Normal barcode handling
       final product = products.firstWhere(
         (p) => p.barcode == barcode || 
                p.additionalBarcodes.contains(barcode) || 
@@ -188,6 +214,34 @@ class SalesProvider extends ChangeNotifier {
       }
       throw Exception('Mahsulot topilmadi: $barcode');
     }
+  }
+
+  /// Helper for weighted products
+  void _addToCartWithQuantity(Product product, double quantity, {String? warehouseId}) {
+    final stock = product.stocks[warehouseId] ?? 0;
+    if (product.trackStock && stock < quantity) {
+       throw Exception('Omborda yetarli mahsulot yo\'q (Mavjud: $stock ${product.unit})');
+    }
+
+    final existingIndex = cart.indexWhere((item) => item.productId == product.id && !item.isBox);
+    
+    if (existingIndex != -1) {
+      final item = cart[existingIndex];
+      if (product.trackStock && (item.quantity + quantity) > stock) {
+        throw Exception('Omborda yetarli mahsulot yo\'q');
+      }
+      cart[existingIndex] = item.copyWith(quantity: item.quantity + quantity);
+    } else {
+      cart.add(SaleItem(
+        productId: product.id,
+        productName: product.name,
+        quantity: quantity,
+        price: product.price,
+        costPrice: product.costPrice,
+        isBox: false,
+      ));
+    }
+    notifyListeners();
   }
 
   void removeFromCart(String productId) {
