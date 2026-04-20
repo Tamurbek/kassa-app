@@ -52,6 +52,13 @@ class SyncRepository {
         result[table] = enriched;
       }
     }
+    
+    // Professional: Fetch hard-deletions to sync across terminals
+    final deletions = await db.query('deleted_records', where: 'isSynced = 0');
+    if (deletions.isNotEmpty) {
+      result['deleted_records'] = deletions.map((d) => Map<String, dynamic>.from(d)).toList();
+    }
+    
     return result;
   }
 }

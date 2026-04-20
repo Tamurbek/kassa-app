@@ -9,7 +9,7 @@ class DatabaseHelper {
   static Future<Database>? _initFuture;
   static bool _factoryInitialized = false;
 
-  static const int databaseVersion = 29;
+  static const int databaseVersion = 31;
   static const String databaseName = 'simple_sale.db';
 
   static Future<Database> get database async {
@@ -333,12 +333,22 @@ class DatabaseHelper {
     ''');
     await db.execute('CREATE INDEX idx_products_name ON products (name)');
     await db.execute('CREATE INDEX idx_products_barcode ON products (barcode)');
+    await db.execute('CREATE INDEX idx_products_plu ON products (pluCode)');
     await db.execute('CREATE INDEX idx_products_deleted ON products (isDeleted)');
     await db.execute('CREATE INDEX idx_categories_deleted ON categories (isDeleted)');
     await db.execute('CREATE INDEX idx_sales_date ON sales (date)');
     await db.execute('CREATE INDEX idx_stock_entries_date ON stock_entries (date)');
     await db.execute('CREATE INDEX idx_additional_barcodes ON product_additional_barcodes (barcode)');
     await db.execute('CREATE INDEX idx_stocks_product ON stocks (productId)');
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS deleted_records (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        tableName TEXT NOT NULL,
+        recordId TEXT NOT NULL,
+        deletedAt TEXT NOT NULL,
+        isSynced INTEGER NOT NULL DEFAULT 0
+      )
+    ''');
   }
 
   static Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -677,6 +687,24 @@ class DatabaseHelper {
         await db.execute('ALTER TABLE products ADD COLUMN pluCode TEXT');
       } catch (e) {
         print("Migration 29 error: $e");
+      }
+    }
+    if (oldVersion < 30) {
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS deleted_records (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          tableName TEXT NOT NULL,
+          recordId TEXT NOT NULL,
+          deletedAt TEXT NOT NULL,
+          isSynced INTEGER NOT NULL DEFAULT 0
+        )
+      ''');
+    }
+    if (oldVersion < 31) {
+      try {
+        await db.execute('CREATE INDEX IF NOT EXISTS idx_products_plu ON products (pluCode)');
+      } catch (e) {
+        print("Migration 31 error: $e");
       }
     }
   }

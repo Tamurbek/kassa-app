@@ -374,6 +374,9 @@ class _CatalogScreenState extends State<CatalogScreen>
     );
   }
 
+    bool _isDeleting = false;
+    // ... inside state class
+    
   Future<void> _deleteSelectedProducts() async {
     if (_selectedProductIds.isEmpty) return;
     
@@ -394,12 +397,24 @@ class _CatalogScreenState extends State<CatalogScreen>
     );
 
     if (confirmed == true) {
-      final inventory = context.read<InventoryProvider>();
-      await inventory.deleteProductsBatch(_selectedProductIds.toList());
-      setState(() {
-        _selectedProductIds.clear();
-      });
-      _loadProducts(reset: true);
+      setState(() => _isLoadingMore = true); // Reuse loading state for overlay
+      try {
+        final inventory = context.read<InventoryProvider>();
+        await inventory.deleteProductsBatch(_selectedProductIds.toList());
+        setState(() {
+          _selectedProductIds.clear();
+        });
+        _loadProducts(reset: true);
+        if (mounted) {
+           ScaffoldMessenger.of(context).showSnackBar(
+             const SnackBar(content: Text('Mahsulotlar o\'chirildi'), backgroundColor: Colors.green),
+           );
+        }
+      } catch (e) {
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Xatolik: $e')));
+      } finally {
+        if (mounted) setState(() => _isLoadingMore = false);
+      }
     }
   }
 
@@ -994,14 +1009,24 @@ class _CatalogScreenState extends State<CatalogScreen>
     );
   }
 
-  void _checkDuplicates() {
+  void _checkDuplicates() async {
     final inventory = context.read<InventoryProvider>();
     final products = inventory.activeProducts;
 
     Map<String, List<Product>> barcodeDupes = {};
     Map<String, List<Product>> nameDupes = {};
+    List<Product> zeroPriceProducts = [];
+    
+    // Check for discrepancies between DB and memory
+    final List<Product> pagedProducts = await inventory.getProductsPaged(limit: 5000);
+    final Set<String> activeIds = products.map((p) => p.id).toSet();
+    final List<Product> missingInActive = pagedProducts.where((p) => !activeIds.contains(p.id)).toList();
 
     for (var p in products) {
+      if (p.price <= 0) {
+        zeroPriceProducts.add(p);
+      }
+
       // Collect all barcodes for this product to check uniqueness
       final allBarcodes = [p.barcode, ...p.additionalBarcodes, p.boxBarcode ?? '', ...p.additionalBoxBarcodes]
           .where((b) => b.isNotEmpty).toSet();
@@ -1020,17 +1045,22 @@ class _CatalogScreenState extends State<CatalogScreen>
     barcodeDupes.removeWhere((key, list) => list.length < 2);
     nameDupes.removeWhere((key, list) => list.length < 2);
 
-    if (barcodeDupes.isEmpty && nameDupes.isEmpty) {
+    if (barcodeDupes.isEmpty && nameDupes.isEmpty && zeroPriceProducts.isEmpty && missingInActive.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Dublikatlar topilmadi'), backgroundColor: Colors.green),
+        const SnackBar(content: Text('Hamma ma\'lumotlar joyida! Dublikatlar yoki xatolar topilmadi.'), backgroundColor: Colors.green),
       );
       return;
     }
 
-    _showDuplicatesDialog(barcodeDupes, nameDupes);
+    _showDuplicatesDialog(barcodeDupes, nameDupes, zeroPriceProducts, missingInActive);
   }
 
-  void _showDuplicatesDialog(Map<String, List<Product>> barcodeDupes, Map<String, List<Product>> nameDupes) {
+  void _showDuplicatesDialog(
+    Map<String, List<Product>> barcodeDupes, 
+    Map<String, List<Product>> nameDupes,
+    List<Product> zeroPriceProducts,
+    List<Product> missingInActive,
+  ) {
     Set<String> selectedIds = {};
     
     // Collect all unique IDs present in the dialog to handle "Select All"
@@ -1041,16 +1071,39 @@ class _CatalogScreenState extends State<CatalogScreen>
     for (var list in nameDupes.values) {
       for (var p in list) allDupeIds.add(p.id);
     }
+    for (var p in zeroPriceProducts) allDupeIds.add(p.id);
+    for (var p in missingInActive) allDupeIds.add(p.id);
+
+    bool isProcessing = false;
 
     showDialog(
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) {
           return AlertDialog(
-            title: const Text('Topilgan dublikatlar'),
+            title: Row(
+              children: [
+                const Text('Diagnostika va Xatolar'),
+                if (isProcessing) ...[
+                  const SizedBox(width: 12),
+                  const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)),
+                ],
+              ],
+            ),
             content: SizedBox(
               width: 600,
-              child: SingleChildScrollView(
+              child: isProcessing 
+                ? const Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        CircularProgressIndicator(),
+                        SizedBox(height: 16),
+                        Text('Mahsulotlar o\'chirilmoqda, iltimos kuting...'),
+                      ],
+                    ),
+                  )
+                : SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1097,12 +1150,63 @@ class _CatalogScreenState extends State<CatalogScreen>
                             }),
                           )),
                     ],
+                    if (zeroPriceProducts.isNotEmpty) ...[
+                      const SizedBox(height: 20),
+                      const Text('Narxi belgilanmagan mahsulotlar:',
+                          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red)),
+                      const SizedBox(height: 10),
+                      ...zeroPriceProducts.map((p) => ListTile(
+                        dense: true,
+                        leading: Checkbox(
+                          value: selectedIds.contains(p.id),
+                          onChanged: (val) => setDialogState(() {
+                            if (val == true) selectedIds.add(p.id);
+                            else selectedIds.remove(p.id);
+                          }),
+                        ),
+                        title: Text(p.name),
+                        subtitle: const Text('Narxi: 0'),
+                        trailing: IconButton(
+                          icon: const Icon(Icons.edit, size: 18, color: Colors.blue),
+                          onPressed: () {
+                            Navigator.pop(context);
+                            Navigator.push(context, MaterialPageRoute(builder: (_) => ProductFormScreen(product: p))).then((_) => _loadProducts(reset: true));
+                          },
+                        ),
+                      )),
+                    ],
+                    if (missingInActive.isNotEmpty) ...[
+                      const SizedBox(height: 20),
+                      const Text('Sotuvda ko\'rinmayotgan (bazada bor) mahsulotlar:',
+                          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.purple)),
+                      const SizedBox(height: 10),
+                      const Text('Bu mahsulotlar bazada bor lekin xotiraga yuklanmagan. Bularni o\'chirib qayta kiriting yoki keshni tozalang.', style: TextStyle(fontSize: 12)),
+                      ...missingInActive.map((p) => ListTile(
+                        dense: true,
+                        leading: Checkbox(
+                          value: selectedIds.contains(p.id),
+                          onChanged: (val) => setDialogState(() {
+                            if (val == true) selectedIds.add(p.id);
+                            else selectedIds.remove(p.id);
+                          }),
+                        ),
+                        title: Text(p.name),
+                        subtitle: Text('Shtrix: ${p.barcode}'),
+                        trailing: IconButton(
+                          icon: const Icon(Icons.refresh, size: 18, color: Colors.green),
+                          onPressed: () async {
+                            await context.read<InventoryProvider>().saveProduct(p); // Resave to trigger sync/reload
+                            setDialogState(() {});
+                          },
+                        ),
+                      )),
+                    ],
                   ],
                 ),
               ),
             ),
             actions: [
-              if (selectedIds.isNotEmpty)
+              if (selectedIds.isNotEmpty && !isProcessing)
                 ElevatedButton.icon(
                   onPressed: () async {
                     final confirmed = await showDialog<bool>(
@@ -1122,10 +1226,21 @@ class _CatalogScreenState extends State<CatalogScreen>
                     );
 
                     if (confirmed == true) {
-                      await context.read<InventoryProvider>().deleteProductsBatch(selectedIds.toList());
-                      if (context.mounted) {
-                        Navigator.pop(context); // Close dupe dialog
-                        _loadProducts(reset: true);
+                      setDialogState(() => isProcessing = true);
+                      try {
+                        await context.read<InventoryProvider>().deleteProductsBatch(selectedIds.toList());
+                        if (context.mounted) {
+                          Navigator.pop(context); // Close dupe dialog
+                          _loadProducts(reset: true);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('${selectedIds.length} ta mahsulot o\'chirildi'), backgroundColor: Colors.green),
+                          );
+                        }
+                      } catch (e) {
+                         if (context.mounted) {
+                           setDialogState(() => isProcessing = false);
+                           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Xatolik: $e')));
+                         }
                       }
                     }
                   },
@@ -1133,7 +1248,7 @@ class _CatalogScreenState extends State<CatalogScreen>
                   label: Text('${selectedIds.length} tani o\'chirish'),
                   style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent, foregroundColor: Colors.white),
                 ),
-              TextButton(onPressed: () => Navigator.pop(context), child: const Text('Yopish')),
+              if (!isProcessing) TextButton(onPressed: () => Navigator.pop(context), child: const Text('Yopish')),
             ],
           );
         },

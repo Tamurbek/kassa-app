@@ -255,17 +255,29 @@ class AppState extends ChangeNotifier {
           
           await DatabaseService.saveSyncedRecord(table, data);
           break;
-        case 'warehouse_delete':
-          await DatabaseService.deleteWarehouse(data['id']);
-          break;
-        case 'register_delete':
-          await DatabaseService.deleteRegister(data['id']);
-          break;
-        case 'organization_delete':
-          await DatabaseService.deleteOrganization(data['id']);
-          break;
         case 'setting':
           await DatabaseService.saveSetting(data['key'], data['value'].toString());
+          break;
+        default:
+          if (type.endsWith('_delete')) {
+            final entityType = type.split('_').first;
+            String table = entityType;
+            if (entityType == 'category') table = 'categories';
+            else if (entityType == 'product') table = 'products';
+            else if (entityType == 'warehouse') table = 'warehouses';
+            else if (entityType == 'register') table = 'registers';
+            else if (entityType == 'user') table = 'users';
+            else if (entityType == 'organization') table = 'organizations';
+            else if (entityType == 'stock_entry') table = 'stock_entries';
+            else if (entityType == 'sale') table = 'sales';
+            else if (entityType == 'return') table = 'returns';
+            else if (entityType == 'write_off') table = 'write_offs';
+            else if (entityType == 'inventory') table = 'inventories';
+            else if (entityType == 'stock_transfer') table = 'stock_transfers';
+            else if (!table.endsWith('s')) table = '${table}s';
+
+            await DatabaseService.deleteSyncedRecord(table, data['id'].toString());
+          }
           break;
       }
       notifyListeners();
@@ -364,26 +376,33 @@ class AppState extends ChangeNotifier {
         for (var table in batch.keys) {
           final List records = batch[table];
           for (var record in records) {
+            if (table == 'deleted_records') {
+              String entityType = record['tableName'];
+              if (entityType == 'categories') entityType = 'category';
+              else if (entityType == 'products') entityType = 'product';
+              else if (entityType == 'warehouses') entityType = 'warehouse';
+              else if (entityType == 'registers') entityType = 'register';
+              else if (entityType == 'users') entityType = 'user';
+              else if (entityType.endsWith('s')) entityType = entityType.substring(0, entityType.length - 1);
+              
+              final delType = '${entityType}_delete';
+              await _applyRemoteUpdate(delType, {'id': record['recordId']});
+              SyncService.broadcast(delType, {'id': record['recordId']});
+              continue;
+            }
+
             String type = table;
             if (table == 'write_offs') type = 'write_off';
-            if (table == 'inventories') type = 'inventory';
-            if (table == 'stock_entries') type = 'stock_entry';
-            if (table == 'stock_transfers') type = 'stock_transfer';
-            if (table == 'categories') type = 'category';
-            if (table == 'products') type = 'product';
-            if (table == 'warehouses') type = 'warehouse';
-            if (table == 'registers') type = 'register';
-            if (table == 'sales') type = 'sale';
-            if (table == 'returns') type = 'return';
-            if (table == 'users') type = 'user';
-      if (type == 'stock_transfer') type = 'stock_transfer';
-            if (type == 'categories') type = 'category';
-            if (type == 'products') type = 'product';
-            if (type == 'warehouses') type = 'warehouse';
-            if (type == 'registers') type = 'register';
-            if (type == 'sales') type = 'sale';
-            if (type == 'returns') type = 'return';
-            if (type == 'users') type = 'user';
+            else if (table == 'inventories') type = 'inventory';
+            else if (table == 'stock_entries') type = 'stock_entry';
+            else if (table == 'stock_transfers') type = 'stock_transfer';
+            else if (table == 'categories') type = 'category';
+            else if (table == 'products') type = 'product';
+            else if (table == 'warehouses') type = 'warehouse';
+            else if (table == 'registers') type = 'register';
+            else if (table == 'sales') type = 'sale';
+            else if (table == 'returns') type = 'return';
+            else if (table == 'users') type = 'user';
 
             await _applyRemoteUpdate(type, record);
             SyncService.broadcast(type, record);

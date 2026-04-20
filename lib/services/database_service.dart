@@ -57,6 +57,7 @@ class DatabaseService {
         await txn.delete('product_additional_barcodes', where: 'productId = ?', whereArgs: [id]);
         await txn.delete('product_additional_box_barcodes', where: 'productId = ?', whereArgs: [id]);
         await txn.delete('stocks', where: 'productId = ?', whereArgs: [id]);
+        await _logDeletion(txn, 'products', id);
       }
     });
     triggerUpdate();
@@ -77,6 +78,7 @@ class DatabaseService {
     await db.transaction((txn) async {
       for (var id in ids) {
         await txn.delete('categories', where: 'id = ?', whereArgs: [id]);
+        await _logDeletion(txn, 'categories', id);
       }
     });
     triggerUpdate();
@@ -97,6 +99,7 @@ class DatabaseService {
     await db.transaction((txn) async {
       for (var id in ids) {
         await txn.delete('warehouses', where: 'id = ?', whereArgs: [id]);
+        await _logDeletion(txn, 'warehouses', id);
       }
     });
     triggerUpdate();
@@ -126,6 +129,7 @@ class DatabaseService {
     await db.transaction((txn) async {
       for (var id in ids) {
         await txn.delete('registers', where: 'id = ?', whereArgs: [id]);
+        await _logDeletion(txn, 'registers', id);
       }
     });
     triggerUpdate();
@@ -272,6 +276,7 @@ class DatabaseService {
     await db.transaction((txn) async {
       for (var id in ids) {
         await txn.delete('users', where: 'id = ?', whereArgs: [id]);
+        await _logDeletion(txn, 'users', id);
       }
     });
     triggerUpdate();
@@ -519,6 +524,25 @@ class DatabaseService {
         final Map<String, dynamic>? stocks = mutable.remove('stocks') as Map<String, dynamic>?;
 
         mutable['isSynced'] = 1;
+        
+        if (tableName == 'deleted_records') {
+           final targetTable = mutable['tableName'];
+           final targetId = mutable['recordId'];
+           await txn.delete(targetTable, where: 'id = ?', whereArgs: [targetId]);
+           if (targetTable == 'sales') await txn.delete('sale_items', where: 'saleId = ?', whereArgs: [targetId]);
+           if (targetTable == 'returns') await txn.delete('return_items', where: 'returnId = ?', whereArgs: [targetId]);
+           if (targetTable == 'write_offs') await txn.delete('write_off_items', where: 'writeOffId = ?', whereArgs: [targetId]);
+           if (targetTable == 'inventories') await txn.delete('inventory_items', where: 'inventoryId = ?', whereArgs: [targetId]);
+           if (targetTable == 'stock_entries') await txn.delete('stock_entry_items', where: 'entryId = ?', whereArgs: [targetId]);
+           if (targetTable == 'stock_transfers') await txn.delete('stock_transfer_items', where: 'transferId = ?', whereArgs: [targetId]);
+           if (targetTable == 'products') {
+             await txn.delete('product_additional_barcodes', where: 'productId = ?', whereArgs: [targetId]);
+             await txn.delete('product_additional_box_barcodes', where: 'productId = ?', whereArgs: [targetId]);
+             await txn.delete('stocks', where: 'productId = ?', whereArgs: [targetId]);
+           }
+           continue;
+        }
+
         final id = tableName == 'settings' ? mutable['key'] : mutable['id'];
 
         await txn.insert(tableName, mutable, conflictAlgorithm: ConflictAlgorithm.replace);
@@ -618,5 +642,14 @@ class DatabaseService {
     final db = await database;
     final List<Map<String, dynamic>> stocks = await db.query('stocks', where: 'productId = ?', whereArgs: [productId]);
     return {for (var s in stocks) s['warehouseId'].toString(): (s['quantity'] as num).toDouble()};
+  }
+
+  static Future<void> _logDeletion(Transaction txn, String table, String id) async {
+    await txn.insert('deleted_records', {
+      'tableName': table,
+      'recordId': id,
+      'deletedAt': DateTime.now().toIso8601String(),
+      'isSynced': 0,
+    });
   }
 }

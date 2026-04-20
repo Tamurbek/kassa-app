@@ -213,13 +213,23 @@ class SyncProvider extends ChangeNotifier {
       // MASTER (LAN Mode): Broadcast unsynced local changes to connected terminals
       for (var entry in unsynced.entries) {
         final table = entry.key;
+        
+        if (table == 'deleted_records') {
+          for (var record in entry.value) {
+            final entityType = _getSingularType(record['tableName']);
+            SyncService.broadcast('${entityType}_delete', {'id': record['recordId']});
+            await DatabaseService.markAsSynced(table, record['id'].toString());
+          }
+          continue;
+        }
+
         final type = _getSingularType(table);
         for (var record in entry.value) {
           debugPrint("Professional Sync: Master broadcasting $type to LAN");
           SyncService.broadcast(type, record);
           // After broadcasting/cloud-syncing, we mark it as synced locally
           final id = table == 'settings' ? record['key'] : record['id'];
-          await DatabaseService.markAsSynced(table, id);
+          await DatabaseService.markAsSynced(table, id.toString());
         }
       }
     } else if (isMaster == false && masterAddress != null) {

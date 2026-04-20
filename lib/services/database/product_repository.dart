@@ -29,7 +29,7 @@ class ProductRepository {
       'products',
       where: whereClause,
       whereArgs: whereArgs.isNotEmpty ? whereArgs : null,
-      orderBy: 'name ASC',
+      orderBy: 'name ASC, id ASC',
       limit: limit,
       offset: offset,
     );

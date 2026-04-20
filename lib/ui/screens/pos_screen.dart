@@ -42,6 +42,11 @@ class _POSScreenState extends State<POSScreen> {
   int _currentPage = 1;
   static const int _pageSize = 20;
 
+  List<Product> _filteredProductsCache = [];
+  String _lastSearchText = '';
+  String _lastCategory = 'Barchasi';
+  int _lastInventoryVersion = 0;
+
   @override
   void initState() {
     super.initState();
@@ -63,6 +68,10 @@ class _POSScreenState extends State<POSScreen> {
           }
         });
       }
+    });
+
+    _searchController.addListener(() {
+       if (mounted) setState(() {}); 
     });
   }
 
@@ -331,7 +340,7 @@ class _POSScreenState extends State<POSScreen> {
       final sales = context.read<SalesProvider>();
       final settings = context.read<SettingsProvider>();
       
-      final product = sales.addToCartByBarcode(barcode, inventory.products, warehouseId: settings.currentRegister?.warehouseId);
+      final product = sales.addToCartByBarcode(barcode, inventory.activeProducts, warehouseId: settings.currentRegister?.warehouseId);
 
       if (product == null) {
         throw Exception('Mahsulot topilmadi');
@@ -373,19 +382,29 @@ class _POSScreenState extends State<POSScreen> {
     final sync = context.watch<SyncProvider>();
 
     final activeCategories = inventory.activeCategories;
-    final categories = ['Barchasi', ...activeCategories.map((c) => c.name)];
+    final categoriesList = ['Barchasi', ...activeCategories.map((c) => c.name)];
 
-    final searchQuery = _normalize(_searchController.text);
     final categoryMap = {for (var c in activeCategories) c.id: c.name};
     
-    final filteredProducts = inventory.activeProducts.where((p) {
-      final categoryName = categoryMap[p.categoryId];
-      final matchesCategory =
-          selectedCategory == 'Barchasi' ||
-          (categoryName == selectedCategory);
-      final matchesSearch = p.matchesSearch(_searchController.text);
-      return matchesCategory && matchesSearch;
-    }).toList();
+    final currentSearch = _searchController.text.trim().toLowerCase();
+    // We use a simple hash-like check to see if we need to re-filter
+    final inventoryVersion = inventory.activeProducts.length + inventory.categories.length; 
+    
+    if (_lastSearchText != currentSearch || _lastCategory != selectedCategory || _lastInventoryVersion != inventoryVersion) {
+      _filteredProductsCache = inventory.activeProducts.where((p) {
+        final categoryName = categoryMap[p.categoryId];
+        final matchesCategory =
+            selectedCategory == 'Barchasi' ||
+            (categoryName == selectedCategory);
+        final matchesSearch = p.matchesSearch(currentSearch);
+        return matchesCategory && matchesSearch;
+      }).toList();
+      _lastSearchText = currentSearch;
+      _lastCategory = selectedCategory;
+      _lastInventoryVersion = inventoryVersion;
+    }
+
+    final filteredProducts = _filteredProductsCache;
 
     // Reset page if it's out of bounds after filtering
     final totalPages = (filteredProducts.length / _pageSize).ceil();
@@ -438,7 +457,7 @@ class _POSScreenState extends State<POSScreen> {
                         child: Column(
                           children: [
                             _buildProductSearchSection(settings),
-                            _buildHorizontalCategoryBar(categories),
+                            _buildHorizontalCategoryBar(categoriesList),
                             Expanded(
                               child: _buildProductGrid(
                                 paginatedProducts,

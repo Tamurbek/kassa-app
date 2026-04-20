@@ -187,11 +187,13 @@ class SalesProvider extends ChangeNotifier {
 
         // Find product by PLU code (dedicated field) or exact match/PLU in barcode
         final product = products.where((p) => 
-          p.pluCode == productCode || 
-          p.pluCode == productCode.replaceFirst(RegExp('^0+'), '') ||
-          p.barcode == productCode || 
-          p.additionalBarcodes.contains(productCode) ||
-          p.barcode == productCode.replaceFirst(RegExp('^0+'), '')
+          !p.isDeleted && (
+            p.pluCode == productCode || 
+            p.pluCode == productCode.replaceFirst(RegExp('^0+'), '') ||
+            p.barcode == productCode || 
+            p.additionalBarcodes.contains(productCode) ||
+            p.barcode == productCode.replaceFirst(RegExp('^0+'), '')
+          )
         ).firstOrNull;
 
         if (product != null) {
@@ -202,10 +204,12 @@ class SalesProvider extends ChangeNotifier {
 
       // 2. Normal barcode handling
       final product = products.firstWhere(
-        (p) => p.barcode == barcode || 
+        (p) => !p.isDeleted && (
+               p.barcode == barcode || 
                p.additionalBarcodes.contains(barcode) || 
                p.boxBarcode == barcode ||
-               p.additionalBoxBarcodes.contains(barcode),
+               p.additionalBoxBarcodes.contains(barcode)
+        ),
       );
       
       final bool isBox = product.boxBarcode == barcode || 

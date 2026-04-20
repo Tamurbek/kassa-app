@@ -15,6 +15,7 @@ class TrashScreen extends StatefulWidget {
 class _TrashScreenState extends State<TrashScreen> with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final Set<String> _selectedIds = {};
+  bool _isProcessing = false;
 
   @override
   void initState() {
@@ -129,9 +130,11 @@ class _TrashScreenState extends State<TrashScreen> with SingleTickerProviderStat
             ),
           ] else
             TextButton.icon(
-              onPressed: () => _handleEmptyTrash(currentList.map((e) => e.id as String).toList(), inventory, auth),
-              icon: const Icon(Icons.delete_sweep_rounded, size: 18, color: Colors.grey),
-              label: const Text('Savatni bo\'shatish', style: TextStyle(color: Colors.grey)),
+              onPressed: _isProcessing ? null : () => _handleEmptyTrash(currentList.map((e) => e.id as String).toList(), inventory, auth),
+              icon: _isProcessing 
+                ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.grey))
+                : const Icon(Icons.delete_sweep_rounded, size: 18, color: Colors.grey),
+              label: Text(_isProcessing ? 'Ishlanmoqda...' : 'Savatni bo\'shatish', style: const TextStyle(color: Colors.grey)),
             ),
         ],
       ),
@@ -139,15 +142,25 @@ class _TrashScreenState extends State<TrashScreen> with SingleTickerProviderStat
   }
 
   Future<void> _handleBatchRestore(InventoryProvider inventory, AuthProvider auth) async {
-    final ids = _selectedIds.toList();
-    switch (_tabController.index) {
-      case 0: await inventory.restoreProductsBatch(ids); break;
-      case 1: await inventory.restoreCategoriesBatch(ids); break;
-      case 2: await auth.restoreUsersBatch(ids); break;
-      case 3: await inventory.restoreWarehousesBatch(ids); break;
-      case 4: await inventory.restoreRegistersBatch(ids); break;
+    if (_isProcessing) return;
+    setState(() => _isProcessing = true);
+    try {
+      final ids = _selectedIds.toList();
+      switch (_tabController.index) {
+        case 0: await inventory.restoreProductsBatch(ids); break;
+        case 1: await inventory.restoreCategoriesBatch(ids); break;
+        case 2: await auth.restoreUsersBatch(ids); break;
+        case 3: await inventory.restoreWarehousesBatch(ids); break;
+        case 4: await inventory.restoreRegistersBatch(ids); break;
+      }
+      setState(() {
+        _selectedIds.clear();
+        _isProcessing = false;
+      });
+    } catch (e) {
+      setState(() => _isProcessing = false);
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Xatolik: $e')));
     }
-    setState(() => _selectedIds.clear());
   }
 
   Future<void> _handleBatchHardDelete(InventoryProvider inventory, AuthProvider auth) async {
@@ -167,12 +180,28 @@ class _TrashScreenState extends State<TrashScreen> with SingleTickerProviderStat
   }
 
   Future<void> _performHardDelete(List<String> ids, InventoryProvider inventory, AuthProvider auth) async {
-    switch (_tabController.index) {
-      case 0: await inventory.hardDeleteProductsBatch(ids); break;
-      case 1: await inventory.hardDeleteCategoriesBatch(ids); break;
-      case 2: await auth.hardDeleteUsersBatch(ids); break;
-      case 3: await inventory.hardDeleteWarehousesBatch(ids); break;
-      case 4: await inventory.hardDeleteRegistersBatch(ids); break;
+    if (_isProcessing) return;
+    setState(() => _isProcessing = true);
+    try {
+      switch (_tabController.index) {
+        case 0: await inventory.hardDeleteProductsBatch(ids); break;
+        case 1: await inventory.hardDeleteCategoriesBatch(ids); break;
+        case 2: await auth.hardDeleteUsersBatch(ids); break;
+        case 3: await inventory.hardDeleteWarehousesBatch(ids); break;
+        case 4: await inventory.hardDeleteRegistersBatch(ids); break;
+      }
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${ids.length} ta ma\'lumot butunlay o\'chirildi'), backgroundColor: Colors.green),
+        );
+      }
+      setState(() {
+        _selectedIds.clear();
+        _isProcessing = false;
+      });
+    } catch (e) {
+       setState(() => _isProcessing = false);
+       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Xatolik: $e')));
     }
   }
 

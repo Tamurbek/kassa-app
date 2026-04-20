@@ -84,10 +84,23 @@ class InventoryProvider extends ChangeNotifier {
       transfers = await DatabaseService.getStockTransfers();
       
       // Update cached filtered lists
-      _activeCategories = categories.where((c) => !c.isDeleted).toList();
-      _deletedCategories = categories.where((c) => c.isDeleted).toList();
-      _activeProducts = products.where((p) => !p.isDeleted).toList();
-      _deletedProducts = products.where((p) => p.isDeleted).toList();
+      _activeCategories = categories.where((c) => !c.isDeleted).toList()..sort((a, b) => a.name.compareTo(b.name));
+      _deletedCategories = categories.where((c) => c.isDeleted).toList()..sort((a, b) => a.name.compareTo(b.name));
+      
+      _activeProducts = products.where((p) => !p.isDeleted).toList()
+        ..sort((a, b) {
+          int cmp = a.name.toLowerCase().compareTo(b.name.toLowerCase());
+          if (cmp != 0) return cmp;
+          return a.id.compareTo(b.id);
+        });
+        
+      _deletedProducts = products.where((p) => p.isDeleted).toList()
+        ..sort((a, b) {
+          int cmp = a.name.toLowerCase().compareTo(b.name.toLowerCase());
+          if (cmp != 0) return cmp;
+          return a.id.compareTo(b.id);
+        });
+        
       _activeWarehouses = warehouses.where((w) => !w.isDeleted).toList();
       _deletedWarehouses = warehouses.where((w) => w.isDeleted).toList();
       _activeRegisters = registers.where((r) => !r.isDeleted).toList();
