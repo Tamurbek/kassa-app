@@ -704,40 +704,64 @@ class ExcelImportService {
       var excel = Excel.createExcel();
       Sheet sheetObject = excel['Sheet1'];
 
-      sheetObject.cell(CellIndex.indexByString("A1")).value = TextCellValue("PLU");
-      sheetObject.cell(CellIndex.indexByString("B1")).value = TextCellValue("Nomi");
-      sheetObject.cell(CellIndex.indexByString("C1")).value = TextCellValue("Narxi");
-      sheetObject.cell(CellIndex.indexByString("D1")).value = TextCellValue("Shtrix");
-      sheetObject.cell(CellIndex.indexByString("E1")).value = TextCellValue("Birlik");
+      // Rongta RLS1000 Native Headers
+      final headers = [
+        "Hotkey", "Name", "LFCode", "Code", "Barcode Type", "Unit Price", 
+        "Unit Weight", "Unit Amount", "Department", "PT Weight", "Shelf Time", 
+        "Pack Type", "Tare", "Error(%)", "Message1", "Message2", "Label", 
+        "Discount/Table", "Account", "sPluFieldText", "Account2", "Recommend", 
+        "nutrition", "Ice(%)"
+      ];
+
+      for (int i = 0; i < headers.length; i++) {
+        sheetObject.cell(CellIndex.indexByColumnRow(columnIndex: i, rowIndex: 0)).value = TextCellValue(headers[i]);
+      }
 
       for (int i = 0; i < products.length; i++) {
         final p = products[i];
         int row = i + 1;
         
-        // PLU: Priority: 1. p.pluCode, 2. short numeric barcode, 3. index
+        // Initialize all 24 columns to avoid "out of bounds" errors in some software
+        for (int col = 0; col < headers.length; col++) {
+          sheetObject.cell(CellIndex.indexByColumnRow(columnIndex: col, rowIndex: row)).value = TextCellValue("");
+        }
+
+        // PLU logic
         String plu = (p.pluCode != null && p.pluCode!.isNotEmpty)
             ? p.pluCode!
             : (p.barcode.length <= 5 && int.tryParse(p.barcode) != null 
                 ? p.barcode 
                 : (i + 1).toString());
-            
-        sheetObject.cell(CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: row)).value = TextCellValue(plu);
-        sheetObject.cell(CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: row)).value = TextCellValue(p.name);
-        sheetObject.cell(CellIndex.indexByColumnRow(columnIndex: 2, rowIndex: row)).value = DoubleCellValue(p.price);
-        sheetObject.cell(CellIndex.indexByColumnRow(columnIndex: 3, rowIndex: row)).value = TextCellValue(p.barcode);
-        sheetObject.cell(CellIndex.indexByColumnRow(columnIndex: 4, rowIndex: row)).value = TextCellValue(p.unit);
+
+        // Fill Rongta Columns with actual data (using TextCellValue for everything to be safe)
+        sheetObject.cell(CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: row)).value = TextCellValue(plu); // Hotkey
+        sheetObject.cell(CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: row)).value = TextCellValue(p.name); // Name
+        sheetObject.cell(CellIndex.indexByColumnRow(columnIndex: 2, rowIndex: row)).value = TextCellValue(plu); // LFCode
+        sheetObject.cell(CellIndex.indexByColumnRow(columnIndex: 3, rowIndex: row)).value = TextCellValue(plu); // Code
+        sheetObject.cell(CellIndex.indexByColumnRow(columnIndex: 4, rowIndex: row)).value = TextCellValue("2"); // Barcode Type (2 = EAN13 weight)
+        sheetObject.cell(CellIndex.indexByColumnRow(columnIndex: 5, rowIndex: row)).value = TextCellValue(p.price.toStringAsFixed(2)); // Unit Price
+        sheetObject.cell(CellIndex.indexByColumnRow(columnIndex: 6, rowIndex: row)).value = TextCellValue(p.unit == 'kg' ? 'Kg' : 'Pcs'); // Unit Weight
+        sheetObject.cell(CellIndex.indexByColumnRow(columnIndex: 7, rowIndex: row)).value = TextCellValue("0"); // Unit Amount
+        sheetObject.cell(CellIndex.indexByColumnRow(columnIndex: 8, rowIndex: row)).value = TextCellValue("21"); // Department
+        sheetObject.cell(CellIndex.indexByColumnRow(columnIndex: 9, rowIndex: row)).value = TextCellValue("0"); // PT Weight
+        sheetObject.cell(CellIndex.indexByColumnRow(columnIndex: 10, rowIndex: row)).value = TextCellValue("15"); // Shelf Time
+        sheetObject.cell(CellIndex.indexByColumnRow(columnIndex: 11, rowIndex: row)).value = TextCellValue('Normal'); // Pack Type
+        sheetObject.cell(CellIndex.indexByColumnRow(columnIndex: 12, rowIndex: row)).value = TextCellValue("0.00"); // Tare
+        sheetObject.cell(CellIndex.indexByColumnRow(columnIndex: 13, rowIndex: row)).value = TextCellValue("0"); // Error(%)
+        
+        // The rest of the columns (14-23) remain as empty strings initialized above
       }
 
       var fileBytes = excel.save();
       String? outputPath = await FilePicker.platform.saveFile(
-        fileName: "tarozilar_uchun_eksport.xlsx",
+        fileName: "rongta_export.xlsx",
         allowedExtensions: ['xlsx'],
         type: FileType.custom,
       );
 
       if (outputPath != null) {
         File(outputPath)..createSync(recursive: true)..writeAsBytesSync(fileBytes!);
-        _showSuccess(context, "Tarozilar uchun ma'lumotlar saqlandi");
+        _showSuccess(context, "Rongta uchun ma'lumotlar saqlandi");
       }
     } catch (e) {
       _showError(context, "Xatolik: $e");
