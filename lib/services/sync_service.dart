@@ -8,6 +8,7 @@ import 'package:shelf_web_socket/shelf_web_socket.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'dart:async';
 import 'package:flutter/foundation.dart';
+import 'database_service.dart';
 
 class SyncService {
   static HttpServer? _server;
@@ -145,6 +146,27 @@ class SyncService {
       }
     });
 
+    // Endpoint for full database file download (High speed)
+    router.get('/db', (Request request) async {
+      try {
+        final path = await DatabaseService.getDatabasePath();
+        final file = File(path);
+        if (!await file.exists()) return Response.notFound('Database file not found');
+        
+        final size = await file.length();
+        return Response.ok(
+          file.openRead(),
+          headers: {
+            'Content-Type': 'application/octet-stream',
+            'Content-Length': '$size',
+            'Content-Disposition': 'attachment; filename="simple_sale.db"',
+          },
+        );
+      } catch (e) {
+        return Response.internalServerError(body: e.toString());
+      }
+    });
+
     // Endpoint for clients to pull full database state
     router.get('/sync', (Request request) async {
       try {
@@ -190,6 +212,24 @@ class SyncService {
   }
 
   // Client fetches status from Master
+  static Future<File?> downloadDatabaseFromMaster(String ip) async {
+    try {
+      final url = Uri.parse('http://$ip:8080/db');
+      final response = await http.get(url).timeout(const Duration(seconds: 60));
+      
+      if (response.statusCode == 200) {
+        final tempDir = await Directory.systemTemp.createTemp();
+        final file = File('${tempDir.path}/downloaded.db');
+        await file.writeAsBytes(response.bodyBytes);
+        return file;
+      }
+      return null;
+    } catch (e) {
+      debugPrint('SyncService: DB Download error: $e');
+      return null;
+    }
+  }
+
   static Future<Map<String, dynamic>?> fetchStatusFromMaster(
     String masterIp,
   ) async {

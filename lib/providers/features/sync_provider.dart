@@ -210,27 +210,26 @@ class SyncProvider extends ChangeNotifier {
 
     // Simultaneously, maintain Local Network (LAN) synchronization
     if (isMaster == true) {
-      // MASTER (LAN Mode): Broadcast unsynced local changes to connected terminals
+      // MASTER (LAN Mode): Broadcast unsynced local changes to connected terminals in batches
+      final Map<String, List<String>> syncedIds = {};
+      
       for (var entry in unsynced.entries) {
         final table = entry.key;
-        
-        if (table == 'deleted_records') {
-          for (var record in entry.value) {
-            final entityType = _getSingularType(record['tableName']);
-            SyncService.broadcast('${entityType}_delete', {'id': record['recordId']});
-            await DatabaseService.markAsSynced(table, record['id'].toString());
-          }
-          continue;
-        }
-
         final type = _getSingularType(table);
-        for (var record in entry.value) {
-          debugPrint("Professional Sync: Master broadcasting $type to LAN");
-          SyncService.broadcast(type, record);
-          // After broadcasting/cloud-syncing, we mark it as synced locally
-          final id = table == 'settings' ? record['key'] : record['id'];
-          await DatabaseService.markAsSynced(table, id.toString());
-        }
+        
+        // 1. Send the batch to all clients
+        debugPrint("Professional Sync: Master broadcasting ${entry.value.length} $type records to LAN");
+        SyncService.broadcast('sync_batch', {table: entry.value});
+        
+        // 2. Prepare IDs for batch marking
+        syncedIds[table] = entry.value.map((r) => 
+          (table == 'settings' ? r['key'] : (table == 'deleted_records' ? r['id'] : r['id'])).toString()
+        ).toList();
+      }
+      
+      // 3. Mark everything as synced in one go
+      if (syncedIds.isNotEmpty) {
+        await DatabaseService.markAsSyncedBatch(syncedIds);
       }
     } else if (isMaster == false && masterAddress != null) {
       // SLAVE (LAN Mode): Push to Master via Local Network for real-time local updates
@@ -295,10 +294,11 @@ class SyncProvider extends ChangeNotifier {
     if (activationCode == null) return;
 
     final lastId = prefs.getInt('lastSyncId') ?? 0;
+    // Server usually has a limit per request (e.g. 1000)
     final url = "https://web-production-d2ed7.up.railway.app/sync-incremental?activation_code=$activationCode&last_id=$lastId";
 
     try {
-      final response = await http.get(Uri.parse(url)).timeout(const Duration(seconds: 15));
+      final response = await http.get(Uri.parse(url)).timeout(const Duration(seconds: 30));
       if (response.statusCode == 200) {
         final List events = jsonDecode(response.body);
         if (events.isEmpty) return;
@@ -316,8 +316,15 @@ class SyncProvider extends ChangeNotifier {
         lastCloudSync = DateTime.now();
         await prefs.setString('lastCloudSync', lastCloudSync!.toIso8601String());
         
-        notifyListeners();
         debugPrint("Professional Sync: Pulled ${events.length} records. Latest ID: $maxId");
+        
+        // RECURSIVE PULL: If we got many records, there might be more. 
+        // Pull again immediately to fetch the next batch.
+        if (events.length >= 100) { // Assuming server limit is around here or just to be safe
+           await pullFromCloudIncremental();
+        } else {
+           notifyListeners();
+        }
       }
     } catch (e) {
       debugPrint("Professional Sync: Pull error: $e");
@@ -504,9 +511,21 @@ class SyncProvider extends ChangeNotifier {
   Future<void> syncWithMaster() async {
     if (isMaster != false || masterAddress == null) return;
 
+    // HIGH SPEED SYNC: Try downloading the DB file directly first
+    debugPrint("Professional Sync: Attempting fast DB download from Master...");
+    final dbFile = await SyncService.downloadDatabaseFromMaster(masterAddress!);
+    if (dbFile != null) {
+       await DatabaseService.replaceDatabase(dbFile);
+       _isConnected = true;
+       notifyListeners();
+       debugPrint("Professional Sync: Fast DB sync completed!");
+       return;
+    }
+
+    // FALLBACK: Slow JSON-based sync
+    debugPrint("Professional Sync: Fast download failed. Falling back to JSON sync...");
     final data = await SyncService.fetchFullState(masterAddress!);
     if (data != null) {
-      // If we successfully fetched data, we are definitely connected
       if (!_isConnected) {
         _isConnected = true;
       }

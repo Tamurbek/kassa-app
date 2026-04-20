@@ -252,7 +252,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       crossAxisCount: crossAxisCount,
       crossAxisSpacing: 16,
       mainAxisSpacing: 16,
-      childAspectRatio: width < 600 ? 3.5 : (width < 1200 ? 2.5 : 2.2),
+      childAspectRatio: width < 600 ? 1.8 : (width < 1200 ? 1.5 : 1.4),
       children: [
         _buildStatCard(
           context,
@@ -343,91 +343,110 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
               ),
             
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: color.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Icon(icon, color: color, size: 24),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                        decoration: BoxDecoration(
-                          color: status == 'Live' ? Colors.green.withOpacity(0.1) : Colors.blue.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final bool isShort = constraints.maxHeight < 155;
+                final bool hideSub = constraints.maxHeight < 145;
+                
+                return Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 16, 
+                    vertical: isShort ? 6 : 12
+                  ),
+                  child: SingleChildScrollView(
+                    physics: const NeverScrollableScrollPhysics(),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            if (status == 'Live')
-                              Container(
-                                width: 6,
-                                height: 6,
-                                margin: const EdgeInsets.only(right: 6),
-                                decoration: const BoxDecoration(
-                                  color: Colors.green,
-                                  shape: BoxShape.circle,
-                                ),
+                            Container(
+                              padding: EdgeInsets.all(isShort ? 5 : 8),
+                              decoration: BoxDecoration(
+                                color: color.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(isShort ? 8 : 12),
                               ),
-                            Text(
-                              status,
-                              style: TextStyle(
-                                color: status == 'Live' ? Colors.green : Colors.blue,
-                                fontSize: 10,
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: 1,
+                              child: Icon(icon, color: color, size: isShort ? 16 : 20),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: status == 'Live' ? Colors.green.withOpacity(0.1) : Colors.blue.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  if (status == 'Live')
+                                    Container(
+                                      width: 4,
+                                      height: 4,
+                                      margin: const EdgeInsets.only(right: 4),
+                                      decoration: const BoxDecoration(
+                                        color: Colors.green,
+                                        shape: BoxShape.circle,
+                                      ),
+                                    ),
+                                  Text(
+                                    status,
+                                    style: TextStyle(
+                                      color: status == 'Live' ? Colors.green : Colors.blue,
+                                      fontSize: 7.5,
+                                      fontWeight: FontWeight.w900,
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ],
                         ),
-                      ),
-                    ],
-                  ),
-                  const Spacer(),
-                  Text(
-                    title,
-                    style: TextStyle(
-                      color: theme.disabledColor,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 0.5,
+                        
+                        SizedBox(height: isShort ? 10 : 20),
+                        
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            title,
+                            style: TextStyle(
+                              color: theme.disabledColor,
+                              fontSize: isShort ? 11 : 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 1),
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            value,
+                            style: TextStyle(
+                              fontSize: isShort ? 22 : 26,
+                              fontWeight: FontWeight.w900,
+                              color: theme.textTheme.bodyLarge?.color,
+                              letterSpacing: -1,
+                            ),
+                          ),
+                        ),
+                        if (subValue != null && !hideSub) ...[
+                          const SizedBox(height: 1),
+                          Text(
+                            subValue,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: theme.disabledColor.withOpacity(0.6),
+                              fontSize: 9,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Text(
-                      value,
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.w900,
-                        color: theme.textTheme.bodyLarge?.color,
-                        letterSpacing: -1,
-                      ),
-                    ),
-                  ),
-                  if (subValue != null) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      subValue,
-                      style: TextStyle(
-                        color: theme.disabledColor.withOpacity(0.6),
-                        fontSize: 11,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ],
-              ),
+                );
+              }
             ),
           ],
         ),
