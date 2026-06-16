@@ -24,6 +24,7 @@ class SyncProvider extends ChangeNotifier {
   bool _isConnected = false;
   bool _isDiscovering = false;
   int _failedPings = 0;
+  String _serverBaseUrl = "https://web-production-d2ed7.up.railway.app";
 
   bool get isConnected => isMaster == true ? true : _isConnected;
   bool get isDiscovering => _isDiscovering;
@@ -55,6 +56,7 @@ class SyncProvider extends ChangeNotifier {
     isMaster = getSafeBool('isMaster');
     isCloudMode = getSafeBool('isCloudMode') ?? false;
     masterAddress = prefs.getString('masterAddress');
+    _serverBaseUrl = prefs.getString('serverBaseUrl') ?? "https://web-production-d2ed7.up.railway.app";
     _incrementalSyncTimer?.cancel();
     _cloudBackupTimer?.cancel();
     _connectivityTimer?.cancel();
@@ -294,8 +296,8 @@ class SyncProvider extends ChangeNotifier {
     if (activationCode == null) return;
 
     final lastId = prefs.getInt('lastSyncId') ?? 0;
-    // Server usually has a limit per request (e.g. 1000)
-    final url = "https://web-production-d2ed7.up.railway.app/sync-incremental?activation_code=$activationCode&last_id=$lastId";
+    final baseUrl = prefs.getString('serverBaseUrl') ?? "https://web-production-d2ed7.up.railway.app";
+    final url = "$baseUrl/sync-incremental?activation_code=$activationCode&last_id=$lastId";
 
     try {
       final response = await http.get(Uri.parse(url)).timeout(const Duration(seconds: 30));
@@ -337,8 +339,8 @@ class SyncProvider extends ChangeNotifier {
     if (activationCode == null) return;
 
     try {
-      // Professional Incremental Endpoint
-      final syncUrl = "https://web-production-d2ed7.up.railway.app/sync-incremental?activation_code=$activationCode";
+      final baseUrl = prefs.getString('serverBaseUrl') ?? "https://web-production-d2ed7.up.railway.app";
+      final syncUrl = "$baseUrl/sync-incremental?activation_code=$activationCode";
       final response = await http.post(
         Uri.parse(syncUrl),
         headers: {'Content-Type': 'application/json'},
@@ -391,7 +393,9 @@ class SyncProvider extends ChangeNotifier {
   void _connectCloudSync(String activationCode) {
     _cloudSyncChannel?.sink.close();
     
-    final wsUrl = "wss://web-production-d2ed7.up.railway.app/ws/sync/$activationCode";
+    final uri = Uri.parse(_serverBaseUrl);
+    final wsScheme = uri.scheme == 'https' ? 'wss' : 'ws';
+    final wsUrl = "$wsScheme://${uri.authority}/ws/sync/$activationCode";
     debugPrint("Professional Sync: Connecting to cloud websocket: $wsUrl");
     
     try {
@@ -593,7 +597,7 @@ class SyncProvider extends ChangeNotifier {
       syncingStage = 'Bulutli serverga saqlash...';
       notifyListeners();
 
-      const uploadUrl = "https://web-production-d2ed7.up.railway.app/backup";
+      final uploadUrl = "$_serverBaseUrl/backup";
 
       var request = http.MultipartRequest(
         'POST',
@@ -638,7 +642,7 @@ class SyncProvider extends ChangeNotifier {
     syncingStage = 'Bulutdan yuklab olinmoqda...';
     notifyListeners();
 
-    final downloadUrl = "https://web-production-d2ed7.up.railway.app/backup/$activationCode";
+    final downloadUrl = "$_serverBaseUrl/backup/$activationCode";
     debugPrint("Restoring from cloud URL: $downloadUrl");
 
     try {

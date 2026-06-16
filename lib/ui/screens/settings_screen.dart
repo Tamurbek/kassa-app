@@ -145,6 +145,14 @@ class SettingsScreen extends StatelessWidget {
                             ),
                             onTap: () => sync.toggleCloudMode(!sync.isCloudMode),
                           ),
+                          _buildSettingsTile(
+                            context,
+                            icon: Icons.cloud_queue_rounded,
+                            color: Colors.indigo,
+                            title: 'Bulutli Server URL',
+                            subtitle: settings.serverBaseUrl,
+                            onTap: () => _showServerUrlEditDialog(context, settings),
+                          ),
                         ],
                       ),
                     ],
@@ -876,6 +884,41 @@ class SettingsScreen extends StatelessWidget {
                 await settings.updateOrganizationInfo(address: val);
               } else if (field == 'instagram') {
                 await settings.updateOrganizationInfo(instagram: val);
+              }
+            },
+            child: const Text('Saqlash'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showServerUrlEditDialog(BuildContext context, SettingsProvider settings) {
+    final controller = TextEditingController(text: settings.serverBaseUrl);
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Bulutli Server URL sozlash'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          decoration: const InputDecoration(
+            hintText: 'https://web-production-d2ed7.up.railway.app',
+            labelText: 'Server Base URL',
+            border: OutlineInputBorder(),
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Bekor qilish')),
+          ElevatedButton(
+            onPressed: () async {
+              final url = controller.text.trim();
+              await settings.updateServerBaseUrl(url);
+              if (ctx.mounted) {
+                Navigator.pop(ctx);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('✅ Server URL yangilandi!'), backgroundColor: Colors.green),
+                );
               }
             },
             child: const Text('Saqlash'),

@@ -172,7 +172,9 @@ class AuthProvider extends ChangeNotifier {
   }
 
   Future<void> activate(String code) async {
-    const backendUrl = "https://web-production-d2ed7.up.railway.app/verify";
+    final prefs = await SharedPreferences.getInstance();
+    final baseUrl = prefs.getString('serverBaseUrl') ?? "https://web-production-d2ed7.up.railway.app";
+    final backendUrl = "$baseUrl/verify";
     final cleanCode = code.trim().toUpperCase();
     
     try {
@@ -247,9 +249,11 @@ class AuthProvider extends ChangeNotifier {
     _isConnecting = true;
 
     try {
+      final prefs = await SharedPreferences.getInstance();
+      final baseUrl = prefs.getString('serverBaseUrl') ?? "https://web-production-d2ed7.up.railway.app";
       final response = await http
           .get(Uri.parse(
-              "https://web-production-d2ed7.up.railway.app/check?device_id=$deviceId&code=$activationCode"))
+              "$baseUrl/check?device_id=$deviceId&code=$activationCode"))
           .timeout(const Duration(seconds: 10));
 
       _isConnecting = false;

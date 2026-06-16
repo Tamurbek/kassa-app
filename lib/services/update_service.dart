@@ -3,17 +3,19 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../core/constants/app_constants.dart';
 
 class UpdateService {
-  static const String _serverUrl = AppConstants.activationServerUrl;
-
   static Future<Map<String, dynamic>?> checkUpdate() async {
     try {
+      final prefs = await SharedPreferences.getInstance();
+      final serverUrl = prefs.getString('serverBaseUrl') ?? AppConstants.activationServerUrl;
+
       // Professional: Add timestamp to bypass any server or CDN caching
       final timestamp = DateTime.now().millisecondsSinceEpoch;
       final response = await http.get(
-        Uri.parse("$_serverUrl/update/latest?t=$timestamp"),
+        Uri.parse("$serverUrl/update/latest?t=$timestamp"),
         headers: {
           'Cache-Control': 'no-cache',
           'Pragma': 'no-cache',
@@ -68,8 +70,9 @@ class UpdateService {
     }
   }
 
-  static String getFinalUrl(String url) {
-    String finalUrl = url.startsWith('http') ? url : "$_serverUrl$url";
+  static String getFinalUrl(String url, {String? customServerUrl}) {
+    final serverUrl = customServerUrl ?? AppConstants.activationServerUrl;
+    String finalUrl = url.startsWith('http') ? url : "$serverUrl$url";
     if (finalUrl.contains('drive.google.com/file/d/')) {
       final idMatch = RegExp(r'/file/d/([a-zA-Z0-9_-]+)').firstMatch(finalUrl);
       if (idMatch != null) {
@@ -81,7 +84,9 @@ class UpdateService {
   }
 
   static Future<void> openDownloadPage(String url) async {
-    final fullUrl = getFinalUrl(url);
+    final prefs = await SharedPreferences.getInstance();
+    final serverUrl = prefs.getString('serverBaseUrl') ?? AppConstants.activationServerUrl;
+    final fullUrl = getFinalUrl(url, customServerUrl: serverUrl);
     if (await canLaunchUrl(Uri.parse(fullUrl))) {
       await launchUrl(Uri.parse(fullUrl), mode: LaunchMode.externalApplication);
     }

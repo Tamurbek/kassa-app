@@ -35,6 +35,7 @@ class SettingsProvider extends ChangeNotifier {
   String appVersion = AppConstants.appVersion;
   String? deviceId;
   int inactivityTimeoutMinutes = 5; // Default to 5 minutes
+  String serverBaseUrl = AppConstants.activationServerUrl;
 
   // Scale Settings
   String? scalePort;
@@ -148,6 +149,7 @@ class SettingsProvider extends ChangeNotifier {
       inactivityTimeoutMinutes = dbSettings['inactivityTimeoutMinutes'] != null 
           ? int.tryParse(dbSettings['inactivityTimeoutMinutes']!) ?? 5 
           : prefs.getInt('inactivityTimeoutMinutes') ?? 5;
+      serverBaseUrl = dbSettings['serverBaseUrl'] ?? prefs.getString('serverBaseUrl') ?? AppConstants.activationServerUrl;
       if (isInitialLoad && (Platform.isWindows || Platform.isMacOS || Platform.isLinux)) {
         if (isFullScreen) {
           if (Platform.isWindows) {
@@ -347,6 +349,21 @@ class SettingsProvider extends ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt('inactivityTimeoutMinutes', minutes);
     await DatabaseService.saveSetting('inactivityTimeoutMinutes', minutes.toString());
+    notifyListeners();
+  }
+
+  Future<void> updateServerBaseUrl(String url) async {
+    String cleanUrl = url.trim();
+    if (cleanUrl.endsWith('/')) {
+      cleanUrl = cleanUrl.substring(0, cleanUrl.length - 1);
+    }
+    if (cleanUrl.isEmpty) {
+      cleanUrl = AppConstants.activationServerUrl;
+    }
+    serverBaseUrl = cleanUrl;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('serverBaseUrl', cleanUrl);
+    await DatabaseService.saveSetting('serverBaseUrl', cleanUrl);
     notifyListeners();
   }
 }
