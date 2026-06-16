@@ -242,9 +242,9 @@ class PrintService {
     final fmt = NumberFormat.currency(locale: 'uz_UZ', symbol: '', decimalDigits: 0);
 
     // Dynamic horizontal margins to align and prevent print head cutoff symmetrically.
-    // For 58mm: 8mm on both left and right keeps the content centered and fully inside the 48mm printable area.
+    // For 58mm: 5mm on both left and right keeps the content centered and fully inside the 48mm printable area.
     // For 80mm: 6mm on both left and right keeps it centered and inside the 72mm printable area.
-    final double horizontalMargin = width == 80 ? 6.0 : 8.0;
+    final double horizontalMargin = width == 80 ? 6.0 : 5.0;
 
     doc.addPage(
       pw.Page(
@@ -268,7 +268,7 @@ class PrintService {
                   _clean((orgName ?? 'SIMPLE SALE').toUpperCase()),
                   style: pw.TextStyle(
                     fontWeight: pw.FontWeight.bold,
-                    fontSize: 10.5 * scale,
+                    fontSize: 10 * scale,
                   ),
                   textAlign: pw.TextAlign.center,
                 ),
@@ -277,8 +277,8 @@ class PrintService {
                   pw.Text(
                     _clean(orgAddress),
                     style: pw.TextStyle(
-                      fontSize: 7 * scale,
-                      color: PdfColors.grey700,
+                      fontSize: 7.5 * scale,
+                      color: PdfColors.black,
                     ),
                     textAlign: pw.TextAlign.center,
                   ),
@@ -291,11 +291,11 @@ class PrintService {
                   children: [
                     pw.Text(
                       _clean('Kassa: $registerName'),
-                      style: pw.TextStyle(fontSize: 7 * scale, fontWeight: pw.FontWeight.bold),
+                      style: pw.TextStyle(fontSize: 7.5 * scale, fontWeight: pw.FontWeight.bold, color: PdfColors.black),
                     ),
                     pw.Text(
                       _clean(DateFormat('dd.MM.yyyy HH:mm').format(DateTime.now())),
-                      style: pw.TextStyle(fontSize: 7 * scale),
+                      style: pw.TextStyle(fontSize: 7.5 * scale, color: PdfColors.black),
                     ),
                   ],
                 ),
@@ -307,11 +307,11 @@ class PrintService {
                   children: [
                     pw.Text(
                       _clean('MAHSULOT / NOMI'),
-                      style: pw.TextStyle(fontSize: 7 * scale, fontWeight: pw.FontWeight.bold, color: PdfColors.grey700),
+                      style: pw.TextStyle(fontSize: 7.5 * scale, fontWeight: pw.FontWeight.bold, color: PdfColors.black),
                     ),
                     pw.Text(
                       _clean('JAMI'),
-                      style: pw.TextStyle(fontSize: 7 * scale, fontWeight: pw.FontWeight.bold, color: PdfColors.grey700),
+                      style: pw.TextStyle(fontSize: 7.5 * scale, fontWeight: pw.FontWeight.bold, color: PdfColors.black),
                     ),
                   ],
                 ),
@@ -330,20 +330,20 @@ class PrintService {
                             pw.Expanded(
                               child: pw.Text(
                                 _clean(item.productName.toUpperCase()),
-                                style: pw.TextStyle(fontSize: 7.5 * scale, fontWeight: pw.FontWeight.bold),
+                                style: pw.TextStyle(fontSize: 8 * scale, fontWeight: pw.FontWeight.bold, color: PdfColors.black),
                               ),
                             ),
                             pw.SizedBox(width: 8),
                             pw.Text(
                               _clean(fmt.format(item.quantity * item.price)),
-                              style: pw.TextStyle(fontSize: 8 * scale, fontWeight: pw.FontWeight.bold),
+                              style: pw.TextStyle(fontSize: 8.5 * scale, fontWeight: pw.FontWeight.bold, color: PdfColors.black),
                             ),
                           ],
                         ),
                         pw.SizedBox(height: 1),
                         pw.Text(
                           _clean('${AppFormatter.formatDouble(item.quantity)} x ${fmt.format(item.price)}'),
-                          style: pw.TextStyle(fontSize: 7 * scale, color: PdfColors.grey700),
+                          style: pw.TextStyle(fontSize: 7.5 * scale, color: PdfColors.black),
                         ),
                       ],
                     ),
@@ -354,16 +354,16 @@ class PrintService {
                   pw.Row(
                     mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                     children: [
-                      pw.Text(_clean('UMUMIY:'), style: pw.TextStyle(fontSize: 8 * scale)),
-                      pw.Text(_clean('${fmt.format(total + discount)} s'), style: pw.TextStyle(fontSize: 8 * scale)),
+                      pw.Text(_clean('UMUMIY:'), style: pw.TextStyle(fontSize: 8 * scale, color: PdfColors.black)),
+                      pw.Text(_clean('${fmt.format(total + discount)} s'), style: pw.TextStyle(fontSize: 8 * scale, color: PdfColors.black)),
                     ],
                   ),
                   pw.SizedBox(height: 2),
                   pw.Row(
                     mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                     children: [
-                      pw.Text(_clean('CHEGIRMA:'), style: pw.TextStyle(fontSize: 8 * scale)),
-                      pw.Text(_clean('-${fmt.format(discount)} s'), style: pw.TextStyle(fontSize: 8 * scale)),
+                      pw.Text(_clean('CHEGIRMA:'), style: pw.TextStyle(fontSize: 8 * scale, color: PdfColors.black)),
+                      pw.Text(_clean('-${fmt.format(discount)} s'), style: pw.TextStyle(fontSize: 8 * scale, color: PdfColors.black)),
                     ],
                   ),
                   pw.SizedBox(height: 2),
@@ -375,11 +375,11 @@ class PrintService {
                   children: [
                     pw.Text(
                       _clean('TO\'LANADIGAN:'),
-                      style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 8.5 * scale),
+                      style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9 * scale, color: PdfColors.black),
                     ),
                     pw.Text(
                       _clean('${fmt.format(total)} so\'m'),
-                      style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10 * scale),
+                      style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10.5 * scale, color: PdfColors.black),
                     ),
                   ],
                 ),
@@ -388,7 +388,7 @@ class PrintService {
                 pw.SizedBox(height: 6 * scale),
                 pw.Text(
                   _clean(footerText ?? 'Xaridingiz uchun rahmat!'),
-                  style: pw.TextStyle(fontSize: 7.5 * scale, fontStyle: pw.FontStyle.italic),
+                  style: pw.TextStyle(fontSize: 8 * scale, fontStyle: pw.FontStyle.italic, color: PdfColors.black),
                   textAlign: pw.TextAlign.center,
                 ),
                 if (showInstagram && instagram != null && instagram.isNotEmpty) ...[
@@ -401,13 +401,14 @@ class PrintService {
                         pw.Text(
                           _clean('INSTAGRAM: ${instagram.toUpperCase()}'),
                           style: pw.TextStyle(
-                            fontSize: 7.5 * scale,
+                            fontSize: 8 * scale,
                             fontWeight: pw.FontWeight.bold,
+                            color: PdfColors.black,
                           ),
                         ),
                         pw.SizedBox(height: 6),
                         pw.Container(
-                          padding: const pw.EdgeInsets.all(6),
+                          padding: const EdgeInsets.all(6),
                           decoration: pw.BoxDecoration(
                             border: pw.Border.all(color: PdfColors.black, width: 1),
                             borderRadius: const pw.BorderRadius.all(pw.Radius.circular(6)),
@@ -415,8 +416,8 @@ class PrintService {
                           child: pw.BarcodeWidget(
                             barcode: pw.Barcode.qrCode(),
                             data: 'https://instagram.com/${instagram.replaceAll('@', '')}',
-                            width: 40 * scale,
-                            height: 40 * scale,
+                            width: 45 * scale,
+                            height: 45 * scale,
                             color: PdfColors.black,
                           ),
                         ),
