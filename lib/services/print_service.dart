@@ -408,7 +408,7 @@ class PrintService {
                         ),
                         pw.SizedBox(height: 6),
                         pw.Container(
-                          padding: const EdgeInsets.all(6),
+                          padding: const pw.EdgeInsets.fromLTRB(6, 6, 6, 6),
                           decoration: pw.BoxDecoration(
                             border: pw.Border.all(color: PdfColors.black, width: 1),
                             borderRadius: const pw.BorderRadius.all(pw.Radius.circular(6)),
