@@ -48,14 +48,28 @@ class AppStatusBar extends StatelessWidget {
             bgColor: const Color(0xFF3B82F6).withOpacity(0.08),
             textColor: const Color(0xFF1E40AF),
           ),
-          const SizedBox(width: 10),
-          _buildStatusTag(
-            context,
-            icon: auth.cloudStatus.contains('Bulut') ? Icons.cloud_done_rounded : Icons.cloud_off_rounded,
-            iconColor: auth.cloudStatus.contains('Bulut') ? const Color(0xFF0EA5E9) : Colors.orange,
-            label: auth.cloudStatus,
-            bgColor: (auth.cloudStatus.contains('Bulut') ? const Color(0xFF0EA5E9) : Colors.orange).withOpacity(0.08),
-            textColor: auth.cloudStatus.contains('Bulut') ? const Color(0xFF075985) : Colors.orange.shade900,
+          Tooltip(
+            message: 'Ulanishni tekshirish',
+            child: InkWell(
+              onTap: () => auth.checkBlockingStatus(),
+              borderRadius: BorderRadius.circular(20.sp),
+              child: _buildStatusTag(
+                context,
+                icon: auth.cloudStatus == 'Ulanmoqda...'
+                    ? Icons.sync_rounded
+                    : (auth.cloudStatus.contains('Bulut') ? Icons.cloud_done_rounded : Icons.cloud_off_rounded),
+                iconColor: auth.cloudStatus.contains('Bulut') 
+                    ? const Color(0xFF0EA5E9) 
+                    : (auth.cloudStatus == 'Ulanmoqda...' ? Colors.blue : Colors.orange),
+                label: auth.cloudStatus,
+                bgColor: (auth.cloudStatus.contains('Bulut') 
+                    ? const Color(0xFF0EA5E9) 
+                    : (auth.cloudStatus == 'Ulanmoqda...' ? Colors.blue : Colors.orange)).withOpacity(0.08),
+                textColor: auth.cloudStatus.contains('Bulut') 
+                    ? const Color(0xFF075985) 
+                    : (auth.cloudStatus == 'Ulanmoqda...' ? const Color(0xFF1E40AF) : Colors.orange.shade900),
+              ),
+            ),
           ),
           const SizedBox(width: 16),
           Icon(Icons.person_rounded, size: 16.sp, color: Colors.grey.shade600),

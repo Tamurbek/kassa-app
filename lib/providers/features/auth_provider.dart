@@ -73,8 +73,8 @@ class AuthProvider extends ChangeNotifier {
     // Initial check after 5 seconds to not block startup
     Future.delayed(const Duration(seconds: 5), () => checkBlockingStatus());
     
-    // Periodically check every 20 minutes for license and organization updates
-    _monitorTimer = Timer.periodic(const Duration(minutes: 20), (timer) {
+    // Periodically check every 3 minutes for license and organization updates
+    _monitorTimer = Timer.periodic(const Duration(minutes: 3), (timer) {
       checkBlockingStatus();
     });
   }
@@ -247,6 +247,8 @@ class AuthProvider extends ChangeNotifier {
   Future<void> checkBlockingStatus() async {
     if (!_isActivated || activationCode == null || deviceId == null || _isConnecting) return;
     _isConnecting = true;
+    cloudStatus = 'Ulanmoqda...';
+    notifyListeners();
 
     try {
       final prefs = await SharedPreferences.getInstance();
