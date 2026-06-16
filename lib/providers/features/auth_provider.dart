@@ -224,7 +224,7 @@ class AuthProvider extends ChangeNotifier {
          if (e is TimeoutException) {
            throw Exception("Serverdan javob kutish vaqti tugadi. Iltimos, internetni tekshiring yoki oflayn kodni kiriting.");
          }
-         throw Exception("Aloqa mavjud emas va oflayn kod noto'g'ri!");
+         throw Exception("Aloqa mavjud emas ($e) va oflayn kod noto'g'ri!");
       }
     }
   }

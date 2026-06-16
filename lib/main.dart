@@ -17,7 +17,17 @@ import 'providers/features/navigation_provider.dart';
 import 'core/utils/responsive.dart';
 import 'ui/widgets/global_inactivity_wrapper.dart';
 
+class MyHttpOverrides extends HttpOverrides {
+  @override
+  HttpClient createHttpClient(SecurityContext? context) {
+    return super.createHttpClient(context)
+      ..badCertificateCallback = (X509Certificate cert, String host, int port) => true
+      ..findProxy = HttpClient.findProxyFromEnvironment;
+  }
+}
+
 void main() async {
+  HttpOverrides.global = MyHttpOverrides();
   WidgetsFlutterBinding.ensureInitialized();
 
   // Ensure only one instance is running
