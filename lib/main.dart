@@ -20,9 +20,10 @@ import 'ui/widgets/global_inactivity_wrapper.dart';
 class MyHttpOverrides extends HttpOverrides {
   @override
   HttpClient createHttpClient(SecurityContext? context) {
-    return super.createHttpClient(context)
-      ..badCertificateCallback = (X509Certificate cert, String host, int port) => true
-      ..findProxy = HttpClient.findProxyFromEnvironment;
+    final client = super.createHttpClient(context);
+    client.badCertificateCallback = (X509Certificate cert, String host, int port) => true;
+    client.findProxy = HttpClient.findProxyFromEnvironment;
+    return client;
   }
 }
 
