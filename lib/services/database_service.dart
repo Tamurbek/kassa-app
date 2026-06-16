@@ -512,11 +512,34 @@ class DatabaseService {
     final db = await database;
     bool needsRecalculate = false;
 
+    // Normalize boolean values to 1/0 integers for SQLite FFI compatibility (especially on Windows)
+    Map<String, dynamic> normalizeForDb(Map<String, dynamic> map) {
+      final Map<String, dynamic> result = {};
+      map.forEach((k, v) {
+        if (v is bool) {
+          result[k] = v ? 1 : 0;
+        } else if (v is Map<String, dynamic>) {
+          result[k] = normalizeForDb(v);
+        } else if (v is List) {
+          result[k] = v.map((item) {
+            if (item is Map<String, dynamic>) {
+              return normalizeForDb(item);
+            }
+            return item;
+          }).toList();
+        } else {
+          result[k] = v;
+        }
+      });
+      return result;
+    }
+
     await db.transaction((txn) async {
       for (var event in events) {
         final tableName = event['table_name'] as String;
-        final data = event['data'] as Map<String, dynamic>;
+        final rawData = event['data'] as Map<String, dynamic>;
         
+        final Map<String, dynamic> data = normalizeForDb(rawData);
         final Map<String, dynamic> mutable = Map.from(data);
         final List<dynamic>? items = mutable.remove('items') as List<dynamic>?;
         final List<dynamic>? barcodes = mutable.remove('additionalBarcodes') as List<dynamic>?;

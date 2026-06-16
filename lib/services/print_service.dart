@@ -240,17 +240,22 @@ class PrintService {
     final fmt = NumberFormat.currency(locale: 'uz_UZ', symbol: '', decimalDigits: 0);
     
 
+    final double horizontalMargin = width == 80 ? 6.0 : 3.0;
+
     doc.addPage(
       pw.Page(
         pageFormat: PdfPageFormat(
           width * PdfPageFormat.mm,
           double.infinity,
-          marginAll: 0,
+          marginLeft: horizontalMargin * PdfPageFormat.mm,
+          marginRight: horizontalMargin * PdfPageFormat.mm,
+          marginTop: 2 * PdfPageFormat.mm,
+          marginBottom: 10 * PdfPageFormat.mm,
         ),
         build: (pw.Context context) {
           final double scale = width / 58;
           return pw.Padding(
-            padding: const pw.EdgeInsets.symmetric(horizontal: 2, vertical: 10),
+            padding: const pw.EdgeInsets.symmetric(vertical: 10),
             child: pw.Column(
               crossAxisAlignment: pw.CrossAxisAlignment.stretch,
               children: [
@@ -448,6 +453,9 @@ class PrintService {
 
     // init printer
     bytes.addAll([0x1B, 0x40]);
+
+    // Open cash drawer (ESC p 0 25 250)
+    bytes.addAll([0x1B, 0x70, 0x00, 0x19, 0xFA]);
 
     // Chararacter set selection (optional, usually default works for latin)
 
