@@ -216,7 +216,9 @@ class PrintService {
     String? ipAddress,
   }) async {
     await printBarcodeLabels(
-      items: [{'product': product, 'quantity': 1}],
+      items: [
+        {'product': product, 'quantity': 1}
+      ],
       printerName: printerName,
       ipAddress: ipAddress,
     );
@@ -238,9 +240,9 @@ class PrintService {
   }) async {
     final doc = pw.Document();
     final fmt = NumberFormat.currency(locale: 'uz_UZ', symbol: '', decimalDigits: 0);
-    
 
-    final double horizontalMargin = width == 80 ? 6.0 : 3.0;
+    // Dynamic horizontal margin to prevent print head cutoff (6mm is safe for both 58mm and 80mm printers)
+    final double horizontalMargin = width == 80 ? 6.0 : 6.0;
 
     doc.addPage(
       pw.Page(
@@ -264,133 +266,169 @@ class PrintService {
                   _clean((orgName ?? 'SIMPLE SALE').toUpperCase()),
                   style: pw.TextStyle(
                     fontWeight: pw.FontWeight.bold,
-                    fontSize: 10 * scale,
+                    fontSize: 11 * scale,
                   ),
                   textAlign: pw.TextAlign.center,
                 ),
-                if (orgAddress != null && orgAddress.isNotEmpty)
+                if (orgAddress != null && orgAddress.isNotEmpty) ...[
+                  pw.SizedBox(height: 2),
                   pw.Text(
                     _clean(orgAddress),
-                    style: pw.TextStyle(fontSize: 7.5 * scale),
+                    style: pw.TextStyle(
+                      fontSize: 7.5 * scale,
+                      color: PdfColors.grey700,
+                    ),
                     textAlign: pw.TextAlign.center,
                   ),
+                ],
                 pw.SizedBox(height: 5),
-                pw.Divider(thickness: 0.5),
-                pw.Column(
-                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                pw.Divider(thickness: 0.5, borderStyle: pw.BorderStyle.dashed),
+                pw.SizedBox(height: 2),
+                pw.Row(
+                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                   children: [
-                    pw.Text(_clean('Kassa: $registerName'), style: pw.TextStyle(fontSize: 7.5 * scale)),
                     pw.Text(
-                      _clean('Sana: ${DateFormat('dd.MM.yyyy HH:mm').format(DateTime.now())}'),
+                      _clean('Kassa: $registerName'),
+                      style: pw.TextStyle(fontSize: 7.5 * scale, fontWeight: pw.FontWeight.bold),
+                    ),
+                    pw.Text(
+                      _clean(DateFormat('dd.MM.yyyy HH:mm').format(DateTime.now())),
                       style: pw.TextStyle(fontSize: 7.5 * scale),
                     ),
                   ],
                 ),
-                pw.Divider(thickness: 0.5),
-              ...items.map(
-                (item) => pw.Padding(
-                  padding: const pw.EdgeInsets.symmetric(vertical: 3),
-                  child: pw.Column(
-                    crossAxisAlignment: pw.CrossAxisAlignment.start,
-                    children: [
-                      pw.Text(
-                        _clean(item.productName.toUpperCase()),
-                        style: pw.TextStyle(fontSize: 8 * scale, fontWeight: pw.FontWeight.bold),
-                      ),
-                      pw.Row(
-                        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                        children: [
-                          pw.Text(
-                            _clean('${AppFormatter.formatDouble(item.quantity)} x ${NumberFormat.currency(locale: 'uz_UZ', symbol: '', decimalDigits: 0).format(item.price)}'),
-                            style: pw.TextStyle(fontSize: 8 * scale),
-                          ),
-                          pw.Text(
-                            _clean(NumberFormat.currency(locale: 'uz_UZ', symbol: '', decimalDigits: 0).format(item.quantity * item.price)),
-                            style: pw.TextStyle(fontSize: 8.5 * scale, fontWeight: pw.FontWeight.bold),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              pw.Divider(thickness: 1),
-              if (discount > 0) ...[
-                pw.Row(
-                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                  children: [
-                    pw.Text(_clean('UMUMIY:'), style: pw.TextStyle(fontSize: 9 * scale)),
-                    pw.Text(_clean('${NumberFormat.currency(locale: 'uz_UZ', symbol: '', decimalDigits: 0).format(total + discount)} s'), style: pw.TextStyle(fontSize: 9 * scale)),
-                  ],
-                ),
                 pw.SizedBox(height: 2),
+                pw.Divider(thickness: 0.5, borderStyle: pw.BorderStyle.dashed),
+                pw.SizedBox(height: 3),
                 pw.Row(
                   mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                   children: [
-                    pw.Text(_clean('CHEGIRMA:'), style: pw.TextStyle(fontSize: 9 * scale)),
-                    pw.Text(_clean('-${NumberFormat.currency(locale: 'uz_UZ', symbol: '', decimalDigits: 0).format(discount)} s'), style: pw.TextStyle(fontSize: 9 * scale)),
+                    pw.Text(
+                      _clean('MAHSULOT / NOMI'),
+                      style: pw.TextStyle(fontSize: 7 * scale, fontWeight: pw.FontWeight.bold, color: PdfColors.grey700),
+                    ),
+                    pw.Text(
+                      _clean('JAMI'),
+                      style: pw.TextStyle(fontSize: 7 * scale, fontWeight: pw.FontWeight.bold, color: PdfColors.grey700),
+                    ),
                   ],
                 ),
                 pw.SizedBox(height: 2),
                 pw.Divider(thickness: 0.5, borderStyle: pw.BorderStyle.dashed),
-              ],
-              pw.Row(
-                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                children: [
-                  pw.Text(
-                    _clean('TO\'LANADIGAN:'),
-                    style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10 * scale),
+                ...items.map(
+                  (item) => pw.Padding(
+                    padding: const pw.EdgeInsets.symmetric(vertical: 3),
+                    child: pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                      children: [
+                        pw.Row(
+                          mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: pw.CrossAxisAlignment.start,
+                          children: [
+                            pw.Expanded(
+                              child: pw.Text(
+                                _clean(item.productName.toUpperCase()),
+                                style: pw.TextStyle(fontSize: 8 * scale, fontWeight: pw.FontWeight.bold),
+                              ),
+                            ),
+                            pw.SizedBox(width: 8),
+                            pw.Text(
+                              _clean(fmt.format(item.quantity * item.price)),
+                              style: pw.TextStyle(fontSize: 8.5 * scale, fontWeight: pw.FontWeight.bold),
+                            ),
+                          ],
+                        ),
+                        pw.SizedBox(height: 1),
+                        pw.Text(
+                          _clean('${AppFormatter.formatDouble(item.quantity)} x ${fmt.format(item.price)}'),
+                          style: pw.TextStyle(fontSize: 7.5 * scale, color: PdfColors.grey700),
+                        ),
+                      ],
+                    ),
                   ),
-                  pw.Text(
-                    _clean('${fmt.format(total)} so\'m'),
-                    style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11 * scale),
+                ),
+                pw.Divider(thickness: 0.5, borderStyle: pw.BorderStyle.dashed),
+                if (discount > 0) ...[
+                  pw.Row(
+                    mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                    children: [
+                      pw.Text(_clean('UMUMIY:'), style: pw.TextStyle(fontSize: 8.5 * scale)),
+                      pw.Text(_clean('${fmt.format(total + discount)} s'), style: pw.TextStyle(fontSize: 8.5 * scale)),
+                    ],
+                  ),
+                  pw.SizedBox(height: 2),
+                  pw.Row(
+                    mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                    children: [
+                      pw.Text(_clean('CHEGIRMA:'), style: pw.TextStyle(fontSize: 8.5 * scale)),
+                      pw.Text(_clean('-${fmt.format(discount)} s'), style: pw.TextStyle(fontSize: 8.5 * scale)),
+                    ],
+                  ),
+                  pw.SizedBox(height: 2),
+                  pw.Divider(thickness: 0.5, borderStyle: pw.BorderStyle.dashed),
+                ],
+                pw.SizedBox(height: 3),
+                pw.Row(
+                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                  children: [
+                    pw.Text(
+                      _clean('TO\'LANADIGAN:'),
+                      style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10 * scale),
+                    ),
+                    pw.Text(
+                      _clean('${fmt.format(total)} so\'m'),
+                      style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11.5 * scale),
+                    ),
+                  ],
+                ),
+                pw.SizedBox(height: 3),
+                pw.Divider(thickness: 1, borderStyle: pw.BorderStyle.dashed),
+                pw.SizedBox(height: 6 * scale),
+                pw.Text(
+                  _clean(footerText ?? 'Xaridingiz uchun rahmat!'),
+                  style: pw.TextStyle(fontSize: 8 * scale, fontStyle: pw.FontStyle.italic),
+                  textAlign: pw.TextAlign.center,
+                ),
+                if (showInstagram && instagram != null && instagram.isNotEmpty) ...[
+                  pw.SizedBox(height: 10),
+                  pw.Divider(thickness: 0.5, borderStyle: pw.BorderStyle.dashed),
+                  pw.SizedBox(height: 6),
+                  pw.Center(
+                    child: pw.Column(
+                      children: [
+                        pw.Text(
+                          _clean('INSTAGRAM: ${instagram.toUpperCase()}'),
+                          style: pw.TextStyle(
+                            fontSize: 8 * scale,
+                            fontWeight: pw.FontWeight.bold,
+                          ),
+                        ),
+                        pw.SizedBox(height: 6),
+                        pw.Container(
+                          padding: const pw.EdgeInsets.all(6),
+                          decoration: pw.BoxDecoration(
+                            border: pw.Border.all(color: PdfColors.black, width: 1),
+                            borderRadius: const pw.BorderRadius.all(pw.Radius.circular(6)),
+                          ),
+                          child: pw.BarcodeWidget(
+                            barcode: pw.Barcode.qrCode(),
+                            data: 'https://instagram.com/${instagram.replaceAll('@', '')}',
+                            width: 45 * scale,
+                            height: 45 * scale,
+                            color: PdfColors.black,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
-              ),
-              pw.SizedBox(height: 5 * scale),
-              pw.Text(
-                _clean(footerText ?? 'Xaridingiz uchun rahmat!'),
-                style: pw.TextStyle(fontSize: 8 * scale, fontStyle: pw.FontStyle.italic),
-                textAlign: pw.TextAlign.center,
-              ),
-              pw.SizedBox(height: 10),
-              if (showInstagram && instagram != null && instagram.isNotEmpty) ...[
-                pw.Divider(thickness: 0.5, borderStyle: pw.BorderStyle.dashed),
-                pw.SizedBox(height: 5),
-                pw.Container(
-                  padding: const pw.EdgeInsets.all(8),
-                  decoration: pw.BoxDecoration(
-                    border: pw.Border.all(color: PdfColors.grey400, width: 1),
-                    borderRadius: const pw.BorderRadius.all(pw.Radius.circular(12)),
-                  ),
-                  child: pw.Column(
-                    children: [
-                      pw.BarcodeWidget(
-                        barcode: pw.Barcode.qrCode(),
-                        data: 'https://instagram.com/$instagram',
-                        width: 45 * scale,
-                        height: 45 * scale,
-                        color: PdfColors.black,
-                      ),
-                      pw.SizedBox(height: 4),
-                      pw.Text(
-                        instagram.toUpperCase(),
-                        style: pw.TextStyle(
-                          fontSize: 9 * scale,
-                          fontWeight: pw.FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                pw.SizedBox(height: 15),
               ],
-              pw.SizedBox(height: 30),
-            ],
-          ),
-        );
-      },
-    ),
-  );
+            ),
+          );
+        },
+      ),
+    );
 
     if (printerName != null && printerName != 'Network') {
       final printers = await Printing.listPrinters();
@@ -476,9 +514,22 @@ class PrintService {
     bytes.addAll([0x1B, 0x61, 0x00]); // Align left
 
     bytes.addAll(utf8.encode(_clean('$divider\n')));
-    bytes.addAll(utf8.encode(_clean('Kassa: $registerName\n')));
-    bytes.addAll(utf8.encode(_clean('Sana: ${DateFormat('dd.MM.yyyy HH:mm').format(DateTime.now())}\n')));
+    
+    String kassaText = 'Kassa: $registerName';
+    String dateText = DateFormat('dd.MM.yyyy HH:mm').format(DateTime.now());
+    int spaceCount = maxChars - kassaText.length - dateText.length;
+    if (spaceCount < 1) spaceCount = 1;
+    bytes.addAll(utf8.encode(_clean(kassaText + (' ' * spaceCount) + dateText + '\n')));
+    
     bytes.addAll(utf8.encode('$divider\n\n'));
+
+    // Headers Row
+    String headerProd = 'MAHSULOT / NOMI';
+    String headerJami = 'JAMI';
+    int headSpaces = maxChars - headerProd.length - headerJami.length;
+    if (headSpaces < 1) headSpaces = 1;
+    bytes.addAll(utf8.encode(_clean(headerProd + (' ' * headSpaces) + headerJami + '\n')));
+    bytes.addAll(utf8.encode(_clean(thinDivider + '\n')));
 
     for (var item in items) {
       // Product Name (Wrapped for long names)
@@ -564,11 +615,18 @@ class PrintService {
     String? orgName,
   }) async {
     final doc = pw.Document();
+    final double horizontalMargin = width == 80 ? 6.0 : 6.0;
     
     doc.addPage(
       pw.Page(
-        pageFormat: width == 58 ? PdfPageFormat.roll57 : PdfPageFormat.roll80,
-        margin: const pw.EdgeInsets.all(5),
+        pageFormat: PdfPageFormat(
+          width * PdfPageFormat.mm,
+          double.infinity,
+          marginLeft: horizontalMargin * PdfPageFormat.mm,
+          marginRight: horizontalMargin * PdfPageFormat.mm,
+          marginTop: 5 * PdfPageFormat.mm,
+          marginBottom: 10 * PdfPageFormat.mm,
+        ),
         build: (pw.Context context) {
           return pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.center,
