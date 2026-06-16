@@ -748,6 +748,59 @@ class SettingsScreen extends StatelessWidget {
                     onPressed: () => sync.performFullSync(parentContext),
                   ),
                 ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.blue,
+                      side: const BorderSide(color: Colors.blue),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    ),
+                    icon: const Icon(Icons.cloud_download_rounded, size: 20),
+                    label: const Text(
+                      'Bulutdan tiklash (To\'liq)', 
+                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)
+                    ),
+                    onPressed: () async {
+                      final confirm = await _showConfirmDialog(
+                        parentContext, 
+                        'Bulutdan tiklash joriy ma\'lumotlarni butunlay O\'CHIRIB yuboradi va bulutdagi zaxira fayl bilan almashtiradi. Davom etasizmi?'
+                      );
+                      if (confirm == true) {
+                        try {
+                          await sync.restoreDatabaseFromCloud();
+                          if (parentContext.mounted) {
+                            await parentContext.read<AppState>().loadSettings();
+                            await parentContext.read<SettingsProvider>().loadSettings();
+                            await parentContext.read<AuthProvider>().loadAuth();
+                            await parentContext.read<AuthProvider>().reloadUsers();
+                            await parentContext.read<InventoryProvider>().reloadData(forceRecalculate: true);
+                            await parentContext.read<SalesProvider>().reloadSalesData();
+                            await sync.loadSync();
+                            
+                            ScaffoldMessenger.of(parentContext).showSnackBar(
+                              const SnackBar(
+                                content: Text('✅ Bulutdan muvaffaqiyatli tiklandi!'), 
+                                backgroundColor: Colors.green
+                              )
+                            );
+                          }
+                        } catch (e) {
+                          if (parentContext.mounted) {
+                            ScaffoldMessenger.of(parentContext).showSnackBar(
+                              SnackBar(
+                                content: Text(e.toString().replaceAll('Exception: ', '')), 
+                                backgroundColor: Colors.red
+                              )
+                            );
+                          }
+                        }
+                      }
+                    },
+                  ),
+                ),
                 const SizedBox(height: 24),
 
                 // Section: Local File
