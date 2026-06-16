@@ -84,6 +84,9 @@ class _AppUpdateDialogState extends State<AppUpdateDialog> {
 
     try {
       final dio = Dio();
+      dio.options.connectTimeout = const Duration(seconds: 15);
+      dio.options.receiveTimeout = const Duration(minutes: 10);
+
       final tempDir = await getTemporaryDirectory();
       final downloadUrl = UpdateService.getFinalUrl(widget.url);
       final uri = Uri.parse(downloadUrl);
@@ -97,25 +100,51 @@ class _AppUpdateDialogState extends State<AppUpdateDialog> {
       
       final filePath = '${tempDir.path}/$fileName';
       final file = File(filePath);
-      if (await file.exists()) await file.delete();
 
-      await dio.download(
-        downloadUrl,
-        filePath,
-        onReceiveProgress: (received, total) {
-          if (mounted) {
-            setState(() {
-              if (total != -1) {
-                downloadProgress = received / total;
-                totalBytesStr = _formatBytes(total, 1);
-              } else {
-                downloadProgress = 0.05;
+      int retryCount = 0;
+      const maxRetries = 3;
+      bool success = false;
+      dynamic lastError;
+
+      while (retryCount < maxRetries && !success) {
+        try {
+          if (await file.exists()) await file.delete();
+          
+          await dio.download(
+            downloadUrl,
+            filePath,
+            onReceiveProgress: (received, total) {
+              if (mounted) {
+                setState(() {
+                  if (total != -1) {
+                    downloadProgress = received / total;
+                    totalBytesStr = _formatBytes(total, 1);
+                  } else {
+                    downloadProgress = 0.05;
+                  }
+                  downloadedBytesStr = _formatBytes(received, 1);
+                });
               }
-              downloadedBytesStr = _formatBytes(received, 1);
-            });
+            },
+          );
+          success = true;
+        } catch (e) {
+          lastError = e;
+          retryCount++;
+          if (retryCount < maxRetries) {
+            if (mounted) {
+              setState(() {
+                errorMessage = "Yuklashda uzilish bo'ldi. Qayta urinilmoqda (${retryCount}/$maxRetries)...";
+              });
+            }
+            await Future.delayed(Duration(seconds: 2 * retryCount));
           }
-        },
-      );
+        }
+      }
+
+      if (!success) {
+        throw lastError ?? Exception("Yuklash amalga oshmadi.");
+      }
 
       if (!mounted) return;
 
@@ -280,6 +309,22 @@ class _AppUpdateDialogState extends State<AppUpdateDialog> {
                           ),
                         ],
                       ),
+                      if (errorMessage != null) ...[
+                        const SizedBox(height: 12),
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton.icon(
+                            onPressed: () => UpdateService.openDownloadPage(widget.url),
+                            icon: const Icon(Icons.open_in_browser_rounded),
+                            label: const Text('Brauzer orqali yuklab olish'),
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              side: BorderSide(color: primaryColor),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            ),
+                          ),
+                        ),
+                      ],
                     ] else ...[
                       _buildProgressSection(primaryColor, isInstalling ? 'O\'rnatilmoqda...' : 'Yuklanmoqda...'),
                     ],

@@ -5,15 +5,15 @@ echo "🔄 Starting Git sync..."
 git add .
 
 # Commit changes
-git commit -m "fix: resolve Windows SQLite FFI boolean compatibility issue for remote sync and bump version to 1.23.51"
+git commit -m "fix: make update download resilient to connection timeouts and add browser fallback and bump version to 1.23.52"
 
 # Delete locally if it exists and recreate
-git tag -d v1.23.51 2>/dev/null
-git tag v1.23.51
+git tag -d v1.23.52 2>/dev/null
+git tag v1.23.52
 
 # Push to repository
 echo "🚀 Pushing changes to remote..."
 git push origin kassa-app-version
-git push origin v1.23.51 -f
+git push origin v1.23.52 -f
 
 echo "✅ Git sync completed successfully!"
