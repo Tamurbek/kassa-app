@@ -32,8 +32,14 @@ class SyncRepository {
           if (table == 'products') {
             final barcodes = await db.query('product_additional_barcodes', where: 'productId = ?', whereArgs: [id]);
             final boxBarcodes = await db.query('product_additional_box_barcodes', where: 'productId = ?', whereArgs: [id]);
+            final stocksRes = await db.query('stocks', where: 'productId = ?', whereArgs: [id]);
+            Map<String, double> stocksMap = {};
+            for (var s in stocksRes) {
+              stocksMap[s['warehouseId'].toString()] = (s['quantity'] as num).toDouble();
+            }
             mutable['additionalBarcodes'] = barcodes.map((b) => b['barcode']).toList();
             mutable['additionalBoxBarcodes'] = boxBarcodes.map((b) => b['barcode']).toList();
+            mutable['stocks'] = stocksMap;
           } else if (table == 'sales') {
             mutable['items'] = await db.query('sale_items', where: 'saleId = ?', whereArgs: [id]);
           } else if (table == 'returns') {
