@@ -238,28 +238,80 @@ class _StockEntryScreenState extends State<StockEntryScreen> {
             onSubmitted: (val) => _handleBarcode(val, inventory),
           ),
           const SizedBox(height: 12),
-          Autocomplete<Product>(
-            displayStringForOption: (Product option) => option.name,
-            optionsBuilder: (TextEditingValue textEditingValue) {
-              if (textEditingValue.text == '') return const Iterable<Product>.empty();
-              return inventory.activeProducts.where((Product option) => option.matchesSearch(textEditingValue.text));
-            },
-            onSelected: (Product selection) {
-              _addProductToItems(selection);
-              _nameSearchCtrl?.clear();
-            },
-            fieldViewBuilder: (context, textController, focusNode, onFieldSubmitted) {
-              _nameSearchCtrl = textController;
-              return TextField(
-                controller: textController,
-                focusNode: focusNode,
-                decoration: InputDecoration(
-                  labelText: 'Nomi bo\'yicha izlash',
-                  prefixIcon: const Icon(Icons.search),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                  filled: true,
-                  fillColor: Theme.of(context).scaffoldBackgroundColor.withOpacity(0.5),
-                ),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              return RawAutocomplete<Product>(
+                displayStringForOption: (Product option) => option.name,
+                optionsBuilder: (TextEditingValue textEditingValue) {
+                  if (textEditingValue.text.trim().isEmpty) return const Iterable<Product>.empty();
+                  return inventory.activeProducts
+                      .where((Product option) => option.matchesSearch(textEditingValue.text))
+                      .take(15);
+                },
+                onSelected: (Product selection) {
+                  _addProductToItems(selection);
+                  _nameSearchCtrl?.clear();
+                },
+                fieldViewBuilder: (context, textController, focusNode, onFieldSubmitted) {
+                  _nameSearchCtrl = textController;
+                  return TextField(
+                    controller: textController,
+                    focusNode: focusNode,
+                    decoration: InputDecoration(
+                      labelText: 'Nomi bo\'yicha izlash',
+                      hintText: 'Nomi, shtrix kodi yoki PLU kiriting...',
+                      prefixIcon: const Icon(Icons.search),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      filled: true,
+                      fillColor: Theme.of(context).scaffoldBackgroundColor.withOpacity(0.5),
+                    ),
+                  );
+                },
+                optionsViewBuilder: (context, onSelected, options) {
+                  return Align(
+                    alignment: Alignment.topLeft,
+                    child: Material(
+                      elevation: 8,
+                      borderRadius: BorderRadius.circular(12),
+                      shadowColor: Colors.black38,
+                      child: Container(
+                        width: constraints.maxWidth,
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).cardColor,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Theme.of(context).dividerColor.withOpacity(0.2)),
+                        ),
+                        constraints: const BoxConstraints(maxHeight: 280),
+                        child: ListView.builder(
+                          padding: EdgeInsets.zero,
+                          shrinkWrap: true,
+                          itemCount: options.length,
+                          itemBuilder: (BuildContext context, int index) {
+                            final Product option = options.elementAt(index);
+                            return ListTile(
+                              leading: Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Icon(Icons.inventory_2_outlined, size: 18, color: Theme.of(context).colorScheme.primary),
+                              ),
+                              title: Text(option.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                              subtitle: Text(
+                                '${AppFormatter.formatDouble(option.price)} so\'m ${option.barcode.isNotEmpty ? "| Shtrix: ${option.barcode}" : ""}',
+                                style: TextStyle(fontSize: 11, color: Theme.of(context).textTheme.bodySmall?.color?.withOpacity(0.7)),
+                              ),
+                              onTap: () {
+                                onSelected(option);
+                              },
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                  );
+                },
               );
             },
           ),
