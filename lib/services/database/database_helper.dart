@@ -9,7 +9,7 @@ class DatabaseHelper {
   static Future<Database>? _initFuture;
   static bool _factoryInitialized = false;
 
-  static const int databaseVersion = 31;
+  static const int databaseVersion = 32;
   static const String databaseName = 'simple_sale.db';
 
   static Future<Database> get database async {
@@ -346,6 +346,23 @@ class DatabaseHelper {
         tableName TEXT NOT NULL,
         recordId TEXT NOT NULL,
         deletedAt TEXT NOT NULL,
+        isSynced INTEGER NOT NULL DEFAULT 0
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS stock_transactions (
+        id TEXT PRIMARY KEY,
+        date TEXT,
+        note TEXT,
+        type TEXT,
+        quantity REAL,
+        created_at TEXT,
+        product_id TEXT,
+        unit_price REAL,
+        total_price REAL,
+        product_name TEXT,
+        warehouse_id TEXT,
+        warehouse_name TEXT,
         isSynced INTEGER NOT NULL DEFAULT 0
       )
     ''');
@@ -705,6 +722,29 @@ class DatabaseHelper {
         await db.execute('CREATE INDEX IF NOT EXISTS idx_products_plu ON products (pluCode)');
       } catch (e) {
         print("Migration 31 error: $e");
+      }
+    }
+    if (oldVersion < 32) {
+      try {
+        await db.execute('''
+          CREATE TABLE IF NOT EXISTS stock_transactions (
+            id TEXT PRIMARY KEY,
+            date TEXT,
+            note TEXT,
+            type TEXT,
+            quantity REAL,
+            created_at TEXT,
+            product_id TEXT,
+            unit_price REAL,
+            total_price REAL,
+            product_name TEXT,
+            warehouse_id TEXT,
+            warehouse_name TEXT,
+            isSynced INTEGER NOT NULL DEFAULT 0
+          )
+        ''');
+      } catch (e) {
+        print("Migration 32 error: $e");
       }
     }
   }
