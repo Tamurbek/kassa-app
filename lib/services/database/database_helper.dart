@@ -348,6 +348,7 @@ class DatabaseHelper {
         deletedAt TEXT NOT NULL,
         isSynced INTEGER NOT NULL DEFAULT 0
       )
+    ''');
     await db.execute('''
       CREATE TABLE IF NOT EXISTS stock_transactions (
         id TEXT PRIMARY KEY,
