@@ -566,6 +566,8 @@ class DatabaseService {
            continue;
         }
 
+        final id = tableName == 'settings' ? mutable['key'] : mutable['id'];
+
         try {
           await txn.insert(tableName, mutable, conflictAlgorithm: ConflictAlgorithm.replace);
         } catch (e) {
