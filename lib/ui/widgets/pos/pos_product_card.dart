@@ -20,7 +20,10 @@ class POSProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final stock = product.stocks[settings.currentRegister?.warehouseId] ?? 0;
+    final currentWhId = settings.currentRegister?.warehouseId;
+    final double stock = (currentWhId != null && product.stocks.containsKey(currentWhId))
+        ? (product.stocks[currentWhId] ?? 0.0)
+        : (product.stocks['default_wh'] ?? (product.stocks.isNotEmpty ? product.stocks.values.reduce((a, b) => a + b) : 0.0));
     final isLowStock = stock <= 0;
 
     return InkWell(

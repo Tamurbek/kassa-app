@@ -21,6 +21,10 @@ class StockUtils {
         final woffs = await txn.query('write_offs', where: 'isDeleted = 0');
         final transfers = await txn.query('stock_transfers', where: 'isDeleted = 0');
         final inventories = await txn.query('inventories', where: 'isDeleted = 0');
+        List<Map<String, dynamic>> stockTxns = [];
+        try {
+          stockTxns = await txn.query('stock_transactions');
+        } catch (_) {}
 
         List<Map<String, dynamic>> timeline = [];
         for (var d in entries) timeline.add({'type': 'entry', 'date': d['date'], 'doc': d});
@@ -29,6 +33,7 @@ class StockUtils {
         for (var d in woffs) timeline.add({'type': 'woff', 'date': d['date'], 'doc': d});
         for (var d in transfers) timeline.add({'type': 'transfer', 'date': d['date'], 'doc': d});
         for (var d in inventories) timeline.add({'type': 'inventory', 'date': d['date'], 'doc': d});
+        for (var d in stockTxns) timeline.add({'type': 'stock_transaction', 'date': d['date'] ?? d['created_at'], 'doc': d});
 
         timeline.sort((a, b) => a['date'].toString().compareTo(b['date'].toString()));
 
@@ -38,6 +43,20 @@ class StockUtils {
           final dId = doc['id'];
 
           switch (type) {
+            case 'stock_transaction':
+              final pId = (doc['product_id'] ?? doc['productId'])?.toString();
+              final wId = (doc['warehouse_id'] ?? doc['warehouseId'])?.toString() ?? 'default_wh';
+              final qty = (doc['quantity'] as num?)?.toDouble() ?? 0.0;
+              final txType = (doc['type'] ?? 'IN').toString().toUpperCase();
+
+              if (pId != null && pId.isNotEmpty) {
+                if (txType == 'IN') {
+                  await _increaseStockTxn(txn, pId, wId, qty);
+                } else if (txType == 'OUT') {
+                  await _decreaseStockTxn(txn, pId, wId, qty);
+                }
+              }
+              break;
             case 'entry':
               final items = await txn.query('stock_entry_items', where: 'entryId = ?', whereArgs: [dId]);
               for (var it in items) await _increaseStockTxn(txn, it['productId'].toString(), doc['warehouseId'].toString(), (it['quantity'] as num).toDouble());
