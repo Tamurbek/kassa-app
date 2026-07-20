@@ -566,9 +566,36 @@ class DatabaseService {
            continue;
         }
 
-        final id = tableName == 'settings' ? mutable['key'] : mutable['id'];
-
-        await txn.insert(tableName, mutable, conflictAlgorithm: ConflictAlgorithm.replace);
+        try {
+          await txn.insert(tableName, mutable, conflictAlgorithm: ConflictAlgorithm.replace);
+        } catch (e) {
+          if (e.toString().contains('no such table')) {
+            if (tableName == 'stock_transactions') {
+              await txn.execute('''
+                CREATE TABLE IF NOT EXISTS stock_transactions (
+                  id TEXT PRIMARY KEY,
+                  date TEXT,
+                  note TEXT,
+                  type TEXT,
+                  quantity REAL,
+                  created_at TEXT,
+                  product_id TEXT,
+                  unit_price REAL,
+                  total_price REAL,
+                  product_name TEXT,
+                  warehouse_id TEXT,
+                  warehouse_name TEXT,
+                  isSynced INTEGER NOT NULL DEFAULT 1
+                )
+              ''');
+              try {
+                await txn.insert(tableName, mutable, conflictAlgorithm: ConflictAlgorithm.replace);
+              } catch (_) {}
+            }
+          } else {
+            print("Sync insert warning ($tableName): $e");
+          }
+        }
 
         if (tableName == 'products') {
           if (barcodes != null) {
