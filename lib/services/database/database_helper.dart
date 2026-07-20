@@ -348,7 +348,6 @@ class DatabaseHelper {
         deletedAt TEXT NOT NULL,
         isSynced INTEGER NOT NULL DEFAULT 0
       )
-    ''');
     await db.execute('''
       CREATE TABLE IF NOT EXISTS stock_transactions (
         id TEXT PRIMARY KEY,
@@ -363,12 +362,31 @@ class DatabaseHelper {
         product_name TEXT,
         warehouse_id TEXT,
         warehouse_name TEXT,
-        isSynced INTEGER NOT NULL DEFAULT 0
+        isSynced INTEGER NOT NULL DEFAULT 1
       )
     ''');
   }
 
   static Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 32) {
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS stock_transactions (
+          id TEXT PRIMARY KEY,
+          date TEXT,
+          note TEXT,
+          type TEXT,
+          quantity REAL,
+          created_at TEXT,
+          product_id TEXT,
+          unit_price REAL,
+          total_price REAL,
+          product_name TEXT,
+          warehouse_id TEXT,
+          warehouse_name TEXT,
+          isSynced INTEGER NOT NULL DEFAULT 1
+        )
+      ''');
+    }
     if (oldVersion < 25) {
       try { await db.execute('CREATE INDEX IF NOT EXISTS idx_products_name ON products (name)'); } catch(_) {}
       try { await db.execute('CREATE INDEX IF NOT EXISTS idx_products_barcode ON products (barcode)'); } catch(_) {}
@@ -722,29 +740,6 @@ class DatabaseHelper {
         await db.execute('CREATE INDEX IF NOT EXISTS idx_products_plu ON products (pluCode)');
       } catch (e) {
         print("Migration 31 error: $e");
-      }
-    }
-    if (oldVersion < 32) {
-      try {
-        await db.execute('''
-          CREATE TABLE IF NOT EXISTS stock_transactions (
-            id TEXT PRIMARY KEY,
-            date TEXT,
-            note TEXT,
-            type TEXT,
-            quantity REAL,
-            created_at TEXT,
-            product_id TEXT,
-            unit_price REAL,
-            total_price REAL,
-            product_name TEXT,
-            warehouse_id TEXT,
-            warehouse_name TEXT,
-            isSynced INTEGER NOT NULL DEFAULT 0
-          )
-        ''');
-      } catch (e) {
-        print("Migration 32 error: $e");
       }
     }
   }

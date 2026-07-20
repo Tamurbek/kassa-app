@@ -616,7 +616,32 @@ class DatabaseService {
           }
         }
 
-        if (['sales', 'returns', 'write_offs', 'stock_entries', 'stock_transfers', 'inventories'].contains(tableName)) {
+        if (tableName == 'stock_transactions') {
+          final prodId = mutable['product_id'] ?? mutable['productId'];
+          final whId = mutable['warehouse_id'] ?? mutable['warehouseId'] ?? 'default_wh';
+          final qty = (mutable['quantity'] as num?)?.toDouble() ?? 0.0;
+          final type = mutable['type']?.toString().toUpperCase() ?? 'IN';
+
+          if (prodId != null && prodId.toString().isNotEmpty) {
+            final stockRes = await txn.query(
+              'stocks',
+              where: 'productId = ? AND warehouseId = ?',
+              whereArgs: [prodId, whId],
+            );
+            double currentStock = stockRes.isNotEmpty ? ((stockRes.first['quantity'] as num?)?.toDouble() ?? 0.0) : 0.0;
+            double delta = type == 'IN' ? qty : -qty;
+            double newStock = currentStock + delta;
+            if (newStock < 0) newStock = 0;
+
+            await txn.insert(
+              'stocks',
+              {'productId': prodId, 'warehouseId': whId, 'quantity': newStock},
+              conflictAlgorithm: ConflictAlgorithm.replace,
+            );
+          }
+        }
+
+        if (['sales', 'returns', 'write_offs', 'stock_entries', 'stock_transfers', 'inventories', 'stock_transactions'].contains(tableName)) {
           needsRecalculate = true;
         }
       }
